@@ -1,0 +1,17 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@inject Microsoft.AspNetCore.Identity.SignInManager<TN.Data.Entities.AppUser> signInManager
+@inject Microsoft.AspNetCore.Identity.UserManager<TN.Data.Entities.AppUser> userManager
+
+<div class="text-center">
+    @if (signInManager.IsSignedIn(User))
+    {
+        Task<TN.Data.Entities.AppUser> user = signInManager.UserManager.FindByNameAsync(User.Identity.Name);
+        <h1 class="display-4">Welcome <span style="color:red">@user.Result.FirstName @user.Result.LastName</span></h1>
+    }
+    else
+    {
+        <h1 class="display-4">You need to login</h1>
+    }
+</div>

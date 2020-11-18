@@ -1,0 +1,94 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="ViewModels\**" />
+    <EmbeddedResource Remove="ViewModels\**" />
+    <None Remove="ViewModels\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Migrations\20200912054049_Initial Create.cs" />
+    <Compile Remove="Migrations\20200912054049_Initial Create.Designer.cs" />
+    <Compile Remove="Migrations\20200912054425_Initial Create.cs" />
+    <Compile Remove="Migrations\20200912054425_Initial Create.Designer.cs" />
+    <Compile Remove="Migrations\20200912064736_Initial Create.cs" />
+    <Compile Remove="Migrations\20200912064736_Initial Create.Designer.cs" />
+    <Compile Remove="Migrations\20200912065247_Initial Create.cs" />
+    <Compile Remove="Migrations\20200912065247_Initial Create.Designer.cs" />
+    <Compile Remove="Migrations\20200912073324_Initial Create.cs" />
+    <Compile Remove="Migrations\20200912073324_Initial Create.Designer.cs" />
+    <Compile Remove="Migrations\20200912073540_Initial Create.cs" />
+    <Compile Remove="Migrations\20200912073540_Initial Create.Designer.cs" />
+    <Compile Remove="Migrations\20200912073749_Initial Create.cs" />
+    <Compile Remove="Migrations\20200912073749_Initial Create.Designer.cs" />
+    <Compile Remove="Migrations\20200912075109_Init.cs" />
+    <Compile Remove="Migrations\20200912075109_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200912075433_Init.cs" />
+    <Compile Remove="Migrations\20200912075433_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200912080133_Init.cs" />
+    <Compile Remove="Migrations\20200912080133_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200912080728_Init.cs" />
+    <Compile Remove="Migrations\20200912080728_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200912082742_Init.cs" />
+    <Compile Remove="Migrations\20200912082742_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200912084840_Init.cs" />
+    <Compile Remove="Migrations\20200912084840_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200913033726_Init.cs" />
+    <Compile Remove="Migrations\20200913033726_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200913034835_Init.cs" />
+    <Compile Remove="Migrations\20200913034835_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200913035735_Init.cs" />
+    <Compile Remove="Migrations\20200913035735_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200913040354_Init.cs" />
+    <Compile Remove="Migrations\20200913040354_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200913040947_Init.cs" />
+    <Compile Remove="Migrations\20200913040947_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200913042349_Init.cs" />
+    <Compile Remove="Migrations\20200913042349_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200913043235_Init.cs" />
+    <Compile Remove="Migrations\20200913043235_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200913043827_Init.cs" />
+    <Compile Remove="Migrations\20200913043827_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200913044539_Init.cs" />
+    <Compile Remove="Migrations\20200913044539_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200914090151_Init.cs" />
+    <Compile Remove="Migrations\20200914090151_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200914090742_Init.cs" />
+    <Compile Remove="Migrations\20200914090742_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200914090950_Init.cs" />
+    <Compile Remove="Migrations\20200914090950_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200914091318_Init.cs" />
+    <Compile Remove="Migrations\20200914091318_Init.Designer.cs" />
+    <Compile Remove="Migrations\20200914095510_Init.cs" />
+    <Compile Remove="Migrations\20200914095510_Init.Designer.cs" />
+    <Compile Remove="Migrations\20201110064706_Initial Creation.cs" />
+    <Compile Remove="Migrations\20201110064706_Initial Creation.Designer.cs" />
+    <Compile Remove="Migrations\20201110065125_Initial Creation 2.cs" />
+    <Compile Remove="Migrations\20201110065125_Initial Creation 2.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.8" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Enums\" />
+  </ItemGroup>
+
+</Project>
