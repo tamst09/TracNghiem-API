@@ -4,7 +4,7 @@ using System.Text;
 
 namespace TN.ViewModels.Catalog.Categories
 {
-    public class CategoryViewModel
+    public class CategoryVM
     {
         public string CategoryName { get; set; }
     }

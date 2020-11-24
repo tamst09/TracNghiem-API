@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System;
 using System.Text;
 using TN.Business.Catalog.Implementor;
 using TN.Business.Catalog.Interface;
@@ -38,9 +39,6 @@ namespace TN.BackendAPI
             services.AddTransient<UserManager<AppUser>, UserManager<AppUser>>();
             services.AddTransient<SignInManager<AppUser>, SignInManager<AppUser>>();
             services.AddTransient<RoleManager<AppRole>, RoleManager<AppRole>>();
-
-
-
             services.AddTransient<IStorageService, StorageService>();
             services.AddTransient<ICategoryService, CategoryService>();
             services.AddTransient<IUserExamService, UserExamService>();
@@ -55,18 +53,27 @@ namespace TN.BackendAPI
                     Configuration["EmailSender:Password"]
 
             ));
+
+            var jwtSection = Configuration.GetSection("Tokens");
+            services.Configure<JWTSettings>(jwtSection);
+            //to validate the token which has been sent by clients
+            var appSettings = jwtSection.Get<JWTSettings>();
+            var key = Encoding.ASCII.GetBytes(appSettings.SecretKey);
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(options =>
                     {
+                        options.RequireHttpsMetadata = true;
+                        options.SaveToken = true;
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
-                            ValidateIssuer = true,
-                            ValidateAudience = true,
+                            ValidateIssuer = false,
+                            ValidateAudience = false,
                             ValidateLifetime = true,
+                            ClockSkew = TimeSpan.Zero,
                             ValidateIssuerSigningKey = true,
                             ValidIssuer = Configuration["Jwt:Issuer"],
                             ValidAudience = Configuration["Jwt:Issuer"],
-                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:Key"]))
+                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:SecretKey"]))
                         };
                     });
             services.AddControllersWithViews().AddNewtonsoftJson(

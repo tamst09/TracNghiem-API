@@ -86,7 +86,7 @@ namespace TN.App.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _manageCateService.Update(request);
+                await _manageCateService.Update(request.ID,request);
                 return RedirectToAction(nameof(Index));
             }
             return View(request);

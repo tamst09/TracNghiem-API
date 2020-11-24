@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TN.Data.DataContext;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog;
 
 namespace TN.BackendAPI.Controllers
 {
@@ -41,8 +42,6 @@ namespace TN.BackendAPI.Controllers
         }
 
         // PUT: api/Questions/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
         public async Task<IActionResult> PutQuestion(int id, Question question)
         {
@@ -50,9 +49,7 @@ namespace TN.BackendAPI.Controllers
             {
                 return BadRequest();
             }
-
             _context.Entry(question).State = EntityState.Modified;
-
             try
             {
                 await _context.SaveChangesAsync();
@@ -68,17 +65,24 @@ namespace TN.BackendAPI.Controllers
                     throw;
                 }
             }
-
             return NoContent();
         }
 
         // POST: api/Questions
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<Question>> PostQuestion(Question question)
+        public async Task<ActionResult<Question>> PostQuestion(QuestionVM question)
         {
-            _context.Questions.Add(question);
+            _context.Questions.Add(new Question { 
+                ID = question.ID,
+                QuesContent = question.QuesContent,
+                Option1 = question.Option1,
+                Option2 = question.Option2,
+                Option3 = question.Option3,
+                Option4 = question.Option4,
+                Answer = question.Answer,
+                ExamID = question.ExamID,
+                STT = question.STT
+            });
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetQuestion", new { id = question.ID }, question);

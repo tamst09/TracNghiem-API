@@ -31,7 +31,12 @@ namespace TN.Data.DataContext
             modelBuilder.Entity<IdentityUserLogin<int>>().ToTable("AppNetUserLogins").HasKey(a => new { a.LoginProvider, a.ProviderKey });
             modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("AppNetRoleClaims");
             modelBuilder.Entity<IdentityUserToken<int>>().ToTable("AppNetUserTokens").HasKey(a => new { a.UserId,a.LoginProvider,a.Name });
-
+            
+            modelBuilder.Entity<RefreshToken>(e => 
+                {
+                    e.ToTable("RefreshTokens").HasKey(t => t.TokenId);
+                    e.HasOne(d => d.User).WithMany(p => p.RefreshTokens).HasForeignKey(d => d.UserId);
+                });
             modelBuilder.Seed();
             
         }
@@ -42,5 +47,6 @@ namespace TN.Data.DataContext
         public DbSet<FavoriteExam> FavoriteExams { get; set; }
         public DbSet<Result> Results { get; set; }
         public DbSet<MailBox> MailBoxes { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
     }
 }

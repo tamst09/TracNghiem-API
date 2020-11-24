@@ -23,14 +23,14 @@ namespace TN.BackendAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Exam>>> GetExams()
         {
-            return await _context.Exams.ToListAsync();
+            return await _context.Exams.Include(e=>e.Questions).ToListAsync();
         }
 
         // GET: api/Exams/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Exam>> GetExam(int id)
         {
-            var exam = await _context.Exams.FindAsync(id);
+            var exam = await _context.Exams.Include(e => e.Questions).FirstOrDefaultAsync(e => e.ID == id);
 
             if (exam == null)
             {
@@ -50,9 +50,7 @@ namespace TN.BackendAPI.Controllers
             {
                 return BadRequest();
             }
-
             _context.Entry(exam).State = EntityState.Modified;
-
             try
             {
                 await _context.SaveChangesAsync();
@@ -68,19 +66,14 @@ namespace TN.BackendAPI.Controllers
                     throw;
                 }
             }
-
             return NoContent();
         }
 
-        // POST: api/Exams
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
         public async Task<ActionResult<Exam>> PostExam(Exam exam)
         {
             _context.Exams.Add(exam);
             await _context.SaveChangesAsync();
-
             return CreatedAtAction("GetExam", new { id = exam.ID }, exam);
         }
 
@@ -93,7 +86,6 @@ namespace TN.BackendAPI.Controllers
             {
                 return NotFound();
             }
-
             _context.Exams.Remove(exam);
             await _context.SaveChangesAsync();
 

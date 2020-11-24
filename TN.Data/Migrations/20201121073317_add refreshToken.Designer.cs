@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TN.Data.DataContext;
 
 namespace TN.Data.Migrations
 {
     [DbContext(typeof(TNDbContext))]
-    partial class TNDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201121073317_add refreshToken")]
+    partial class addrefreshToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

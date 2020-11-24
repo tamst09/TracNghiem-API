@@ -2,7 +2,7 @@
 
 namespace TN.ViewModels.Catalog.Exams
 {
-    public class ExamViewModel
+    public class ExamVM
     {
         public string ExamName { get; set; }
         public bool Status { get; set; }  //trạng thái public hay private

@@ -22,9 +22,5 @@
     <ProjectReference Include="..\TN.Data\TN.Data.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="img_folder\" />
-  </ItemGroup>
-
 
 </Project>

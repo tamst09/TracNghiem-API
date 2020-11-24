@@ -12,8 +12,4 @@
     <ProjectReference Include="..\TN.Data\TN.Data.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Sys\" />
-  </ItemGroup>
-
 </Project>
