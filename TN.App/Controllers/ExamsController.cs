@@ -17,12 +17,12 @@ namespace TN.App.Controllers
         private readonly TNDbContext _context;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly UserManager<AppUser> _userManager;
-        private readonly IManageExamService _examManager;
+        private readonly IExamService _examManager;
 
         public ExamsController(TNDbContext context,
             SignInManager<AppUser> signInManager,
             UserManager<AppUser> userManager,
-            IManageExamService examManager)
+            IExamService examManager)
         {
             _context = context;
             _signInManager = signInManager;

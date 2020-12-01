@@ -14,51 +14,46 @@ using TN.ViewModels.Common;
 
 namespace TN.Business.Catalog.Implementor
 {
-    public class ManageExamService : IManageExamService
+    public class ExamService : IExamService
     {
         private readonly TNDbContext _db;
-        private readonly IStorageService _storageService;
-        public ManageExamService(TNDbContext db, IStorageService storageService)
+        public ExamService(TNDbContext db, IStorageService storageService)
         {
             _db = db;
-            _storageService = storageService;
-
         }
-        public async Task<int> Create(Exam request, int userID)
+        public async Task<Exam> create(Exam request, int userID)
         {
             var exam = new Exam()
             {
                 ExamName = request.ExamName,
                 isPrivate = request.isPrivate,
                 Time = request.Time * 60,
+                ImageURL = request.ImageURL,
                 TimeCreated = DateTime.Now,
                 NumOfAttemps = 0,
                 CategoryID = request.CategoryID,
-                OwnerID = userID
+                OwnerID = userID,
+                isActive = true
             };
-            //if (request.Image!=null)
-            //    exam.ImageURL = await this.SaveFile(request.Image);
             _db.Exams.Add(exam);
-            return await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
+            return exam;
         }
-
-        public async Task<int> Delete(int examID)
+        public async Task<bool> delete(int examID)
         {
             var exam = await _db.Exams.FindAsync(examID);
-            if (exam == null) throw new Exception("Exam not found");
-            await _storageService.DeleteFileAsync(exam.ImageURL);
-            _db.Exams.Remove(exam);
-            return await _db.SaveChangesAsync();
+            if (exam == null) return false;
+            exam.isActive = false;
+            await _db.SaveChangesAsync();
+            return true;
         }
-
-        public async Task<List<Exam>> GetAll()
+        public async Task<List<Exam>> getAll()
         {
-            var list = await _db.Exams.Include(e => e.Owner).Include(e => e.Questions).Include(e => e.Category).ToListAsync();
+            var list = await _db.Exams.Where(e => e.isActive == true).Include(e => e.Owner).Include(e => e.Questions).Include(e => e.Category).ToListAsync();
             list.OrderBy(e => e.ExamName).ToList();
             return list;
         }
-
-        public async Task<PagedResultVM<Exam>> GetAllPaging(GetExamPagingRequest request)
+        public async Task<PagedResultVM<Exam>> getAllPaging(GetExamPagingRequest request)
         {
             var query = from e in _db.Exams
                         join c in _db.Categories on e.CategoryID equals c.ID
@@ -82,7 +77,8 @@ namespace TN.Business.Catalog.Implementor
                     NumOfAttemps = e.NumOfAttemps,
                     ImageURL = e.ImageURL,
                     OwnerID = e.OwnerID,
-                    CategoryID = (int)e.CategoryID
+                    CategoryID = (int)e.CategoryID,
+                    isActive = e.isActive
                 }).ToListAsync();
             var pageResult = new PagedResultVM<Exam>()
             {
@@ -92,41 +88,40 @@ namespace TN.Business.Catalog.Implementor
             return pageResult;
         }
 
-        public async Task<Exam> GetByID(int id)
+        public async Task<Exam> getByID(int id)
         {
-            var exam = await _db.Exams.Include(e => e.Owner).Include(e => e.Questions).Include(e => e.Category).FirstOrDefaultAsync(e => e.ID == id);
+            var exam = await _db.Exams.Where(e => e.isActive == true).Include(e => e.Owner).Include(e => e.Questions).Include(e => e.Category).FirstOrDefaultAsync(e => e.ID == id);
             if (exam == null)
                 throw new Exception("Exam not found");
             exam.Questions.OrderBy(e => e.STT).ToList();
             return exam;
         }
-
-        public async Task IncreaseAttemps(int examID)
+        public async Task<int> increaseAttemps(int examID)
         {
             var exam = await _db.Exams.FindAsync(examID);
             exam.NumOfAttemps += 1;
-            await _db.SaveChangesAsync();
-        }
-
-        public async Task<int> Update(Exam request)
-        {
-            var exam = await _db.Exams.FindAsync(request.ID);
-
-            if (exam == null) throw new Exception("exam not found");
-            exam.ExamName = request.ExamName;
-            exam.isPrivate = request.isPrivate;
-            exam.Time = request.Time * 60;
-            //if(request.Image!=null)
-            //    exam.ImageURL = await this.SaveFile(request.Image);
-            exam.CategoryID = request.CategoryID;
             return await _db.SaveChangesAsync();
         }
-        private async Task<string> SaveFile(IFormFile file)
+
+        public async Task<Exam> update(Exam request)
         {
-            var originalFileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(originalFileName)}";
-            await _storageService.SaveFileAsync(file.OpenReadStream(), fileName);
-            return fileName;
+            var exam = await _db.Exams.FindAsync(request.ID);
+            if (exam == null) return null;
+            exam.ExamName = request.ExamName;
+            exam.isPrivate = request.isPrivate;
+            exam.Time = request.Time;
+            exam.CategoryID = request.CategoryID;
+            exam.isActive = request.isActive;
+            await _db.SaveChangesAsync();
+            return exam;
         }
+
+        //private async Task<string> SaveFile(IFormFile file)
+        //{
+        //    var originalFileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+        //    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(originalFileName)}";
+        //    await _storageService.SaveFileAsync(file.OpenReadStream(), fileName);
+        //    return fileName;
+        //}
     }
 }

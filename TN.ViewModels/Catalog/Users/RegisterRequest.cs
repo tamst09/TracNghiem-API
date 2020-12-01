@@ -21,6 +21,10 @@ namespace TN.ViewModels.Catalog.Users
         public string Email { get; set; }
 
         [Required]
+        [Phone]
+        public string PhoneNumber { get; set; }
+
+        [Required]
         [Display(Name = "Date of birth")]
         [DataType(DataType.Date)]
         public DateTime DoB { get; set; }

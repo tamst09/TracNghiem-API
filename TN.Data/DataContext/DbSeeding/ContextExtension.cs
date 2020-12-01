@@ -43,7 +43,8 @@ namespace TN.Data.DataContext.DbSeeding
                     SecurityStamp = string.Empty,
                     FirstName = "Admin",
                     LastName = "Default",
-                    DoB = new DateTime(1999, 4, 26)
+                    DoB = new DateTime(1999, 4, 26),
+                    isActive = true
                 },
                 new AppUser
                 {
@@ -57,7 +58,8 @@ namespace TN.Data.DataContext.DbSeeding
                     SecurityStamp = string.Empty,
                     FirstName = "User",
                     LastName = "Default",
-                    DoB = new DateTime(1999, 4, 26)
+                    DoB = new DateTime(1999, 4, 26),
+                    isActive = true
                 }
             );
             modelBuilder.Entity<IdentityUserRole<int>>().HasData(

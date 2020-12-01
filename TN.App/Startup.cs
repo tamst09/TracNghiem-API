@@ -66,7 +66,7 @@ namespace TN.App
             services.AddTransient<IStorageService, StorageService>();
             services.AddTransient<ICategoryService, CategoryService>();
             services.AddTransient<IUserExamService, UserExamService>();
-            services.AddTransient<IManageExamService, ManageExamService>();
+            services.AddTransient<IExamService, ExamService>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IEmailSender, EmailSender>(i =>
                 new EmailSender(

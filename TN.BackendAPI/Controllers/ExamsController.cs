@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TN.Business.Catalog.Interface;
 using TN.Data.DataContext;
 using TN.Data.Entities;
 
@@ -12,89 +14,61 @@ namespace TN.BackendAPI.Controllers
     [ApiController]
     public class ExamsController : ControllerBase
     {
-        private readonly TNDbContext _context;
+        private readonly IExamService _examService;
 
-        public ExamsController(TNDbContext context)
+        public ExamsController(IExamService examService)
         {
-            _context = context;
+            _examService=examService;
         }
 
         // GET: api/Exams
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Exam>>> GetExams()
+        public async Task<ActionResult<List<Exam>>> GetExams()
         {
-            return await _context.Exams.Include(e=>e.Questions).ToListAsync();
+            return await _examService.getAll();
         }
 
         // GET: api/Exams/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Exam>> GetExam(int id)
         {
-            var exam = await _context.Exams.Include(e => e.Questions).FirstOrDefaultAsync(e => e.ID == id);
+            var exam = await _examService.getByID(id);
 
             if (exam == null)
             {
                 return NotFound();
             }
 
-            return exam;
+            return Ok(exam);
         }
 
         // PUT: api/Exams/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
         public async Task<IActionResult> PutExam(int id, Exam exam)
         {
-            if (id != exam.ID)
+
+            var result = _examService.update(exam);
+            if(result == null)
             {
-                return BadRequest();
+                return NotFound();
             }
-            _context.Entry(exam).State = EntityState.Modified;
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ExamExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return NoContent();
+            return Ok(result);
         }
 
-        [HttpPost]
-        public async Task<ActionResult<Exam>> PostExam(Exam exam)
+        // POST api/Exams/userID
+        [HttpPost("{userid}")]
+        public async Task<ActionResult<Exam>> PostExam(Exam exam, int userid)
         {
-            _context.Exams.Add(exam);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction("GetExam", new { id = exam.ID }, exam);
+            return Ok(await _examService.create(exam, userid));
         }
 
         // DELETE: api/Exams/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Exam>> DeleteExam(int id)
+        public async Task<ActionResult<bool>> DeleteExam(int id)
         {
-            var exam = await _context.Exams.FindAsync(id);
-            if (exam == null)
-            {
-                return NotFound();
-            }
-            _context.Exams.Remove(exam);
-            await _context.SaveChangesAsync();
-
-            return exam;
-        }
-
-        private bool ExamExists(int id)
-        {
-            return _context.Exams.Any(e => e.ID == id);
+            var result = await _examService.delete(id);
+            if (result == false) return NotFound();
+            else return Ok("Delete successfully");
         }
     }
 }
