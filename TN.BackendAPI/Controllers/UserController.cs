@@ -19,6 +19,7 @@ namespace TN.BackendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
@@ -100,6 +101,7 @@ namespace TN.BackendAPI.Controllers
             }
             return BadRequest("Register unsuccessfully");
         }
+
         [HttpPost("forgot")]
         public async Task<IActionResult> ForgotPassword([FromBody]ForgotPasswordModel model) 
         {

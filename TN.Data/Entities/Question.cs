@@ -18,6 +18,7 @@ namespace TN.Data.Entities
         public Exam Exam { get; set; }
         public int ExamID { get; set; }
         public List<Result> Results { get; set; }
+        public bool isActive { get; set; }
 
     }
 }

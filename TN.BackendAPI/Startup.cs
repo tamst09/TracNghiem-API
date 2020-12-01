@@ -42,7 +42,7 @@ namespace TN.BackendAPI
             services.AddTransient<IStorageService, StorageService>();
             services.AddTransient<ICategoryService, CategoryService>();
             services.AddTransient<IUserExamService, UserExamService>();
-            services.AddTransient<IManageExamService, ManageExamService>();
+            services.AddTransient<IExamService, ExamService>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IEmailSender, EmailSender>(i =>
                 new EmailSender(
@@ -53,12 +53,6 @@ namespace TN.BackendAPI
                     Configuration["EmailSender:Password"]
 
             ));
-
-            var jwtSection = Configuration.GetSection("Tokens");
-            services.Configure<JWTSettings>(jwtSection);
-            //to validate the token which has been sent by clients
-            var appSettings = jwtSection.Get<JWTSettings>();
-            var key = Encoding.ASCII.GetBytes(appSettings.SecretKey);
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(options =>
                     {

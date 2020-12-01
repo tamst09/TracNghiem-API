@@ -73,7 +73,8 @@ namespace TN.BackendAPI.Controllers
         {
             _db.Categories.Add(new Category() { CategoryName = category.CategoryName });
             await _db.SaveChangesAsync();
-            return CreatedAtAction("GetCategory", new { id = category.ID }, category);
+            return Ok(category);
+            //return CreatedAtAction("GetCategory", new { id = category.ID }, category);
         }
 
         // DELETE: api/Categories/5
@@ -89,7 +90,7 @@ namespace TN.BackendAPI.Controllers
             _db.Categories.Remove(category);
             await _db.SaveChangesAsync();
 
-            return CreatedAtAction("GetCategories",null);
+            return Ok();
         }
 
         private bool CategoryExists(int id)

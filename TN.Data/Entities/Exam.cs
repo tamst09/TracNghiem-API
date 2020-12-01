@@ -18,5 +18,7 @@ namespace TN.Data.Entities
         public AppUser Owner { get; set; }
         public int OwnerID { get; set; }
         public List<Question> Questions { get; set; }
+        public bool isActive { get; set; }
+
     }
 }

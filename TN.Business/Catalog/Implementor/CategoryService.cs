@@ -17,40 +17,49 @@ namespace TN.Business.Catalog.Implementor
         {
             _db = db;
         }
-        public async Task<int> Create(Category request)
+        public async Task<Category> create(Category request)
         {
-            _db.Categories.Add(new Category() { CategoryName = request.CategoryName });
-            return await _db.SaveChangesAsync();
+            _db.Categories.Add(new Category() 
+            { 
+                CategoryName = request.CategoryName,
+                isAcive = true,
+                Exams = null
+            });
+            await _db.SaveChangesAsync();
+            return request;
         }
 
-        public async Task<int> Delete(int categoryID)
-        {
-            var category = await _db.Categories.FindAsync(categoryID);
-            if (category == null) throw new Exception("Category not found");
-
-            _db.Categories.Remove(category);
-            return await _db.SaveChangesAsync();
-        }
-
-        public async Task<List<Category>> GetAll()
-        {
-            var categoryList = await _db.Categories.ToListAsync();
-            return categoryList;
-        }
-        public async Task<int> Update(int id, Category request)
+        public async Task<Category> update(Category request)
         {
             _db.Entry(request).State = EntityState.Modified;
-            return await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
+            return request;
         }
-        public async Task<Category> Get(int id)
+
+        public async Task<bool> delete(int categoryID)
         {
-            var category = await _db.Categories.Include(c => c.Exams).FirstOrDefaultAsync(c => c.ID == id);
-            category.Exams = category.Exams.OrderBy(e => e.ExamName).ToList();
-            if (category != null)
+            var category = await _db.Categories.FindAsync(categoryID);
+            if (category == null) return false;
+            category.isAcive = false;
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<List<Category>> getAll()
+        {
+            var categoryList = await _db.Categories.Where(c => c.isAcive == true).ToListAsync();
+            return categoryList;
+        }
+
+        public async Task<Category> getByID(int id)
+        {
+            var category = await _db.Categories.Include(c => c.Exams).Where(c => c.isAcive == true).FirstOrDefaultAsync(c => c.ID == id);
+            if (category == null)
             {
-                return category;
+                return null;
             }
-            return null;
+            category.Exams = category.Exams.OrderBy(e => e.ExamName).ToList();
+            return category;
         }
     }
 }
