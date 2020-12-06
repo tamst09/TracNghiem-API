@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TN.Business.Catalog.Interface;
 using TN.Data.DataContext;
 using TN.Data.Entities;
 
@@ -12,32 +13,32 @@ namespace TN.BackendAPI.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly TNDbContext _db;
+        private readonly ICategoryService _categoryService;
 
-        public CategoriesController(TNDbContext context)
+        public CategoriesController(ICategoryService categoryService)
         {
-            _db = context;
+            _categoryService = categoryService;
         }
+
+
 
         // GET: api/Categories
         [HttpGet]
         public async Task<ActionResult<List<Category>>> GetCategories()
         {
-            var categoryList = await _db.Categories.ToListAsync();
-            return categoryList;
+            return await _categoryService.getAll();
         }
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Category>> GetCategory(int id)
         {
-            var category = await _db.Categories.Include(c => c.Exams).FirstOrDefaultAsync(c => c.ID == id);
+            var category = await _categoryService.getByID(id);
             if (category != null)
             {
-                category.Exams = category.Exams.OrderBy(e => e.ExamName).ToList();
-                return category;
+                return Ok(category);
             }
-            return NotFound();
+            return NotFound("Category is not found");
         }
 
         // PUT: api/Categories/5
@@ -46,33 +47,22 @@ namespace TN.BackendAPI.Controllers
         {
             if (id != category.ID)
             {
-                return BadRequest();
+                return BadRequest(category);
             }
-            try
+            var flag = await _categoryService.update(category);
+            if (flag == null)
             {
-                _db.Entry(category).State = EntityState.Modified;
-                await _db.SaveChangesAsync();
-                return Ok(category);
+                return BadRequest("Update failed");
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CategoryExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            return Ok(category);
         }
 
         // POST: api/Categories
         [HttpPost]
-        public async Task<ActionResult<Category>> PostCategory([Bind("ID","CategoryName")]Category category)
+        public async Task<ActionResult<Category>> PostCategory([Bind("CategoryName")]Category category)
         {
-            _db.Categories.Add(new Category() { CategoryName = category.CategoryName });
-            await _db.SaveChangesAsync();
+
+            await _categoryService.create(category);
             return Ok(category);
             //return CreatedAtAction("GetCategory", new { id = category.ID }, category);
         }
@@ -81,21 +71,8 @@ namespace TN.BackendAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Category>> DeleteCategory(int id)
         {
-            var category = await _db.Categories.FindAsync(id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-
-            _db.Categories.Remove(category);
-            await _db.SaveChangesAsync();
-
+            await _categoryService.delete(id);
             return Ok();
-        }
-
-        private bool CategoryExists(int id)
-        {
-            return _db.Categories.Any(e => e.ID == id);
         }
     }
 }

@@ -19,34 +19,25 @@ namespace TN.Business.Catalog.Implementor
         {
             _db = db;
         }
-        public async Task<List<Question>> GetAll()
-        {
-            return await _db.Questions.ToListAsync();
-        }
 
         public Task<PagedResultVM<Question>> GetAllQuestionPaging(GetQuestionPagingRequest request)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<Question> GetByID(int questionID)
-        {
-            var question = await _db.Questions.Include(q => q.Exam).FirstOrDefaultAsync(q => q.ID == questionID);
-            return question;
-        }
 
-        public async Task<List<Question>> GetListQuestionByExam(int examID)
+        public async Task<List<Question>> getListQuestionByExam(int examID)
         {
-            var k = await _db.Exams.Include(e => e.Category).Include(e => e.Owner).Include(e => e.Questions).FirstOrDefaultAsync(e => e.ID == examID);
+            var k = await _db.Exams.Include(e => e.Questions).FirstOrDefaultAsync(e => e.ID == examID);
             if (k == null)
             {
-                throw new Exception("Not found");
+                return null;
             }
             var result = k.Questions.ToList();
             return result;
         }
 
-        public async Task<int> Create(Question request, int examID)
+        public async Task<Question> create(Question request, int examID)
         {
             var question = new Question()
             {
@@ -58,18 +49,21 @@ namespace TN.Business.Catalog.Implementor
                 Answer = request.Answer,
                 ImgURL = request.ImgURL,
                 ExamID = examID,
-                STT = request.STT
+                STT = request.STT,
+                isActive = true
             };
             //if (request.Image!=null)
             //    exam.ImageURL = await this.SaveFile(request.Image);
             _db.Questions.Add(question);
-            return await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
+            return request;
         }
-        public async Task<int> Update(Question request)
+
+        public async Task<Question> update(Question request)
         {
             var question = await _db.Questions.FindAsync(request.ID);
 
-            if (question == null) throw new Exception("question not found");
+            if (question == null) return null;
             question.QuesContent = request.QuesContent;
             question.Option1 = request.Option1;
             question.Option2 = request.Option2;
@@ -80,15 +74,26 @@ namespace TN.Business.Catalog.Implementor
             question.STT = request.STT;
             //if(request.Image!=null)
             //    exam.ImageURL = await this.SaveFile(request.Image);
-            return await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
+            return request;
         }
-        public async Task<int> Delete(int questionID)
+
+        public async Task<bool> delete(int questionID)
         {
             var question = await _db.Questions.FindAsync(questionID);
-            if (question == null) throw new Exception("Exam not found");
-            //await _storageService.DeleteFileAsync(exam.ImageURL);
-            _db.Questions.Remove(question);
-            return await _db.SaveChangesAsync();
+            if (question == null) return false;
+            if(question.isActive == true)
+                question.isActive = false;
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<Question> getByID(int id)
+        {
+            var question = await _db.Questions.Where(e => e.isActive == true).Include(e => e.Exam).FirstOrDefaultAsync(e => e.ID == id);
+            if (question == null)
+                return null;
+            return question;
         }
     }
 }

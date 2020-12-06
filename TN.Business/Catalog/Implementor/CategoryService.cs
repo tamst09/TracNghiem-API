@@ -31,9 +31,16 @@ namespace TN.Business.Catalog.Implementor
 
         public async Task<Category> update(Category request)
         {
-            _db.Entry(request).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-            return request;
+            try
+            {
+                _db.Entry(request).State = EntityState.Modified;
+                await _db.SaveChangesAsync();
+                return request;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return null;
+            }
         }
 
         public async Task<bool> delete(int categoryID)

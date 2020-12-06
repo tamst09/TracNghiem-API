@@ -14,6 +14,7 @@ using TN.Business.Catalog.Interface;
 using TN.Data.DataContext;
 using TN.Data.Entities;
 using TN.Data.Model;
+using TN.Data.ViewModel;
 using TN.ViewModels.Catalog.Users;
 
 namespace TN.Business.Catalog.Implementor
@@ -164,9 +165,30 @@ namespace TN.Business.Catalog.Implementor
 
             return true;
         }
+        public async Task<string> forgotPassword(ForgotPasswordModel model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if(user != null)
+            {
+                string resetCode = await _userManager.GeneratePasswordResetTokenAsync(user);
+                return resetCode;
+            }
+            return null;
+        }
         private bool UserExists(int id)
         {
             return _context.Users.Any(e => e.Id == id);
+        }
+
+        public async Task<string> resetPassword(ResetPasswordModel model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user != null)
+            {
+                var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
+                return "OK";
+            }
+            return null;
         }
     }
 }

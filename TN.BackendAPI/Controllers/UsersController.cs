@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using TN.Business.Catalog.Interface;
 using TN.Data.Entities;
 using TN.Data.Model;
+using TN.Data.ViewModel;
 using TN.ViewModels.Catalog.Users;
 
 namespace TN.BackendAPI.Controllers
@@ -72,7 +73,7 @@ namespace TN.BackendAPI.Controllers
             return Ok(result);
         }
 
-        // POST: api/Users
+        // POST: api/Users/register
         [HttpPost("register")]
         [AllowAnonymous]
         public async Task<ActionResult<AppUser>> RegisterUser([FromBody] RegisterRequest request)
@@ -85,6 +86,38 @@ namespace TN.BackendAPI.Controllers
             if (result == null) return BadRequest("Unsuccesfully register");
             return Ok(result);
         }
+
+        // POST: api/Users/getresetcode
+        [HttpPost("getresetcode")]
+        [AllowAnonymous]
+        public async Task<IActionResult> forgotPassword([FromBody] ForgotPasswordModel model)
+        {
+            if(ModelState.IsValid)
+            {
+                var resultStringCode = await _userService.forgotPassword(model);
+                return Ok(resultStringCode);
+            }
+            return BadRequest(model);
+        }
+
+        // POST: api/Users/resetpass
+        [HttpPost("resetpass")]
+        [AllowAnonymous]
+        public async Task<IActionResult> resetPassword([FromBody] ResetPasswordModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var result = await _userService.resetPassword(model);
+            
+            if (result=="OK")
+            {
+                return Ok("Password Changed");
+            }
+            return NotFound("user not found");
+        }
+
 
         // GET: api/Users
         //[HttpPost("RefreshToken")]
