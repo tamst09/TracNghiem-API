@@ -8,10 +8,10 @@ namespace TN.Business.Catalog.Interface
 {
     public interface ICategoryService
     {
-        Task<Category> create(Category request);
-        Task<Category> update(Category request);
-        Task<bool> delete(int examID);
-        Task<List<Category>> getAll();
-        Task<Category> getByID(int id);
+        Task<Category> Create(Category request);
+        Task<Category> Update(Category request);
+        Task<bool> Delete(int examID);
+        Task<List<Category>> GetAll();
+        Task<Category> GetByID(int id);
     }
 }

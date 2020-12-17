@@ -2,19 +2,19 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System;
 using System.Text;
-using TN.Business.Catalog.Implementor;
-using TN.Business.Catalog.Interface;
+using TN.BackendAPI.Settings;
+using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
+using TN.BackendAPI.Services.Service;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace TN.BackendAPI
 {
@@ -33,8 +33,7 @@ namespace TN.BackendAPI
             services.AddDbContextPool<TNDbContext>(options => 
                 options.UseSqlServer(Configuration.GetConnectionString("TNDatabase")));
             services.AddIdentity<AppUser, AppRole>()
-                .AddEntityFrameworkStores<TNDbContext>()
-                .AddDefaultTokenProviders();
+                .AddEntityFrameworkStores<TNDbContext>();
             //Declare DI
             services.AddTransient<UserManager<AppUser>, UserManager<AppUser>>();
             services.AddTransient<SignInManager<AppUser>, SignInManager<AppUser>>();
@@ -44,6 +43,7 @@ namespace TN.BackendAPI
             services.AddTransient<IUserExamService, UserExamService>();
             services.AddTransient<IExamService, ExamService>();
             services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IFacebookAuth, FacebookAuthService>();
             services.AddTransient<IEmailSender, EmailSender>(i =>
                 new EmailSender(
                     Configuration["EmailSender:Host"],
@@ -53,29 +53,39 @@ namespace TN.BackendAPI
                     Configuration["EmailSender:Password"]
 
             ));
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                    .AddJwtBearer(options =>
-                    {
-                        options.RequireHttpsMetadata = true;
-                        options.SaveToken = true;
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateIssuer = false,
-                            ValidateAudience = false,
-                            ValidateLifetime = true,
-                            ClockSkew = TimeSpan.Zero,
-                            ValidateIssuerSigningKey = true,
-                            ValidIssuer = Configuration["Jwt:Issuer"],
-                            ValidAudience = Configuration["Jwt:Issuer"],
-                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:SecretKey"]))
-                        };
-                    });
+            services.AddAuthentication(opt => 
+            {
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options => 
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = false;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = Configuration["Tokens:Issuer"],
+                    ValidAudience = Configuration["Tokens:Issuer"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:SecretKey"]))
+                };
+            });
+
+            //add login with fb
+            var fbAuthSettings = new FBAuthSettings();
+            Configuration.Bind(nameof(FBAuthSettings), fbAuthSettings);
+            services.AddSingleton(fbAuthSettings);
+            services.AddHttpClient();
+            
             services.AddControllersWithViews().AddNewtonsoftJson(
                 options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Swagger", Version = "v1" });
-            });
+            //services.AddSwaggerGen(c =>
+            //{
+            //    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Swagger", Version = "v1" });
+            //});
 
         }
 
@@ -87,16 +97,23 @@ namespace TN.BackendAPI
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors(options =>
+            {
+                options.AllowAnyOrigin();
+                options.AllowAnyHeader();
+                options.AllowAnyMethod();
+            });
+
+            app.UseAuthentication();
             app.UseHttpsRedirection();
             app.UseRouting();
-            app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swagger - TNWebAPI");
-            });
+            //app.UseSwagger();
+            //app.UseSwaggerUI(c =>
+            //{
+            //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swagger - TNWebAPI");
+            //});
 
             app.UseEndpoints(endpoints =>
             {

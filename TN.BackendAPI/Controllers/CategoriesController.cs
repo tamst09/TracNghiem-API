@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using TN.Business.Catalog.Interface;
+using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
 
@@ -26,14 +26,14 @@ namespace TN.BackendAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Category>>> GetCategories()
         {
-            return await _categoryService.getAll();
+            return await _categoryService.GetAll();
         }
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Category>> GetCategory(int id)
         {
-            var category = await _categoryService.getByID(id);
+            var category = await _categoryService.GetByID(id);
             if (category != null)
             {
                 return Ok(category);
@@ -49,7 +49,7 @@ namespace TN.BackendAPI.Controllers
             {
                 return BadRequest(category);
             }
-            var flag = await _categoryService.update(category);
+            var flag = await _categoryService.Update(category);
             if (flag == null)
             {
                 return BadRequest("Update failed");
@@ -62,7 +62,7 @@ namespace TN.BackendAPI.Controllers
         public async Task<ActionResult<Category>> PostCategory([Bind("CategoryName")]Category category)
         {
 
-            await _categoryService.create(category);
+            await _categoryService.Create(category);
             return Ok(category);
             //return CreatedAtAction("GetCategory", new { id = category.ID }, category);
         }
@@ -71,7 +71,7 @@ namespace TN.BackendAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Category>> DeleteCategory(int id)
         {
-            await _categoryService.delete(id);
+            await _categoryService.Delete(id);
             return Ok();
         }
     }

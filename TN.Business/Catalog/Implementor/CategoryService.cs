@@ -17,7 +17,7 @@ namespace TN.Business.Catalog.Implementor
         {
             _db = db;
         }
-        public async Task<Category> create(Category request)
+        public async Task<Category> Create(Category request)
         {
             _db.Categories.Add(new Category() 
             { 
@@ -29,7 +29,7 @@ namespace TN.Business.Catalog.Implementor
             return request;
         }
 
-        public async Task<Category> update(Category request)
+        public async Task<Category> Update(Category request)
         {
             try
             {
@@ -43,7 +43,7 @@ namespace TN.Business.Catalog.Implementor
             }
         }
 
-        public async Task<bool> delete(int categoryID)
+        public async Task<bool> Delete(int categoryID)
         {
             var category = await _db.Categories.FindAsync(categoryID);
             if (category == null) return false;
@@ -52,13 +52,13 @@ namespace TN.Business.Catalog.Implementor
             return true;
         }
 
-        public async Task<List<Category>> getAll()
+        public async Task<List<Category>> GetAll()
         {
             var categoryList = await _db.Categories.Where(c => c.isAcive == true).ToListAsync();
             return categoryList;
         }
 
-        public async Task<Category> getByID(int id)
+        public async Task<Category> GetByID(int id)
         {
             var category = await _db.Categories.Include(c => c.Exams).Where(c => c.isAcive == true).FirstOrDefaultAsync(c => c.ID == id);
             if (category == null)

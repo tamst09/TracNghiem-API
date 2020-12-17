@@ -1,0 +1,20 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using TN.Data.Entities;
+using TN.ViewModels.Common;
+
+namespace TN.BackendAPI.Services.IServices
+{
+    public interface IUserExamService
+    {
+        Task<int> Create(Exam request, int userID);
+        Task<int> Update(Exam request, int userID);
+        Task<int> Delete(int examID, int userID);
+        Task IncreaseAttemps(int examID);
+        Task<PagedResultVM<Exam>> GetAllPaging(GetExamPagingRequest request);
+        Task<List<Exam>> GetAll();
+        Task<Exam> GetByID(int id);
+    }
+}

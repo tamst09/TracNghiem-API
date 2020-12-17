@@ -17,7 +17,7 @@ namespace TN.Business.Catalog.Implementor
         {
             _db = db;
         }
-        public async Task<Exam> create(Exam request, int userID)
+        public async Task<Exam> Create(Exam request, int userID)
         {
             var exam = new Exam()
             {
@@ -35,7 +35,7 @@ namespace TN.Business.Catalog.Implementor
             await _db.SaveChangesAsync();
             return exam;
         }
-        public async Task<bool> delete(int examID)
+        public async Task<bool> Delete(int examID)
         {
             var exam = await _db.Exams.FindAsync(examID);
             if (exam == null) return false;
@@ -43,13 +43,13 @@ namespace TN.Business.Catalog.Implementor
             await _db.SaveChangesAsync();
             return true;
         }
-        public async Task<List<Exam>> getAll()
+        public async Task<List<Exam>> GetAll()
         {
             var list = await _db.Exams.Where(e => e.isActive == true).Include(e => e.Owner).Include(e => e.Questions).Include(e => e.Category).ToListAsync();
             list.OrderBy(e => e.ExamName).ToList();
             return list;
         }
-        public async Task<PagedResultVM<Exam>> getAllPaging(GetExamPagingRequest request)
+        public async Task<PagedResultVM<Exam>> GetAllPaging(GetExamPagingRequest request)
         {
             var query = from e in _db.Exams
                         join c in _db.Categories on e.CategoryID equals c.ID
@@ -84,7 +84,7 @@ namespace TN.Business.Catalog.Implementor
             return pageResult;
         }
 
-        public async Task<Exam> getByID(int id)
+        public async Task<Exam> GetByID(int id)
         {
             var exam = await _db.Exams.Where(e => e.isActive == true).Include(e => e.Owner).Include(e => e.Questions).Include(e => e.Category).FirstOrDefaultAsync(e => e.ID == id);
             if (exam == null)
@@ -92,14 +92,14 @@ namespace TN.Business.Catalog.Implementor
             exam.Questions.OrderBy(e => e.STT).ToList();
             return exam;
         }
-        public async Task<int> increaseAttemps(int examID)
+        public async Task<int> IncreaseAttemps(int examID)
         {
             var exam = await _db.Exams.FindAsync(examID);
             exam.NumOfAttemps += 1;
             return await _db.SaveChangesAsync();
         }
 
-        public async Task<Exam> update(Exam request)
+        public async Task<Exam> Update(Exam request)
         {
             var exam = await _db.Exams.FindAsync(request.ID);
             if (exam == null) return null;

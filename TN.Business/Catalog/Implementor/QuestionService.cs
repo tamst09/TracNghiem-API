@@ -26,7 +26,7 @@ namespace TN.Business.Catalog.Implementor
         }
 
 
-        public async Task<List<Question>> getListQuestionByExam(int examID)
+        public async Task<List<Question>> GetListQuestionByExam(int examID)
         {
             var k = await _db.Exams.Include(e => e.Questions).FirstOrDefaultAsync(e => e.ID == examID);
             if (k == null)
@@ -37,7 +37,7 @@ namespace TN.Business.Catalog.Implementor
             return result;
         }
 
-        public async Task<Question> create(Question request, int examID)
+        public async Task<Question> Create(Question request, int examID)
         {
             var question = new Question()
             {
@@ -59,7 +59,7 @@ namespace TN.Business.Catalog.Implementor
             return request;
         }
 
-        public async Task<Question> update(Question request)
+        public async Task<Question> Update(Question request)
         {
             var question = await _db.Questions.FindAsync(request.ID);
 
@@ -78,7 +78,7 @@ namespace TN.Business.Catalog.Implementor
             return request;
         }
 
-        public async Task<bool> delete(int questionID)
+        public async Task<bool> Delete(int questionID)
         {
             var question = await _db.Questions.FindAsync(questionID);
             if (question == null) return false;
@@ -88,7 +88,7 @@ namespace TN.Business.Catalog.Implementor
             return true;
         }
 
-        public async Task<Question> getByID(int id)
+        public async Task<Question> GetByID(int id)
         {
             var question = await _db.Questions.Where(e => e.isActive == true).Include(e => e.Exam).FirstOrDefaultAsync(e => e.ID == id);
             if (question == null)

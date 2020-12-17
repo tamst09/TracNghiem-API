@@ -19,12 +19,12 @@ namespace TN.Data.DataContext
             modelBuilder.ApplyConfiguration(new CategoryConfig());
             modelBuilder.ApplyConfiguration(new ExamConfig());
             modelBuilder.ApplyConfiguration(new QuestionConfig());
-            //modelBuilder.ApplyConfiguration(new AppRoleConfig());
-            //modelBuilder.ApplyConfiguration(new AppUserConfig());
+            modelBuilder.ApplyConfiguration(new AppUserConfig());
             modelBuilder.ApplyConfiguration(new HistoryConfig());         
             modelBuilder.ApplyConfiguration(new ResultConfig());
             modelBuilder.ApplyConfiguration(new FavoriteExamConfig());
             modelBuilder.ApplyConfiguration(new MailBoxConfig());
+            modelBuilder.ApplyConfiguration(new RefreshTokenConfig());
 
             modelBuilder.Entity<IdentityUserClaim<int>>().ToTable("AppNetUserClaims");
             modelBuilder.Entity<IdentityUserRole<int>>().ToTable("AppNetUserRoles").HasKey(a => new { a.UserId, a.RoleId});
@@ -42,5 +42,6 @@ namespace TN.Data.DataContext
         public DbSet<FavoriteExam> FavoriteExams { get; set; }
         public DbSet<Result> Results { get; set; }
         public DbSet<MailBox> MailBoxes { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
     }
 }
