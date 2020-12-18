@@ -15,6 +15,7 @@ using TN.Data.DataContext;
 using TN.Data.Entities;
 using TN.BackendAPI.Services.Service;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Newtonsoft.Json;
 
 namespace TN.BackendAPI
 {
@@ -81,11 +82,15 @@ namespace TN.BackendAPI
             services.AddHttpClient();
             
             services.AddControllersWithViews().AddNewtonsoftJson(
-                options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
-            //services.AddSwaggerGen(c =>
-            //{
-            //    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Swagger", Version = "v1" });
-            //});
+                options => {
+                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                }
+            );
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Swagger", Version = "v1" });
+            });
 
         }
 
@@ -109,11 +114,11 @@ namespace TN.BackendAPI
             app.UseRouting();
             app.UseAuthorization();
 
-            //app.UseSwagger();
-            //app.UseSwaggerUI(c =>
-            //{
-            //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swagger - TNWebAPI");
-            //});
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swagger - TNWebAPI");
+            });
 
             app.UseEndpoints(endpoints =>
             {

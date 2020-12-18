@@ -1,0 +1,58 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Login with Facebook</title>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v9.0&appId=2364928580469501&autoLogAppEvents=1" nonce="ppQqlDkd"></script>
+    <script>
+        window.fbAsyncInit = function () {
+            FB.init({
+                appId: '2364928580469501',
+                oauth: true,
+                status: true, // check login status
+                cookie: true, // enable cookies to allow the server to access the session
+                xfbml: true, // parse XFBML
+                version: 'v9.0'
+            });
+            FB.AppEvents.logPageView(); //
+        };
+
+        function fb_login() {
+            FB.login(function (response) {
+
+                if (response.authResponse != null) {
+                    sessionStorage.setItem("fb_token", response.authResponse.accessToken);
+                    console.log("saved to session");
+                    // dump complete info
+                    access_token = response.authResponse.accessToken; //get access token
+                    user_id = response.authResponse.userID; //get FB UID
+
+                    FB.api('/me', function (response) {
+                        user_email = response.email; //get user email
+                        // you can store this data into your database
+                    });
+                    window.location.replace("Login");
+                } else {
+                    //user hit cancel button
+                    console.log('User cancelled login or did not fully authorize.');
+
+                }
+            }, {
+                scope: 'public_profile,email'
+            });
+        }
+        (function () {
+            var e = document.createElement('script');
+            e.src = document.location.protocol + '//connect.facebook.net/en_US/all.js';
+            e.async = true;
+            document.getElementById('fb-root').appendChild(e);
+        }());
+    </script>
+</head>
+<body onload="fb_login()">
+</body>
+</html>

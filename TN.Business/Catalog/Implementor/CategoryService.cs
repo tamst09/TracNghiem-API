@@ -22,7 +22,7 @@ namespace TN.Business.Catalog.Implementor
             _db.Categories.Add(new Category() 
             { 
                 CategoryName = request.CategoryName,
-                isAcive = true,
+                isActive = true,
                 Exams = null
             });
             await _db.SaveChangesAsync();
@@ -47,20 +47,20 @@ namespace TN.Business.Catalog.Implementor
         {
             var category = await _db.Categories.FindAsync(categoryID);
             if (category == null) return false;
-            category.isAcive = false;
+            category.isActive = false;
             await _db.SaveChangesAsync();
             return true;
         }
 
         public async Task<List<Category>> GetAll()
         {
-            var categoryList = await _db.Categories.Where(c => c.isAcive == true).ToListAsync();
+            var categoryList = await _db.Categories.Where(c => c.isActive == true).ToListAsync();
             return categoryList;
         }
 
         public async Task<Category> GetByID(int id)
         {
-            var category = await _db.Categories.Include(c => c.Exams).Where(c => c.isAcive == true).FirstOrDefaultAsync(c => c.ID == id);
+            var category = await _db.Categories.Include(c => c.Exams).Where(c => c.isActive == true).FirstOrDefaultAsync(c => c.ID == id);
             if (category == null)
             {
                 return null;

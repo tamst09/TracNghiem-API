@@ -41,34 +41,35 @@
             FB.login(function (response) {
 
                 if (response.authResponse != null) {
-                    console.log(response);
+                    sessionStorage.setItem("fb_token", response.authResponse.accessToken);
+                    console.log("saved to session");
                     // dump complete info
                     access_token = response.authResponse.accessToken; //get access token
                     user_id = response.authResponse.userID; //get FB UID
 
                     FB.api('/me', function (response) {
                         user_email = response.email; //get user email
-                        // you can store this data into your database             
+                        // you can store this data into your database
                     });
-                    $.ajax({
-                        type: "POST",
-                        url: "/Auth/LoginFacebook",
-                        data: JSON.stringify(response),
-                        contentType: "application/json; charset=utf-8",
-                        dataType: "json",
-                        success: function (result) {
-                            console.log("post ok");
-                            if (result.redirectUrl !== undefined) {
-                                window.location.replace(result.redirectUrl);
-                            }
-                        },
-                        failure: function (response) {
-                            console.log("post failure");
-                        },
-                        error: function (response) {
-                            console.log("post error");
-                        }
-                    })
+                    //$.ajax({
+                    //    type: "POST",
+                    //    url: "/Auth/LoginFacebook",
+                    //    data: JSON.stringify(response),
+                    //    contentType: "application/json; charset=utf-8",
+                    //    dataType: "json",
+                    //    success: function (result) {
+                    //        console.log("post ok");
+                    //        if (result.redirectUrl !== undefined) {
+                    //            window.location.replace(result.redirectUrl);
+                    //        }
+                    //    },
+                    //    failure: function (response) {
+                    //        console.log("post failure");
+                    //    },
+                    //    error: function (response) {
+                    //        console.log("post error");
+                    //    }
+                    //})
 
                 } else {
                     //user hit cancel button
@@ -86,9 +87,14 @@
             document.getElementById('fb-root').appendChild(e);
         }());
     </script>
+    <script>
+        function setTokenToInput() {
+            document.getElementById("fbTokenValue").value = sessionStorage.getItem("fb_token");
+        }
+    </script>
 </head>
 
-<body class="bg-gradient-primary">
+<body class="bg-gradient-primary" onload="setTokenToInput()">
 
     <div class="container">
 
@@ -121,9 +127,10 @@
 
                                         <hr>
                                     </form>
-                                    <form id="external-account" asp-action="ExternalLogin" method="post" class="user">
+                                    <form id="external-account" asp-action="ExternalLogin" asp-controller="Auth" method="post" class="user">
                                         <div>
-                                            <button onclick="fb_login();" type="button" name="provider" value="Facebook" class="btn btn-facebook btn-user btn-block">
+                                            <input type="hidden" name="token" id="fbTokenValue"/>
+                                            <button type="submit" name="provider" value="Facebook" class="btn btn-facebook btn-user btn-block">
                                                 <i class="fab fa-facebook-f fa-fw"></i> Login with Facebook
                                             </button>
                                             <button type="submit" name="provider" value="Google" class="btn btn-google btn-user btn-block">

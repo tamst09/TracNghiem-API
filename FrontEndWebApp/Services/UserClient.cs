@@ -115,8 +115,7 @@ namespace FrontEndWebApp.Services
 
             HttpClient client = _httpClientFactory.CreateClient();
             client.BaseAddress = new Uri(ConstStrings.BaseUrl);
-            string id = Convert.ToString(uid);
-            var response = await client.PutAsync("/api/users/UpdateUser/"+id, httpContent);
+            var response = await client.PutAsync("/api/users/UpdateUser/"+uid.ToString(), httpContent);
 
             if (response.IsSuccessStatusCode)
             {

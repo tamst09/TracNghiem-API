@@ -64,7 +64,7 @@ namespace TN.BackendAPI.Services.Service
         }
         public async Task<AppUser> GetByID(int id)
         {
-            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
+            var user = await _userManager.FindByIdAsync(id.ToString());
             return user;
         }
         public async Task<JwtResponse> Authenticate(LoginModel request)
@@ -121,13 +121,25 @@ namespace TN.BackendAPI.Services.Service
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-        public async Task<AppUser> EditUserInfo(int id, AppUser user)
+        public async Task<AppUser> EditUserInfo(int id, RegisterModel model)
         {
-            if (id != user.Id)
+            if (id != model.Id)
             {
                 return null;
             }
-            _dbContext.Entry(user).State = EntityState.Modified;
+            var user = await _dbContext.Users.FindAsync(id);
+            if (model.UserName != null)
+                user.UserName = model.UserName;
+            if (model.FirstName != null)
+                user.FirstName = model.FirstName;
+            if (model.LastName != null)
+                user.LastName = model.LastName;
+            if (model.Email != null)
+                user.Email = model.Email;
+            if (model.PhoneNumber != null)
+                user.PhoneNumber = model.PhoneNumber;
+            await _userManager.AddPasswordAsync(user, model.Password);
+            user.DoB = model.DoB;
             try
             {
                 await _dbContext.SaveChangesAsync();
@@ -275,14 +287,16 @@ namespace TN.BackendAPI.Services.Service
                     isActive = true
                 };
                 var createdResult = await _userManager.CreateAsync(newUser);
+                
                 if (!createdResult.Succeeded)
                 {
                     return null;
                 }
+                await _userManager.AddToRoleAsync(newUser, "user");
                 return new CreateFacebookUserResult()
                 { 
-                    User = newUser, 
-                    isNewUser = true 
+                    User = newUser,
+                    isNewUser = true
                 };
             }
             return new CreateFacebookUserResult() { User = user, isNewUser = false };

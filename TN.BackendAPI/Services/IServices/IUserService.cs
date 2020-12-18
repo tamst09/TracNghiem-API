@@ -13,7 +13,7 @@ namespace TN.BackendAPI.Services.IServices
         Task<IEnumerable<AppUser>> GetAll();
         Task<AppUser> GetByID(int id);
         Task<JwtResponse> Authenticate(LoginModel request);
-        Task<AppUser> EditUserInfo(int id, AppUser user);
+        Task<AppUser> EditUserInfo(int id, RegisterModel user);
         Task<bool> DeleteUser(int id);
         Task<string> ResetPassword(ForgotPasswordModel model);
         Task<string> ResetPasswordConfirm(ResetPasswordModel model);

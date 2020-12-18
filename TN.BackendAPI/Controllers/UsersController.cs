@@ -76,7 +76,7 @@ namespace TN.BackendAPI.Controllers
 
         // POST: api/Users/getresetcode
         [HttpPost("getresetcode")]
-        public async Task<IActionResult> forgotPassword([FromBody] ForgotPasswordModel model)
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel model)
         {
             var resultStringCode = await _userService.ResetPassword(model);
             if(resultStringCode!=null)
@@ -86,7 +86,7 @@ namespace TN.BackendAPI.Controllers
 
         // POST: api/Users/resetpass
         [HttpPost("resetpass")]
-        public async Task<IActionResult> resetPassword([FromBody] ResetPasswordModel model)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
         {
             var result = await _userService.ResetPasswordConfirm(model);
             if (result=="OK")
@@ -114,9 +114,10 @@ namespace TN.BackendAPI.Controllers
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPut("UpdateUser/{id}")]
-        public async Task<ActionResult<AppUser>> PutUser(int id, [FromBody] AppUser user)
+        public async Task<ActionResult<AppUser>> PutUser(int id, [FromBody] RegisterModel user)
         {
-            return await _userService.EditUserInfo(id, user);
+            var u = await _userService.EditUserInfo(id, user);
+            return Ok(u);
         }
 
         // POST: api/Users
@@ -125,7 +126,8 @@ namespace TN.BackendAPI.Controllers
         [HttpPost("CreateUser")]
         public async Task<ActionResult<JwtResponse>> PostUser([FromBody]RegisterModel user)
         {
-            return await _userService.Register(user);
+            var u = await _userService.Register(user);
+            return Ok(u);
         }
 
         // DELETE: api/Users/5
