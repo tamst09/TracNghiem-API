@@ -15,7 +15,7 @@ namespace TN.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.9")
+                .HasAnnotation("ProductVersion", "3.1.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
@@ -167,7 +167,7 @@ namespace TN.Data.Migrations
                         new
                         {
                             Id = 1,
-                            ConcurrencyStamp = "e60a6645-db41-4539-961e-ece999d16b89",
+                            ConcurrencyStamp = "15db273c-8d6f-409b-9d3f-45482c14958e",
                             Description = "Administrator level",
                             Name = "admin",
                             NormalizedName = "ADMIN"
@@ -175,7 +175,7 @@ namespace TN.Data.Migrations
                         new
                         {
                             Id = 2,
-                            ConcurrencyStamp = "42193a8c-be9f-4b57-8adc-419eb0cd304f",
+                            ConcurrencyStamp = "146e1f78-88ed-4e05-9cbd-2decc8f5c2f9",
                             Description = "User level",
                             Name = "user",
                             NormalizedName = "USER"
@@ -259,7 +259,9 @@ namespace TN.Data.Migrations
                         .HasMaxLength(50);
 
                     b.Property<bool>("isActive")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.HasKey("Id");
 
@@ -282,7 +284,7 @@ namespace TN.Data.Migrations
                         {
                             Id = 1,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "e1259831-5511-44d4-bcc2-29b96d1fbae9",
+                            ConcurrencyStamp = "6f6a0a43-7e29-4e0d-b00d-e705a667fbcf",
                             DoB = new DateTime(1999, 4, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "tamst09@gmail.com",
                             EmailConfirmed = true,
@@ -291,7 +293,7 @@ namespace TN.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "TAMST09@GMAIL.COM",
                             NormalizedUserName = "admin1999",
-                            PasswordHash = "AQAAAAEAACcQAAAAEIDtBuMGbnyWLLHbK8bPRmVf2KEtZY4H/WJ5stnDUDU7M0ch+agcvFafYcUOwTEJkA==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEP5orOhGpPG3DmkeK/aCuYf+4dguYgc+BSXVMWPmqbf2oh3ev/98NxMVNHMMXuRjvg==",
                             PhoneNumber = "0336709707",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "",
@@ -303,7 +305,7 @@ namespace TN.Data.Migrations
                         {
                             Id = 2,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "0cc7901c-6654-4a0f-bf69-5a964391497b",
+                            ConcurrencyStamp = "8ae0dfc1-aa3b-4255-a8c4-5c1b87ccb088",
                             DoB = new DateTime(1999, 4, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "thtt260499@gmail.com",
                             EmailConfirmed = true,
@@ -312,7 +314,7 @@ namespace TN.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "THTT260499@GMAIL.COM",
                             NormalizedUserName = "USER1999",
-                            PasswordHash = "AQAAAAEAACcQAAAAECMeG5hyoNNk/zmhsz8YTYtDkK5vrLYQ+mVbsx0RGx1vH4sAh52fa6+FryrFubCXnA==",
+                            PasswordHash = "AQAAAAEAACcQAAAAED9tRurcyflHfJeFtTxQsv2kC1tIkPG3/j/UOMK/Q6qZ4s+962m/QTzHkCfcjOupKQ==",
                             PhoneNumber = "0336709707",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "",
@@ -336,8 +338,10 @@ namespace TN.Data.Migrations
                         .HasColumnType("nvarchar(100)")
                         .HasMaxLength(100);
 
-                    b.Property<bool>("isAcive")
-                        .HasColumnType("bit");
+                    b.Property<bool>("isActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.HasKey("ID");
 
@@ -377,7 +381,9 @@ namespace TN.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("isActive")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<bool>("isPrivate")
                         .HasColumnType("bit");
@@ -497,7 +503,9 @@ namespace TN.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<bool>("isActive")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.HasKey("ID");
 

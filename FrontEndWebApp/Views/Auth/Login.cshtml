@@ -15,7 +15,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>@ViewData["Title"]</title>
+    <title>Sign in</title>
 
     <!-- Custom fonts for this template-->
     <link href="~/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -39,13 +39,12 @@
 
         function fb_login() {
             FB.login(function (response) {
-
                 if (response.authResponse != null) {
-                    sessionStorage.setItem("fb_token", response.authResponse.accessToken);
-                    console.log("saved to session");
-                    // dump complete info
-                    access_token = response.authResponse.accessToken; //get access token
-                    user_id = response.authResponse.userID; //get FB UID
+                    document.getElementById("fbTokenValue").value = response.authResponse.accessToken;
+                    document.getElementById("fbProviderValue").value = "Facebook";
+                    document.getElementById("external-account").submit();
+
+
 
                     FB.api('/me', function (response) {
                         user_email = response.email; //get user email
@@ -54,7 +53,7 @@
                     //$.ajax({
                     //    type: "POST",
                     //    url: "/Auth/LoginFacebook",
-                    //    data: JSON.stringify(response),
+                    //    data: JSON.stringify(response)
                     //    contentType: "application/json; charset=utf-8",
                     //    dataType: "json",
                     //    success: function (result) {
@@ -74,7 +73,6 @@
                 } else {
                     //user hit cancel button
                     console.log('User cancelled login or did not fully authorize.');
-
                 }
             }, {
                 scope: 'public_profile,email'
@@ -87,14 +85,9 @@
             document.getElementById('fb-root').appendChild(e);
         }());
     </script>
-    <script>
-        function setTokenToInput() {
-            document.getElementById("fbTokenValue").value = sessionStorage.getItem("fb_token");
-        }
-    </script>
 </head>
 
-<body class="bg-gradient-primary" onload="setTokenToInput()">
+<body class="bg-gradient-primary">
 
     <div class="container">
 
@@ -113,7 +106,7 @@
                                     <div class="text-center">
                                         <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
                                     </div>
-                                    <form class="user" asp-action="Login">
+                                    <form class="user" asp-action="Login" method="post">
                                         <div class="form-group">
                                             <input type="text" asp-for="@Model.UserName" class="form-control form-control-user" placeholder="Enter your username...">
                                             <span asp-validation-for="@Model.UserName" class="text-danger"></span>
@@ -130,7 +123,8 @@
                                     <form id="external-account" asp-action="ExternalLogin" asp-controller="Auth" method="post" class="user">
                                         <div>
                                             <input type="hidden" name="token" id="fbTokenValue"/>
-                                            <button type="submit" name="provider" value="Facebook" class="btn btn-facebook btn-user btn-block">
+                                            <input type="hidden" name="provider" id="fbProviderValue" />
+                                            <button type="button" onclick="fb_login()" class="btn btn-facebook btn-user btn-block">
                                                 <i class="fab fa-facebook-f fa-fw"></i> Login with Facebook
                                             </button>
                                             <button type="submit" name="provider" value="Google" class="btn btn-google btn-user btn-block">
@@ -140,10 +134,10 @@
                                     </form>
                                     <hr>
                                     <div class="text-center">
-                                        <a class="small">Forgot Password?</a>
+                                        <a asp-controller="Auth" asp-action="ForgotPassword" class="small">Forgot Password?</a>
                                     </div>
                                     <div class="text-center">
-                                        <a class="small">Create an Account!</a>
+                                        <a asp-action="Register" asp-controller="Auth" class="small">Create an Account!</a>
                                     </div>
                                 </div>
                             </div>

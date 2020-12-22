@@ -57,7 +57,7 @@ namespace TN.BackendAPI.Controllers
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] LoginModel request)
         {
-            var result = await _userService.Authenticate(request);
+            var result = await _userService.Login(request);
             if (result == null)
             {
                 return BadRequest("Invalid username or password");
@@ -67,10 +67,13 @@ namespace TN.BackendAPI.Controllers
 
         // POST: api/Users/register
         [HttpPost("register")]
-        public async Task<ActionResult<AppUser>> RegisterUser([FromBody] RegisterModel request)
+        public async Task<ActionResult<JwtResponse>> RegisterUser([FromBody] RegisterModel request)
         {
             var result = await _userService.Register(request);
-            if (result == null) return BadRequest("Unsuccesfully register");
+            if (!string.IsNullOrEmpty(result.Error))
+            {
+                return BadRequest(result);
+            }
             return Ok(result);
         }
 
@@ -114,7 +117,7 @@ namespace TN.BackendAPI.Controllers
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPut("UpdateUser/{id}")]
-        public async Task<ActionResult<AppUser>> PutUser(int id, [FromBody] RegisterModel user)
+        public async Task<ActionResult<AppUser>> PutUser(int id, [FromBody] UserViewModel user)
         {
             var u = await _userService.EditUserInfo(id, user);
             return Ok(u);
@@ -137,11 +140,22 @@ namespace TN.BackendAPI.Controllers
             return await _userService.DeleteUser(id);
         }
 
-        [HttpPost("createfacebookuser")]
-        public async Task<ActionResult<CreateFacebookUserResult>> CreateFBUser([FromBody]string accesstoken)
+        [HttpPost("loginfb")]
+        public async Task<ActionResult<JwtResponse>> LoginFacebook([FromBody]string accesstoken)
         {
-            var loginUser = await _userService.GetUserWithFacebookToken(accesstoken);
+            var loginUser = await _userService.LoginWithFacebookToken(accesstoken);
             return Ok(loginUser);
+        }
+
+        [HttpPut("AddPassword")]
+        public async Task<ActionResult<AppUser>> AddPasswordForNewUser(ResetPasswordModel model)
+        {
+            var user = await _userService.AddPassword(model);
+            if (user == null)
+            {
+                return BadRequest();
+            }
+            return Ok(user);
         }
     }
 }

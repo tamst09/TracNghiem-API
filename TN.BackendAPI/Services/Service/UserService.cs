@@ -35,45 +35,73 @@ namespace TN.BackendAPI.Services.Service
             _config = config;
             _facebookAuth = facebookAuth;
         }
-
-        public async Task<JwtResponse> Register(RegisterModel request)
-        {
-            var user = new AppUser()
-            {
-                UserName = request.UserName,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Email = request.Email,
-                DoB = request.DoB,
-                PhoneNumber = request.PhoneNumber
-            };
-            var result = await _userManager.CreateAsync(user, request.Password);
-            if (result.Succeeded)
-            {
-                await _userManager.AddToRoleAsync(user, "user");
-                RefreshToken refresh_token = GenerateRefreshToken();
-                user.RefreshToken = refresh_token;
-                await _dbContext.SaveChangesAsync();
-                return new JwtResponse() { Access_Token = GenerateAccessToken(user), Refresh_Token = refresh_token.Token };
-            }
-            return null;
-        }
+        #region CRUD
         public async Task<IEnumerable<AppUser>> GetAll()
         {
             return await _dbContext.Users.ToListAsync();
         }
         public async Task<AppUser> GetByID(int id)
         {
-            var user = await _userManager.FindByIdAsync(id.ToString());
+            var user = await _dbContext.Users.FindAsync(id);
             return user;
         }
-        public async Task<JwtResponse> Authenticate(LoginModel request)
+        public async Task<AppUser> EditUserInfo(int id, UserViewModel model)
+        {
+            if (id != model.Id)
+            {
+                return null;
+            }
+            var user = await _dbContext.Users.FindAsync(id);
+            user.Id = model.Id;
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+            user.UserName = model.UserName;
+            user.DoB = model.DoB;
+            user.Email = model.Email;
+            user.PhoneNumber = model.PhoneNumber;
+
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UserExists(id))
+                {
+                    return null;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            var user2 = await _dbContext.Users.FindAsync(id);
+            return user2;
+        }
+        public async Task<bool> DeleteUser(int id)
+        {
+            var user = await _dbContext.Users.FindAsync(id);
+            if (user == null)
+            {
+                return false;
+            }
+
+            _dbContext.Users.Remove(user);
+            await _dbContext.SaveChangesAsync();
+
+            return true;
+        }
+        #endregion
+
+        #region AUTHENTICATION
+        public async Task<JwtResponse> Login(LoginModel model)
         {
             //var user = await _userManager.FindByNameAsync(request.UserName);
-            var userlogin = await _dbContext.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.UserName == request.UserName);
+            var userlogin = await _dbContext.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.UserName == model.UserName);
 
             if (userlogin == null) return null;
-            var passwordvalid = await _userManager.CheckPasswordAsync(userlogin, request.Password);
+
+            var passwordvalid = await _userManager.CheckPasswordAsync(userlogin, model.Password);
             if (!passwordvalid)
             {
                 return null;
@@ -98,19 +126,128 @@ namespace TN.BackendAPI.Services.Service
                 return new JwtResponse() { Access_Token = access_token, Refresh_Token = refreshToken.Token }; // return access_token with refresh_token
             }
         }
+        public async Task<JwtResponse> LoginWithFacebookToken(string accessToken)
+        {
+            var validatedToken = await _facebookAuth.ValidateAccessTokenAsync(accessToken);
+            if (!validatedToken.Data.IsValid)
+            {
+                return null;
+            }
+            bool isNewUser = true;
+            var userInfo = await _facebookAuth.GetUserInfoAsync(accessToken);
+            var user = await _dbContext.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.Email == userInfo.Email);
+
+            if (user == null)
+            {
+                var findFacebookUID = await _dbContext.UserTokens.FirstOrDefaultAsync(p => p.LoginProvider == "Facebook" && p.Name == "fbID" && p.Value == userInfo.Id);
+                if (findFacebookUID != null)
+                {
+                    user = await _userManager.FindByIdAsync(findFacebookUID.UserId.ToString());
+                }
+            }
+
+            // chua co tai khoan
+            if (user == null)
+            {
+                isNewUser = true;
+                user = new AppUser()
+                {
+                    FirstName = userInfo.FirstName,
+                    LastName = userInfo.LastName,
+                    Email = userInfo.Email,
+                    UserName = userInfo.Email,
+                    isActive = true
+                };
+                var createdResult = await _userManager.CreateAsync(user);
+                if(createdResult.Succeeded)
+                {
+                    await _userManager.AddLoginAsync(user, new UserLoginInfo("Facebook", user.Email, "Facebook"));
+                    await _userManager.AddToRoleAsync(user, "user");
+                    await _userManager.SetAuthenticationTokenAsync(user, "Facebook", "fbID", userInfo.Id);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            // da co tai khoan
+            else
+            {
+                isNewUser = false;
+                var checkProdiverResult = await _userManager.FindByLoginAsync("Facebook", userInfo.Email);
+                // ko phai tk facebook
+                if (checkProdiverResult == null)
+                {
+                    var addloginTask = await _userManager.AddLoginAsync(user, new UserLoginInfo("Facebook", user.Email, "Facebook"));
+
+                    var checkAuthTokenTask = await _userManager.GetAuthenticationTokenAsync(user, "Facebook", "fbID");
+                    if(checkAuthTokenTask == null)
+                    {
+                        await _userManager.SetAuthenticationTokenAsync(user, "Facebook", "fbID", userInfo.Id);
+                    }
+                }
+            }
+            // generate new access_token
+            string access_token = GenerateAccessToken(user);
+            // access_token is available
+            if (user.RefreshTokenValue != null)
+            {
+                user.RefreshToken.ExpiryDate = DateTime.Now.AddDays(7);
+                await _dbContext.SaveChangesAsync();
+                return new JwtResponse() { Access_Token = access_token, Refresh_Token = user.RefreshToken.Token, isNewLogin = isNewUser };
+            }
+            // new login info
+            else
+            {
+                RefreshToken refreshToken = new RefreshToken();
+                refreshToken = GenerateRefreshToken();
+                user.RefreshToken = refreshToken;
+                _dbContext.RefreshTokens.Add(refreshToken);
+                await _dbContext.SaveChangesAsync();
+                return new JwtResponse() { Access_Token = access_token, Refresh_Token = refreshToken.Token, isNewLogin = isNewUser };
+            }
+        }
+        public async Task<JwtResponse> Register(RegisterModel model)
+        {
+            var user = new AppUser()
+            {
+                UserName = model.UserName,
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Email = model.Email,
+                DoB = model.DoB,
+                PhoneNumber = model.PhoneNumber
+            };
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, "user");
+                RefreshToken refresh_token = GenerateRefreshToken();
+                user.RefreshToken = refresh_token;
+                await _dbContext.SaveChangesAsync();
+                return new JwtResponse() { Access_Token = GenerateAccessToken(user), Refresh_Token = refresh_token.Token };
+            }
+            var error = result.Errors.First();
+            return new JwtResponse() { Error = error.Description };
+        }
+        #endregion
+
+        #region TOKEN UTILS
+        // tao access token
         private string GenerateAccessToken(AppUser user)
         {
-            var roles = _userManager.GetRolesAsync(user).Result;
+            var roles = _userManager.GetRolesAsync(user).Result.FirstOrDefault();
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_config["Tokens:SecretKey"]);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
+                    new Claim("UserID", user.Id.ToString()),
                     new Claim(ClaimTypes.Name, user.UserName),
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.GivenName, user.FirstName+" "+user.LastName),
-                    new Claim(ClaimTypes.Role, string.Join(";",roles))
+                    new Claim(ClaimTypes.Role, roles)
                 }),
                 Expires = DateTime.UtcNow.AddDays(3),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
@@ -121,80 +258,30 @@ namespace TN.BackendAPI.Services.Service
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-        public async Task<AppUser> EditUserInfo(int id, RegisterModel model)
+        // tao refresh token
+        public RefreshToken GenerateRefreshToken()
         {
-            if (id != model.Id)
+            RefreshToken refreshToken = new RefreshToken();
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
             {
-                return null;
+                rng.GetBytes(randomNumber);
+                refreshToken.Token = Convert.ToBase64String(randomNumber);
             }
-            var user = await _dbContext.Users.FindAsync(id);
-            if (model.UserName != null)
-                user.UserName = model.UserName;
-            if (model.FirstName != null)
-                user.FirstName = model.FirstName;
-            if (model.LastName != null)
-                user.LastName = model.LastName;
-            if (model.Email != null)
-                user.Email = model.Email;
-            if (model.PhoneNumber != null)
-                user.PhoneNumber = model.PhoneNumber;
-            await _userManager.AddPasswordAsync(user, model.Password);
-            user.DoB = model.DoB;
-            try
-            {
-                await _dbContext.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return user;
+            //thoi han token
+            refreshToken.ExpiryDate = DateTime.Now.AddDays(7);
+            return refreshToken;
         }
-        public async Task<bool> DeleteUser(int id)
+        // Xac thuc han su dung refreshToken
+        public bool ValidateRefreshToken(AppUser user, string refreshToken)
         {
-            var user = await _dbContext.Users.FindAsync(id);
-            if (user == null)
-            {
-                return false;
-            }
 
-            _dbContext.Users.Remove(user);
-            await _dbContext.SaveChangesAsync();
-
-            return true;
-        }
-        // tao ra code va gui den email, code nay dung de confirm
-        public async Task<string> ResetPassword(ForgotPasswordModel model)
-        {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user != null)
+            RefreshToken refreshTokenUser = _dbContext.RefreshTokens.Where(rt => rt.Token == refreshToken).FirstOrDefault();
+            if (refreshTokenUser != null && refreshTokenUser.User == user && refreshTokenUser.ExpiryDate > DateTime.UtcNow)
             {
-                string resetCode = await _userManager.GeneratePasswordResetTokenAsync(user);
-                return resetCode;
+                return true;
             }
-            return null;
-        }
-        private bool UserExists(int id)
-        {
-            return _dbContext.Users.Any(e => e.Id == id);
-        }
-        // dung code nhan duoc trong mail va doi mat khau
-        public async Task<string> ResetPasswordConfirm(ResetPasswordModel model)
-        {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user != null)
-            {
-                var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
-                return "OK";
-            }
-            return null;
+            return false;
         }
         // lay ra user tu access_token gui len
         public async Task<AppUser> GetUserByAccessToken(string accessToken)
@@ -226,31 +313,6 @@ namespace TN.BackendAPI.Services.Service
                 return null;
             }
         }
-        // tao refresh token
-        public RefreshToken GenerateRefreshToken()
-        {
-            RefreshToken refreshToken = new RefreshToken();
-            var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-                refreshToken.Token = Convert.ToBase64String(randomNumber);
-            }
-            //thoi han token
-            refreshToken.ExpiryDate = DateTime.Now.AddDays(7);
-            return refreshToken;
-        }
-        // Xac thuc han su dung refreshToken
-        public bool ValidateRefreshToken(AppUser user, string refreshToken)
-        {
-
-            RefreshToken refreshTokenUser = _dbContext.RefreshTokens.Where(rt => rt.Token == refreshToken).FirstOrDefault();
-            if (refreshTokenUser != null && refreshTokenUser.User == user && refreshTokenUser.ExpiryDate > DateTime.UtcNow)
-            {
-                return true;
-            }
-            return false;
-        }
         //gia han access_token va tra ve client
         public async Task<string> GetNewAccessToken(RefreshAccessTokenRequest refreshRequest)
         {
@@ -266,40 +328,49 @@ namespace TN.BackendAPI.Services.Service
             }
             return null;
         }
+        #endregion
 
-        public async Task<CreateFacebookUserResult> GetUserWithFacebookToken(string accessToken)
+        #region ACCOUNT MANAGE
+        // tao ra code va gui den email, code nay dung de confirm
+        public async Task<string> ResetPassword(ForgotPasswordModel model)
         {
-            var validatedToken = await _facebookAuth.ValidateAccessTokenAsync(accessToken);
-            if (!validatedToken.Data.IsValid)
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user != null)
             {
-                return null;
+                string resetCode = await _userManager.GeneratePasswordResetTokenAsync(user);
+                return resetCode;
             }
-            var userInfo = await _facebookAuth.GetUserInfoAsync(accessToken);
-            var user = await _userManager.FindByEmailAsync(userInfo.Email);
-            if (user == null)
-            {
-                var newUser = new AppUser()
-                {
-                    FirstName = userInfo.FirstName,
-                    LastName = userInfo.LastName,
-                    Email = userInfo.Email,
-                    UserName = userInfo.Email,
-                    isActive = true
-                };
-                var createdResult = await _userManager.CreateAsync(newUser);
-                
-                if (!createdResult.Succeeded)
-                {
-                    return null;
-                }
-                await _userManager.AddToRoleAsync(newUser, "user");
-                return new CreateFacebookUserResult()
-                { 
-                    User = newUser,
-                    isNewUser = true
-                };
-            }
-            return new CreateFacebookUserResult() { User = user, isNewUser = false };
+            return null;
         }
+        public async Task<string> ResetPasswordConfirm(ResetPasswordModel model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user != null)
+            {
+                var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
+                return "OK";
+            }
+            return null;
+        }
+        public async Task<AppUser> AddPassword(ResetPasswordModel model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user != null)
+            {
+                if (!await _userManager.HasPasswordAsync(user))
+                    await _userManager.AddPasswordAsync(user, model.Password);
+            }
+            return user;
+        }
+        #endregion
+
+        private bool UserExists(int id)
+        {
+            return _dbContext.Users.Any(e => e.Id == id);
+        }
+        // dung code nhan duoc trong mail va doi mat khau
+        
+        
+        
     }
 }

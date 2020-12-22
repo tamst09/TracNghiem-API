@@ -12,10 +12,11 @@ namespace FrontEndWebApp.Services
     public interface IUserClient
     {
         Task<string> Authenticate(LoginModel model);
-        Task<AppUser> Register(RegisterModel model);
-        Task<AppUser> UpdateProfile(int uid, RegisterModel model);
-        Task<CreateFacebookUserResult> LoginFacebook(string accesstoken);
+        Task<JwtResponse> Register(RegisterModel model);
+        Task<UserViewModel> UpdateProfile(int uid, UserViewModel model);
+        Task<JwtResponse> LoginFacebook(string accesstoken);
         ClaimsPrincipal ValidateToken(string token);
-        Task<AppUser> GetUserInfo(int userId);
+        Task<UserViewModel> GetUserInfo(int userId);
+        Task<UserViewModel> AddPassword(ResetPasswordModel model);
     }
 }

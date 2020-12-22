@@ -51,7 +51,7 @@ namespace FrontEndWebApp.Services
             }
         }
 
-        public async Task<AppUser> GetUserInfo(int userId)
+        public async Task<UserViewModel> GetUserInfo(int userId)
         {
             HttpClient client = _httpClientFactory.CreateClient();
             client.BaseAddress = new Uri(ConstStrings.BaseUrl);
@@ -60,7 +60,7 @@ namespace FrontEndWebApp.Services
             if (response.IsSuccessStatusCode)
             {
                 var user = await response.Content.ReadAsStringAsync();
-                AppUser userCreated = JsonConvert.DeserializeObject<AppUser>(user);
+                UserViewModel userCreated = JsonConvert.DeserializeObject<UserViewModel>(user);
                 return userCreated;
             }
             else
@@ -69,25 +69,25 @@ namespace FrontEndWebApp.Services
             }
         }
 
-        public async Task<CreateFacebookUserResult> LoginFacebook(string accesstoken)
+        public async Task<JwtResponse> LoginFacebook(string accesstoken)
         {
             var json = JsonConvert.SerializeObject(accesstoken);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
 
             HttpClient client = _httpClientFactory.CreateClient();
             client.BaseAddress = new Uri(ConstStrings.BaseUrl);
-            var response = await client.PostAsync("/api/users/createfacebookuser", httpContent);
+            var response = await client.PostAsync("/api/users/loginfb", httpContent);
 
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsStringAsync();
-                CreateFacebookUserResult userResult = JsonConvert.DeserializeObject<CreateFacebookUserResult>(result);
+                JwtResponse userResult = JsonConvert.DeserializeObject<JwtResponse>(result);
                 return userResult;
             }
             return null;
         }
 
-        public async Task<AppUser> Register(RegisterModel model)
+        public async Task<JwtResponse> Register(RegisterModel model)
         {
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
@@ -99,16 +99,18 @@ namespace FrontEndWebApp.Services
             if (response.IsSuccessStatusCode)
             {
                 var user = await response.Content.ReadAsStringAsync();
-                AppUser userCreated = JsonConvert.DeserializeObject<AppUser>(user);
+                JwtResponse userCreated = JsonConvert.DeserializeObject<JwtResponse>(user);
                 return userCreated;
             }
             else
             {
-                return null;
+                var errs = await response.Content.ReadAsStringAsync();
+                JwtResponse err = JsonConvert.DeserializeObject<JwtResponse>(errs);
+                return err;
             }
         }
 
-        public async Task<AppUser> UpdateProfile(int uid, RegisterModel model)
+        public async Task<UserViewModel> UpdateProfile(int uid, UserViewModel model)
         {
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
@@ -120,8 +122,29 @@ namespace FrontEndWebApp.Services
             if (response.IsSuccessStatusCode)
             {
                 var user = await response.Content.ReadAsStringAsync();
-                AppUser userUpdated = JsonConvert.DeserializeObject<AppUser>(user);
-                return userUpdated;
+                UserViewModel uservm = JsonConvert.DeserializeObject<UserViewModel>(user);              
+                return uservm;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public async Task<UserViewModel> AddPassword(ResetPasswordModel model)
+        {
+            var json = JsonConvert.SerializeObject(model);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+            HttpClient client = _httpClientFactory.CreateClient();
+            client.BaseAddress = new Uri(ConstStrings.BaseUrl);
+            var response = await client.PutAsync("/api/users/AddPassword/", httpContent);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var user = await response.Content.ReadAsStringAsync();
+                UserViewModel uservm = JsonConvert.DeserializeObject<UserViewModel>(user);
+                return uservm;
             }
             else
             {

@@ -1,20 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
 using FrontEndWebApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Text;
 
 namespace FrontEndWebApp
 {
@@ -31,16 +26,21 @@ namespace FrontEndWebApp
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
+            services.AddHttpContextAccessor();
+            services.AddSession();
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                //options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                //options.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             })
                 .AddCookie(cookieoptions => 
                 {
                     cookieoptions.LoginPath = new PathString("/Auth/Login");
                     cookieoptions.LogoutPath = new PathString("/Auth/Login");
+                    //cookieoptions.AccessDeniedPath = 
                     // thoi gian cookie het han
                     cookieoptions.ExpireTimeSpan = TimeSpan.FromHours(1);
                     // tu dong gia han cookie neu co request gui di
@@ -62,6 +62,16 @@ namespace FrontEndWebApp
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:SecretKey"]))
                     };
                 });
+            services.AddAuthorization(options => {
+                options.AddPolicy("admin",
+                    authBuilder => { 
+                        authBuilder.RequireRole("admin");
+                    });
+                options.AddPolicy("user",
+                    authBuilder => {
+                        authBuilder.RequireRole("user");
+                    });
+            });
             services.AddControllersWithViews();
             services.AddHttpClient();
             services.AddTransient<IUserClient, UserClient>();
@@ -81,13 +91,14 @@ namespace FrontEndWebApp
             }
             app.UseAuthentication();
             app.UseHttpsRedirection();
+            app.UseSession();
             app.UseStaticFiles();
             app.UseCors(
                 options => options.AllowAnyOrigin().AllowAnyMethod()
             );
             app.UseRouting();
             app.UseAuthorization();
-
+            //app.UseStatusCodePagesWithRedirects("/Auth/AccessDenied");
             app.Use(async (context, next) =>
             {
                 var token = context.Request.Cookies["access_token_cookie"];
@@ -98,6 +109,18 @@ namespace FrontEndWebApp
             });
             app.UseEndpoints(endpoints =>
             {
+                //endpoints.MapAreaControllerRoute(
+                //    name: "PublicArea",
+                //    areaName: "Public",
+                //    pattern: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapAreaControllerRoute(
+                    name: "AdminArea",
+                    areaName: "Admin",
+                    pattern: "Admin/{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapAreaControllerRoute(
+                    name: "UserArea",
+                    areaName: "User",
+                    pattern: "User/{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");

@@ -9,18 +9,19 @@ namespace TN.BackendAPI.Services.IServices
 {
     public interface IUserService
     {
-        Task<JwtResponse> Register(RegisterModel request);
+        Task<JwtResponse> Register(RegisterModel model);
         Task<IEnumerable<AppUser>> GetAll();
         Task<AppUser> GetByID(int id);
-        Task<JwtResponse> Authenticate(LoginModel request);
-        Task<AppUser> EditUserInfo(int id, RegisterModel user);
+        Task<JwtResponse> Login(LoginModel model);
+        Task<AppUser> EditUserInfo(int id, UserViewModel user);
         Task<bool> DeleteUser(int id);
         Task<string> ResetPassword(ForgotPasswordModel model);
         Task<string> ResetPasswordConfirm(ResetPasswordModel model);
         Task<AppUser> GetUserByAccessToken(string accessToken);
+        Task<AppUser> AddPassword(ResetPasswordModel model);
         RefreshToken GenerateRefreshToken();
         bool ValidateRefreshToken(AppUser user, string refreshToken);
         Task<string> GetNewAccessToken(RefreshAccessTokenRequest refreshRequest);
-        Task<CreateFacebookUserResult> GetUserWithFacebookToken(string accessToken);
+        Task<JwtResponse> LoginWithFacebookToken(string accessToken);
     }
 }

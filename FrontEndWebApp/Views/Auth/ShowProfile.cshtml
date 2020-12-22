@@ -1,4 +1,4 @@
-﻿@model TN.Data.Entities.AppUser
+﻿@model TN.ViewModels.Catalog.User.UserViewModel
 
 @{
     ViewData["Title"] = "ShowProfile";
@@ -32,7 +32,7 @@
             Birthday:
         </dt>
         <dd class="col-sm-10">
-            @Model.DoB.ToShortDateString();
+            @Html.DisplayFor(model => model.DoB)
         </dd>
         <dt class="col-sm-2">
             Status:
@@ -56,5 +56,5 @@
 </div>
 <div>
     @Html.ActionLink("Edit", "UpdateProfile", new { id = Model.Id })
-    <a asp-action="Index" asp-controller="Home">Back to home</a>
+    <a asp-action="Index" asp-controller="Home" asp-area="Public">Back to home</a>
 </div>
