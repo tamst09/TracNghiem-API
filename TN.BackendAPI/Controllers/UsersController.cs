@@ -14,6 +14,7 @@ namespace TN.BackendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly  IUserService _userService;
@@ -24,6 +25,7 @@ namespace TN.BackendAPI.Controllers
         }
         // GET: api/Users
         [HttpGet]
+        [Authorize("admin")]
         public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers()
         {
             return Ok(await _userService.GetAll());
@@ -55,6 +57,7 @@ namespace TN.BackendAPI.Controllers
 
         // POST: api/Users/login
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<ActionResult> Login([FromBody] LoginModel request)
         {
             var result = await _userService.Login(request);
@@ -67,6 +70,7 @@ namespace TN.BackendAPI.Controllers
 
         // POST: api/Users/register
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<ActionResult<JwtResponse>> RegisterUser([FromBody] RegisterModel request)
         {
             var result = await _userService.Register(request);
@@ -79,6 +83,7 @@ namespace TN.BackendAPI.Controllers
 
         // POST: api/Users/getresetcode
         [HttpPost("getresetcode")]
+        [AllowAnonymous]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel model)
         {
             var resultStringCode = await _userService.ResetPassword(model);
@@ -89,6 +94,7 @@ namespace TN.BackendAPI.Controllers
 
         // POST: api/Users/resetpass
         [HttpPost("resetpass")]
+        [AllowAnonymous]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
         {
             var result = await _userService.ResetPasswordConfirm(model);
@@ -102,6 +108,7 @@ namespace TN.BackendAPI.Controllers
 
         //POST: api/Users/RefreshToken
         [HttpPost("RefreshToken")]
+        [AllowAnonymous]
         public async Task<ActionResult> RefreshToken([FromBody] RefreshAccessTokenRequest refreshRequest)
         {
             string newAccessToken = await _userService.GetNewAccessToken(refreshRequest);
@@ -135,12 +142,14 @@ namespace TN.BackendAPI.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("DeleteUser/{id}")]
+        [Authorize("admin")]
         public async Task<ActionResult<bool>> DeleteUser(int id)
         {
             return await _userService.DeleteUser(id);
         }
 
         [HttpPost("loginfb")]
+        [AllowAnonymous]
         public async Task<ActionResult<JwtResponse>> LoginFacebook([FromBody]string accesstoken)
         {
             var loginUser = await _userService.LoginWithFacebookToken(accesstoken);
@@ -148,6 +157,7 @@ namespace TN.BackendAPI.Controllers
         }
 
         [HttpPut("AddPassword")]
+        [AllowAnonymous]
         public async Task<ActionResult<AppUser>> AddPasswordForNewUser(ResetPasswordModel model)
         {
             var user = await _userService.AddPassword(model);

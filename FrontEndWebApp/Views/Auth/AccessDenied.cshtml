@@ -6,6 +6,11 @@
 <head>
     <link href="~/css/accessdenied.css" rel="stylesheet" type="text/css">
     <script src="~/js/accessdenied.js"></script>
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
 </head>
 <svg xmlns="http://www.w3.org/2000/svg" id="robot-error" viewBox="0 0 260 118.9">
     <defs>
@@ -28,4 +33,4 @@
     </g>
 </svg>
 <h1>You are not allowed to enter here</h1>
-<h2>Go <a asp-action="Index" asp-controller="Home">Home!</a></h2>
+<h2>Go <a onclick="goBack()">Back!</a></h2>

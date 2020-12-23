@@ -14,5 +14,7 @@ namespace TN.ViewModels.Catalog.User
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; }
+
+        public bool Rememberme { get; set; }
     }
 }

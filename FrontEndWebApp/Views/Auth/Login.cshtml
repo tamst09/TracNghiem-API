@@ -106,7 +106,7 @@
                                     <div class="text-center">
                                         <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
                                     </div>
-                                    <form class="user" asp-action="Login" method="post">
+                                    <form class="user" asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
                                         <div class="form-group">
                                             <input type="text" asp-for="@Model.UserName" class="form-control form-control-user" placeholder="Enter your username...">
                                             <span asp-validation-for="@Model.UserName" class="text-danger"></span>
@@ -116,13 +116,19 @@
                                             <span asp-validation-for="@Model.Password" class="text-danger"></span>
                                             <span class="text-danger">@ViewData["msg"]</span>
                                         </div>
+                                        <div class="form-group">
+                                            <div class="custom-control custom-checkbox small">
+                                                <input asp-for="@Model.Rememberme" type="checkbox" class="custom-control-input" id="customCheck">
+                                                <label class="custom-control-label" for="customCheck">Remember Me</label>
+                                            </div>
+                                        </div>
                                         <input type="submit" class="btn btn-primary btn-user btn-block" value="Login" />
 
                                         <hr>
                                     </form>
                                     <form id="external-account" asp-action="ExternalLogin" asp-controller="Auth" method="post" class="user">
                                         <div>
-                                            <input type="hidden" name="token" id="fbTokenValue"/>
+                                            <input type="hidden" name="token" id="fbTokenValue" />
                                             <input type="hidden" name="provider" id="fbProviderValue" />
                                             <button type="button" onclick="fb_login()" class="btn btn-facebook btn-user btn-block">
                                                 <i class="fab fa-facebook-f fa-fw"></i> Login with Facebook

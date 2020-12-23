@@ -40,9 +40,9 @@ namespace FrontEndWebApp
                 {
                     cookieoptions.LoginPath = new PathString("/Auth/Login");
                     cookieoptions.LogoutPath = new PathString("/Auth/Login");
-                    //cookieoptions.AccessDeniedPath = 
+                    cookieoptions.AccessDeniedPath = new PathString("/Views/Auth/AccessDenied");
                     // thoi gian cookie het han
-                    cookieoptions.ExpireTimeSpan = TimeSpan.FromHours(1);
+                    cookieoptions.ExpireTimeSpan = TimeSpan.FromHours(3);
                     // tu dong gia han cookie neu co request gui di
                     cookieoptions.SlidingExpiration = true;
                     cookieoptions.Cookie.Name = "asp.authentication";

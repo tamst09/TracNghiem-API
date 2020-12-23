@@ -41,22 +41,19 @@ namespace FrontEndWebApp.Controllers
                 return View(user);
             return View();
         }
-
-        public IActionResult AccessDenied()
-        {
-            return View();
-        }
         //-----------------------------------------------------------------------------------
 
         //------------------------------------NORMAL LOGIN-----------------------------------
-        public IActionResult Login(string username)
+        public IActionResult Login(string username, string ReturnUrl)
         {
+
             ViewData["Title"] = "Log in";
+            ViewData["ReturnUrl"] = ReturnUrl;
             return View(new LoginModel() { UserName = username });
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Login(LoginModel request)
+        public IActionResult Login(LoginModel request, string returnUrl)
         {
             if (!ModelState.IsValid)
             {
@@ -90,12 +87,16 @@ namespace FrontEndWebApp.Controllers
                 {
                     // set false -> tạo ra cookie phiên -> thoát trình duyệt cookie bị xoá
                     // set true -> cookie có thời hạn đc set trong Startup.cs và ko bị mất khi thoát
-                    IsPersistent = false
+
+                    IsPersistent = request.Rememberme
                 };
                 
                 HttpContext.SignInAsync(userPrincipal, authProperties);
 
-
+                if(!string.IsNullOrEmpty(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
                 return RedirectToAction("Index", "Home");
                 //if (HttpContext.User.IsInRole(""))
                 //{
@@ -154,10 +155,10 @@ namespace FrontEndWebApp.Controllers
                 else
                 {
                     // get jwt from api
-                    var jwttoken = await _userClient.LoginFacebook(token);
-                    if (jwttoken != null)
+                    var jwttokenResponse = await _userClient.LoginFacebook(token);
+                    if (jwttokenResponse != null)
                     {
-                        var userPrincipal = _userClient.ValidateToken(jwttoken.Access_Token);
+                        var userPrincipal = _userClient.ValidateToken(jwttokenResponse.Access_Token);
                         var authProperties = new AuthenticationProperties
                         {
                             // set false -> tạo ra cookie phiên -> thoát trình duyệt cookie bị xoá
@@ -165,8 +166,8 @@ namespace FrontEndWebApp.Controllers
                             IsPersistent = false
                         };
                         await HttpContext.SignInAsync(userPrincipal, authProperties);
-                        HttpContext.Response.Cookies.Append("access_token_cookie", jwttoken.Access_Token, new CookieOptions { HttpOnly = true, Secure = true });
-                        if (jwttoken.isNewLogin)
+                        HttpContext.Response.Cookies.Append("access_token_cookie", jwttokenResponse.Access_Token, new CookieOptions { HttpOnly = true, Secure = true });
+                        if (jwttokenResponse.isNewLogin)
                         {
                             int uid = Convert.ToInt32(userPrincipal.FindFirst("UserID").Value);
                             return RedirectToAction(nameof(AddPassword), new { id = uid });
@@ -190,13 +191,21 @@ namespace FrontEndWebApp.Controllers
         
         public async Task<IActionResult> UpdateProfile(int id)
         {
-            var user = await _userClient.GetUserInfo(id);
+            var userID = Int32.Parse(User.FindFirst("UserID").Value);
+            
+            if (id != userID)
+            {
+                // access denied
+                return View("Views/Auth/AccessDenied.cshtml");
+            }
+
+            var user = await _userClient.GetUserInfo(userID);
             if (user != null)
             {
-                ViewData["uid"] = id;
+                ViewData["uid"] = userID;
                 return View(user);
             }
-            return View();
+            return View(new UserViewModel());
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
