@@ -2,7 +2,15 @@
 
 @{
     ViewData["Title"] = "ShowProfile";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    if (User.IsInRole("admin"))
+    {
+        Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+
 }
 
 <h1>Profile</h1>

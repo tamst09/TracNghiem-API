@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>@ViewData["Title"]</title>
+    <title>Quản trị hệ thống</title>
 
     <!-- Custom fonts for this template-->
     <link href="~/adminAssets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -90,6 +90,7 @@
                 <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Quản lý:</h6>
+                        <a class="collapse-item" asp-action="Index" asp-controller="Users" asp-area="Admin">Người dùng</a>
                         <a class="collapse-item" href="login.html">Đề thi</a>
                         <a class="collapse-item" href="register.html">Câu hỏi</a>
                         <a class="collapse-item" href="forgot-password.html">Danh sách ưa thích</a>
@@ -141,7 +142,7 @@
                         <i class="fa fa-bars"></i>
                     </button>
 
-                    <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+                    <h1 class="h3 mb-0 text-gray-800">Quản trị hệ thống</h1>
 
 
 
@@ -337,6 +338,8 @@
     <!-- Page level custom scripts -->
     <script src="~/adminAssets/js/demo/chart-area-demo.js"></script>
     <script src="~/adminAssets/js/demo/chart-pie-demo.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
     @RenderSection("Scripts", required: false)
 </body>
 

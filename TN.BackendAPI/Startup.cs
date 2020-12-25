@@ -54,6 +54,8 @@ namespace TN.BackendAPI
                     Configuration["EmailSender:Password"]
 
             ));
+            
+
             services.Configure<IdentityOptions>(options =>
             {
                 options.Password.RequireDigit = true;
@@ -63,6 +65,7 @@ namespace TN.BackendAPI
                 options.Password.RequiredLength = 8;
                 options.Password.RequiredUniqueChars = 0;
             });
+            
             services.AddAuthentication(opt => 
             {
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -89,18 +92,31 @@ namespace TN.BackendAPI
             Configuration.Bind(nameof(FBAuthSettings), fbAuthSettings);
             services.AddSingleton(fbAuthSettings);
             services.AddHttpClient();
-            
+            services.AddAuthorization(options => {
+                options.AddPolicy("admin",
+                    authBuilder => {
+                        authBuilder.RequireRole("admin");
+                    });
+                options.AddPolicy("user",
+                    authBuilder => {
+                        authBuilder.RequireRole("user");
+                    });
+            });
             services.AddControllersWithViews().AddNewtonsoftJson(
                 options => {
                     options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                     options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                 }
             );
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+            });
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Swagger", Version = "v1" });
             });
-
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -110,19 +126,14 @@ namespace TN.BackendAPI
             {
                 app.UseDeveloperExceptionPage();
             }
-
-            app.UseCors(options =>
-            {
-                options.AllowAnyOrigin();
-                options.AllowAnyHeader();
-                options.AllowAnyMethod();
-            });
-
             app.UseAuthentication();
             app.UseHttpsRedirection();
             app.UseRouting();
+            app.UseCors();
             app.UseAuthorization();
-
+                        app.UseCors(
+                options => options.AllowAnyOrigin().AllowAnyMethod()
+            );
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {

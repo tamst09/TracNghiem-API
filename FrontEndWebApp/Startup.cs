@@ -25,9 +25,9 @@ namespace FrontEndWebApp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors();
             services.AddHttpContextAccessor();
             services.AddSession();
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -74,7 +74,7 @@ namespace FrontEndWebApp
             });
             services.AddControllersWithViews();
             services.AddHttpClient();
-            services.AddTransient<IUserClient, UserClient>();
+            services.AddTransient<IAuthClient, AuthClientService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -89,24 +89,22 @@ namespace FrontEndWebApp
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
+
             app.UseAuthentication();
             app.UseHttpsRedirection();
             app.UseSession();
             app.UseStaticFiles();
-            app.UseCors(
-                options => options.AllowAnyOrigin().AllowAnyMethod()
-            );
             app.UseRouting();
             app.UseAuthorization();
             //app.UseStatusCodePagesWithRedirects("/Auth/AccessDenied");
-            app.Use(async (context, next) =>
-            {
-                var token = context.Request.Cookies["access_token_cookie"];
-                if (!string.IsNullOrEmpty(token)) {
-                    context.Request.Headers.Add("Authorization", "Bearer " + token);
-                };
-                await next();
-            });
+            //app.Use(async (context, next) =>
+            //{
+            //    var token = context.Request.Cookies["access_token_cookie"];
+            //    if (!string.IsNullOrEmpty(token)) {
+            //        context.Request.Headers.Add("Authorization", "Bearer " + token);
+            //    };
+            //    await next();
+            //});
             app.UseEndpoints(endpoints =>
             {
                 //endpoints.MapAreaControllerRoute(

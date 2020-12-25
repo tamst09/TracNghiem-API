@@ -2,7 +2,14 @@
 
 @{
     ViewData["Title"] = "UpdateProfile";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    if (User.IsInRole("admin"))
+    {
+        Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
 }
 
 <h1>Update your profile</h1>
@@ -15,18 +22,18 @@
             <input type="hidden" asp-for="Id" class="form-control" value="@Model.Id" />
             <div class="form-group">
                 <label asp-for="UserName" class="control-label"></label>
-                <input asp-for="UserName" class="form-control" value="@Model.Email" />
+                <input asp-for="UserName" class="form-control" value="@Model.UserName" />
                 <span asp-validation-for="UserName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="FirstName" class="control-label"></label>
-                <input asp-for="FirstName" class="form-control" value="@Model.FirstName" />
-                <span asp-validation-for="FirstName" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="LastName" class="control-label"></label>
                 <input asp-for="LastName" class="form-control" value="@Model.LastName" />
                 <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FirstName" class="control-label"></label>
+                <input asp-for="FirstName" class="form-control" value="@Model.FirstName" />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Email" class="control-label"></label>

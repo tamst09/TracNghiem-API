@@ -10,17 +10,18 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using FrontEndWebApp.Settings;
+using Microsoft.AspNetCore.Http;
 using TN.ViewModels.FacebookAuth;
 using TN.Data.Entities;
 
 namespace FrontEndWebApp.Services
 {
-    public class UserClient : IUserClient
+    public class AuthClientService : IAuthClient
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private IConfiguration _config;
 
-        public UserClient(IHttpClientFactory httpClientFactory, IConfiguration config)
+        public AuthClientService(IHttpClientFactory httpClientFactory, IConfiguration config)
         {
             _httpClientFactory = httpClientFactory;
             _config = config;
@@ -30,7 +31,6 @@ namespace FrontEndWebApp.Services
         {
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-
             HttpClient client = _httpClientFactory.CreateClient();
             client.BaseAddress = new Uri(ConstStrings.BaseUrl);
             var response = await client.PostAsync("/api/users/login", httpContent);
@@ -51,12 +51,16 @@ namespace FrontEndWebApp.Services
             }
         }
 
-        public async Task<UserViewModel> GetUserInfo(int userId)
+        public async Task<UserViewModel> GetUserInfo(int userId, string access_token)
         {
             HttpClient client = _httpClientFactory.CreateClient();
             client.BaseAddress = new Uri(ConstStrings.BaseUrl);
+            if (!string.IsNullOrEmpty(access_token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + access_token);
+            }
             var response = await client.GetAsync("/api/users/"+userId.ToString());
-
+            
             if (response.IsSuccessStatusCode)
             {
                 var user = await response.Content.ReadAsStringAsync();
@@ -110,13 +114,18 @@ namespace FrontEndWebApp.Services
             }
         }
 
-        public async Task<UserViewModel> UpdateProfile(int uid, UserViewModel model)
+        public async Task<UserViewModel> UpdateProfile(int uid, UserViewModel model, string access_token)
         {
+            model.Id = uid;
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
 
             HttpClient client = _httpClientFactory.CreateClient();
             client.BaseAddress = new Uri(ConstStrings.BaseUrl);
+            if (!string.IsNullOrEmpty(access_token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + access_token);
+            }
             var response = await client.PutAsync("/api/users/UpdateUser/"+uid.ToString(), httpContent);
 
             if (response.IsSuccessStatusCode)

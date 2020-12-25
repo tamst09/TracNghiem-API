@@ -167,5 +167,35 @@ namespace TN.BackendAPI.Controllers
             }
             return Ok(user);
         }
+
+        [HttpPost("LockUser/{id}")]
+        [Authorize("admin")]
+        public async Task<ActionResult> LockUser(int id)
+        {
+            var lockUserResult = await _userService.DeleteUser(id);
+            if (lockUserResult)
+            {
+                return Ok("Locked user - UID: "+id);
+            }
+            else
+            {
+                return BadRequest("Locked user failed");
+            }
+        }
+
+        [HttpPost("RestoreUser/{id}")]
+        [Authorize("admin")]
+        public async Task<ActionResult> RestoreUser(int id)
+        {
+            var lockUserResult = await _userService.RestoreUser(id);
+            if (lockUserResult)
+            {
+                return Ok("Unlocked user - UID: " + id);
+            }
+            else
+            {
+                return BadRequest("Unlocked user failed");
+            }
+        }
     }
 }

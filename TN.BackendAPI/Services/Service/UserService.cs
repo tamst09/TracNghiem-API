@@ -86,7 +86,20 @@ namespace TN.BackendAPI.Services.Service
                 return false;
             }
 
-            _dbContext.Users.Remove(user);
+            user.isActive = false;
+            await _dbContext.SaveChangesAsync();
+
+            return true;
+        }
+        public async Task<bool> RestoreUser(int id)
+        {
+            var user = await _dbContext.Users.FindAsync(id);
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.isActive = true;
             await _dbContext.SaveChangesAsync();
 
             return true;
@@ -99,7 +112,7 @@ namespace TN.BackendAPI.Services.Service
             //var user = await _userManager.FindByNameAsync(request.UserName);
             var userlogin = await _dbContext.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.UserName == model.UserName);
 
-            if (userlogin == null) return null;
+            if (userlogin == null || userlogin.isActive == false) return null;
 
             var passwordvalid = await _userManager.CheckPasswordAsync(userlogin, model.Password);
             if (!passwordvalid)

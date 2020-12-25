@@ -15,6 +15,7 @@ namespace TN.BackendAPI.Services.IServices
         Task<JwtResponse> Login(LoginModel model);
         Task<AppUser> EditUserInfo(int id, UserViewModel user);
         Task<bool> DeleteUser(int id);
+        Task<bool> RestoreUser(int id);
         Task<string> ResetPassword(ForgotPasswordModel model);
         Task<string> ResetPasswordConfirm(ResetPasswordModel model);
         Task<AppUser> GetUserByAccessToken(string accessToken);

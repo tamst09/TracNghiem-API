@@ -1,25 +1,23 @@
 ﻿using FrontEndWebApp.Services;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using TN.Data.Entities;
 using TN.ViewModels.Catalog.User;
+
 
 namespace FrontEndWebApp.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly IUserClient _userClient;
+        private readonly IAuthClient _authClient;
 
-        public AuthController(IUserClient userClient)
+        public AuthController(IAuthClient authClient)
         {
-            _userClient = userClient;
+            _authClient = authClient;
         }
-        // ----------------------------------COMMON---------------------------------------
+        // ========================== COMMON ==========================
         public IActionResult Index()
         {
             return RedirectToAction(nameof(Login));
@@ -32,18 +30,9 @@ namespace FrontEndWebApp.Controllers
             HttpContext.SignOutAsync();
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
+        //====================================================
 
-        public async Task<IActionResult> ShowProfile()
-        {
-            var id = User.FindFirst("UserID");
-            var user = await _userClient.GetUserInfo(Int32.Parse(id.Value));
-            if (user != null)
-                return View(user);
-            return View();
-        }
-        //-----------------------------------------------------------------------------------
-
-        //------------------------------------NORMAL LOGIN-----------------------------------
+        //========================== NORMAL LOGIN ==========================
         public IActionResult Login(string username, string ReturnUrl)
         {
 
@@ -53,65 +42,50 @@ namespace FrontEndWebApp.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Login(LoginModel request, string returnUrl)
+        public IActionResult Login(LoginModel model, string returnUrl)
         {
             if (!ModelState.IsValid)
             {
-                return View(request);
+                return View(model);
             }
             
             // jwt got from authentication API 
-            var token = _userClient.Authenticate(request).Result;
+            var result = _authClient.Authenticate(model).Result;
 
-            if (token == "wrong")
+            if (result == "wrong")
             {
                 ViewData["msg"] = "Invalid username or password";
-                return View(request);
+                return View(model);
             }
-            else if (token == "notfound")
+            else if (result == "notfound")
             {
                 ViewData["msg"] = "User is not found";
-                return View(request);
+                return View(model);
             }
-            else if (token == "error")
+            else if (result == "error")
             {
                 ViewData["msg"] = "Error";
-                return View(request);
-                //return RedirectToAction("Error");
+                return View(model);
             }
             else
             {
-                HttpContext.Response.Cookies.Append("access_token_cookie", token, new CookieOptions { HttpOnly = true, Secure = true });
-                var userPrincipal = _userClient.ValidateToken(token);
+                var userPrincipal = _authClient.ValidateToken(result);
                 var authProperties = new AuthenticationProperties
                 {
                     // set false -> tạo ra cookie phiên -> thoát trình duyệt cookie bị xoá
                     // set true -> cookie có thời hạn đc set trong Startup.cs và ko bị mất khi thoát
-
-                    IsPersistent = request.Rememberme
+                    IsPersistent = model.Rememberme
                 };
-                
                 HttpContext.SignInAsync(userPrincipal, authProperties);
-
-                if(!string.IsNullOrEmpty(returnUrl))
+                HttpContext.Response.Cookies.Append("access_token_cookie", TokenUtils.EncodeToken(result), new CookieOptions { HttpOnly = true, Secure = true });
+                if (!string.IsNullOrEmpty(returnUrl))
                 {
                     return Redirect(returnUrl);
                 }
                 return RedirectToAction("Index", "Home");
-                //if (HttpContext.User.IsInRole(""))
-                //{
-                //    // direct to admin page
-                //    return RedirectToAction("Index", "Home", new { Area = "Admin" });
-                //}
-                //else
-                //{
-                //    // direct to public page
-                //    return RedirectToAction("Index", "Home", new { Area = "User" });
-                //}
-                
-                //return RedirectToAction(nameof(HomeController.Index), "Home");
             }
         }
+
         public IActionResult Register()
         {
             return View();
@@ -124,7 +98,7 @@ namespace FrontEndWebApp.Controllers
             {
                 return View(model);
             }
-            var user = await _userClient.Register(model);
+            var user = await _authClient.Register(model);
             if (user != null)
             {
                 if (!string.IsNullOrEmpty(user.Error))
@@ -138,9 +112,9 @@ namespace FrontEndWebApp.Controllers
             return View(model);
         }
 
-        //----------------------------------------------------------------------------------------------------
+        //====================================================
 
-        //---------------------------------------External Login-----------------------------------------------
+        //========================== EXTERNAL LOGIN ==========================
         [HttpPost]
         public async Task<IActionResult> ExternalLogin(string provider, string token)
         {
@@ -155,22 +129,22 @@ namespace FrontEndWebApp.Controllers
                 else
                 {
                     // get jwt from api
-                    var jwttokenResponse = await _userClient.LoginFacebook(token);
+                    var jwttokenResponse = await _authClient.LoginFacebook(token);
                     if (jwttokenResponse != null)
                     {
-                        var userPrincipal = _userClient.ValidateToken(jwttokenResponse.Access_Token);
+                        var userPrincipal = _authClient.ValidateToken(jwttokenResponse.Access_Token);
                         var authProperties = new AuthenticationProperties
                         {
                             // set false -> tạo ra cookie phiên -> thoát trình duyệt cookie bị xoá
                             // set true -> cookie có thời hạn đc set trong Startup.cs và ko bị mất khi thoát
-                            IsPersistent = false
+                            IsPersistent = true
                         };
                         await HttpContext.SignInAsync(userPrincipal, authProperties);
-                        HttpContext.Response.Cookies.Append("access_token_cookie", jwttokenResponse.Access_Token, new CookieOptions { HttpOnly = true, Secure = true });
+                        HttpContext.Response.Cookies.Append("access_token_cookie",TokenUtils.EncodeToken(jwttokenResponse.Access_Token), new CookieOptions { HttpOnly = true, Secure = true });
                         if (jwttokenResponse.isNewLogin)
                         {
                             int uid = Convert.ToInt32(userPrincipal.FindFirst("UserID").Value);
-                            return RedirectToAction(nameof(AddPassword), new { id = uid });
+                            return RedirectToAction(nameof(UpdateProfile), new { id = uid });
                         }
                         return RedirectToAction(nameof(HomeController.Index), "Home");
                     }
@@ -185,10 +159,19 @@ namespace FrontEndWebApp.Controllers
                 return RedirectToAction(nameof(Login));
             }
         }
-        //----------------------------------------------------------------------------------------------
+        //====================================================
 
-        //-----------------------------------------PROFILE----------------------------------------------
-        
+        //========================== PROFILE ==========================
+        public async Task<IActionResult> ShowProfile()
+        {
+            var id = User.FindFirst("UserID");
+            var access_token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+            var user = await _authClient.GetUserInfo(Int32.Parse(id.Value), access_token);
+            if (user != null)
+                return View(user);
+            return View();
+        }
+
         public async Task<IActionResult> UpdateProfile(int id)
         {
             var userID = Int32.Parse(User.FindFirst("UserID").Value);
@@ -198,8 +181,8 @@ namespace FrontEndWebApp.Controllers
                 // access denied
                 return View("Views/Auth/AccessDenied.cshtml");
             }
-
-            var user = await _userClient.GetUserInfo(userID);
+            var access_token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+            var user = await _authClient.GetUserInfo(userID, access_token);
             if (user != null)
             {
                 ViewData["uid"] = userID;
@@ -209,7 +192,7 @@ namespace FrontEndWebApp.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> OnPostUpdateProfile(int id, UserViewModel request)
+        public async Task<IActionResult> OnPostUpdateProfile(int id, UserViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -218,8 +201,13 @@ namespace FrontEndWebApp.Controllers
                     id
                 });
             }
-            request.Id = id;
-            var result = await _userClient.UpdateProfile(id, request);
+            var userID = Int32.Parse(User.FindFirst("UserID").Value);
+            if(id != userID)
+            {
+                return Redirect("/Views/Auth/AccessDenied.cshtml");
+            }
+            var access_token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+            var result = await _authClient.UpdateProfile(id, model, access_token);
             // success
             if (result != null)
                 return RedirectToAction(nameof(ShowProfile), new { id = result.Id });
@@ -229,33 +217,34 @@ namespace FrontEndWebApp.Controllers
                 id
             });
         }
-        public async Task<IActionResult> AddPassword(int id)
-        {
-            var user = await _userClient.GetUserInfo(id);
-            if (user != null)
-            {
-                ViewData["email"] = user.Email;
-                return View(new ResetPasswordModel() { Email = user.Email });
-            }
-            return View();
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddPassword(ResetPasswordModel request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(request);
-            }
-            var result = await _userClient.AddPassword(request);
-            if (result != null)
-                return RedirectToAction(nameof(UpdateProfile), new { id = result.Id });
-            return View(request);
-        }
-        //------------------------------------------------------------------------------------------
+        //public async Task<IActionResult> AddPassword(int id)
+        //{
+        //    var user = await _userClient.GetUserInfo(id);
+        //    if (user != null)
+        //    {
+        //        ViewData["email"] = user.Email;
+        //        return View(new ResetPasswordModel() { Email = user.Email });
+        //    }
+        //    return View();
+        //}
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> AddPassword(ResetPasswordModel request)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return View(request);
+        //    }
+        //    var result = await _userClient.AddPassword(request);
+        //    if (result != null)
+        //        return RedirectToAction(nameof(UpdateProfile), new { id = result.Id });
+        //    return View(request);
+        //}
+        //==============================================================================
 
 
-        
+
+
 
     }
 }
