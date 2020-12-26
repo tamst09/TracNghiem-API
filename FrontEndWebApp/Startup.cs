@@ -25,7 +25,7 @@ namespace FrontEndWebApp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddHttpContextAccessor();
+            //services.AddHttpContextAccessor();
             services.AddSession();
 
             services.AddAuthentication(options =>
@@ -99,8 +99,10 @@ namespace FrontEndWebApp
             //app.UseStatusCodePagesWithRedirects("/Auth/AccessDenied");
             //app.Use(async (context, next) =>
             //{
-            //    var token = context.Request.Cookies["access_token_cookie"];
-            //    if (!string.IsNullOrEmpty(token)) {
+            //    var token = TokenUtils.DecodeToken(context.Request.Cookies["access_token_cookie"]);
+            //    if (!string.IsNullOrEmpty(token))
+            //    {
+            //        context.Request.HttpContext.Request.Headers.Add("Authorization", "Bearer " + token);
             //        context.Request.Headers.Add("Authorization", "Bearer " + token);
             //    };
             //    await next();

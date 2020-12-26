@@ -61,9 +61,9 @@ namespace TN.BackendAPI.Controllers
         public async Task<ActionResult> Login([FromBody] LoginModel request)
         {
             var result = await _userService.Login(request);
-            if (result == null)
+            if (result == null || result.Error != null)
             {
-                return BadRequest("Invalid username or password");
+                return BadRequest(result);
             }
             return Ok(result);
         }

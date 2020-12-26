@@ -27,7 +27,7 @@ namespace FrontEndWebApp.Services
             _config = config;
         }
 
-        public async Task<string> Authenticate(LoginModel model)
+        public async Task<JwtResponse> Authenticate(LoginModel model)
         {
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
@@ -39,15 +39,13 @@ namespace FrontEndWebApp.Services
             {
                 var token = await response.Content.ReadAsStringAsync();
                 JwtResponse access_token_obj = JsonConvert.DeserializeObject<JwtResponse>(token);
-                return access_token_obj.Access_Token;
+                return access_token_obj;
             }
             else
             {
-                if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                    return "wrong";
-                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    return "notfound";
-                else return "error";
+                var responseResult = await response.Content.ReadAsStringAsync();
+                JwtResponse obj = JsonConvert.DeserializeObject<JwtResponse>(responseResult);
+                return obj;
             }
         }
 
@@ -172,6 +170,57 @@ namespace FrontEndWebApp.Services
             parameters.IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Tokens:SecretKey"]));
             ClaimsPrincipal principal = new JwtSecurityTokenHandler().ValidateToken(token, parameters, out validatedToken);
             return principal;
+        }
+
+        public async Task<string> GetResetPasswordCode(ForgotPasswordModel model)
+        {
+            var json = JsonConvert.SerializeObject(model);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+            HttpClient client = _httpClientFactory.CreateClient();
+            client.BaseAddress = new Uri(ConstStrings.BaseUrl);
+            
+            try
+            {
+                var response = await client.PostAsync("api/Users/getresetcode", httpContent);
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseResult = await response.Content.ReadAsStringAsync();
+                    return responseResult;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+        public async Task<bool> ChangePassword(string resetCode, ResetPasswordModel model)
+        {
+            var json = JsonConvert.SerializeObject(model);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpClient client = _httpClientFactory.CreateClient();
+            client.BaseAddress = new Uri(ConstStrings.BaseUrl);
+            try
+            {
+                var response = await client.PostAsync("api/Users/resetpass/", httpContent);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseResult = await response.Content.ReadAsStringAsync();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

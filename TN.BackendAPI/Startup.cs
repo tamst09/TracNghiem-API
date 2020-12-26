@@ -16,6 +16,9 @@ using TN.Data.Entities;
 using TN.BackendAPI.Services.Service;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace TN.BackendAPI
 {
@@ -34,7 +37,8 @@ namespace TN.BackendAPI
             services.AddDbContextPool<TNDbContext>(options => 
                 options.UseSqlServer(Configuration.GetConnectionString("TNDatabase")));
             services.AddIdentity<AppUser, AppRole>()
-                .AddEntityFrameworkStores<TNDbContext>();
+                .AddEntityFrameworkStores<TNDbContext>()
+                .AddDefaultTokenProviders();
             //Declare DI
             services.AddTransient<UserManager<AppUser>, UserManager<AppUser>>();
             services.AddTransient<SignInManager<AppUser>, SignInManager<AppUser>>();
@@ -54,8 +58,6 @@ namespace TN.BackendAPI
                     Configuration["EmailSender:Password"]
 
             ));
-            
-
             services.Configure<IdentityOptions>(options =>
             {
                 options.Password.RequireDigit = true;

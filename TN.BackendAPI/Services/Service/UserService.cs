@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -15,7 +17,9 @@ using TN.Data.DataContext;
 using TN.Data.Entities;
 using TN.ViewModels.Catalog.User;
 using TN.ViewModels.Common;
-using TN.ViewModels.FacebookAuth;
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Encodings.Web;
+using System.Security.Policy;
 
 namespace TN.BackendAPI.Services.Service
 {
@@ -25,15 +29,17 @@ namespace TN.BackendAPI.Services.Service
         private readonly UserManager<AppUser> _userManager;
         private readonly IConfiguration _config;
         private readonly IFacebookAuth _facebookAuth;
+        private readonly IEmailSender _emailSender;
         public UserService(
             TNDbContext context,
             UserManager<AppUser> userManager,
-            IConfiguration config, IFacebookAuth facebookAuth)
-        {
+            IConfiguration config, IFacebookAuth facebookAuth, IEmailSender emailSender)
+        { 
             _dbContext = context;
             _userManager = userManager;
             _config = config;
             _facebookAuth = facebookAuth;
+            _emailSender = emailSender;
         }
         #region CRUD
         public async Task<IEnumerable<AppUser>> GetAll()
@@ -59,7 +65,7 @@ namespace TN.BackendAPI.Services.Service
             user.DoB = model.DoB;
             user.Email = model.Email;
             user.PhoneNumber = model.PhoneNumber;
-
+            user.isActive = model.isActive;
             try
             {
                 await _dbContext.SaveChangesAsync();
@@ -80,13 +86,14 @@ namespace TN.BackendAPI.Services.Service
         }
         public async Task<bool> DeleteUser(int id)
         {
-            var user = await _dbContext.Users.FindAsync(id);
+            var user = await _dbContext.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.Id == id);
             if (user == null)
             {
                 return false;
             }
 
             user.isActive = false;
+            user.RefreshToken = null;
             await _dbContext.SaveChangesAsync();
 
             return true;
@@ -112,12 +119,14 @@ namespace TN.BackendAPI.Services.Service
             //var user = await _userManager.FindByNameAsync(request.UserName);
             var userlogin = await _dbContext.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.UserName == model.UserName);
 
-            if (userlogin == null || userlogin.isActive == false) return null;
+            if (userlogin == null) return new JwtResponse() { Error = "Invalid account" };
+
+            if (userlogin.isActive == false) return new JwtResponse() { Error = "This account was locked" };
 
             var passwordvalid = await _userManager.CheckPasswordAsync(userlogin, model.Password);
             if (!passwordvalid)
             {
-                return null;
+                return new JwtResponse() { Error = "Wrong password" }; ;
             }
             // generate new access_token
             string access_token = GenerateAccessToken(userlogin);
@@ -350,17 +359,22 @@ namespace TN.BackendAPI.Services.Service
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user != null)
             {
-                string resetCode = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var resetCode = await _userManager.GeneratePasswordResetTokenAsync(user);
+                resetCode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetCode));
+                var callbackUrl = "https://localhost:44363/Auth/ForgotPasswordConfirm/?ResetCode=" + resetCode + "&Email=" + model.Email;
+                await _emailSender.SendEmailAsync(model.Email, "Reset password confirmation", $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
                 return resetCode;
             }
             return null;
         }
+        // dung code nhan duoc trong mail va confirm
         public async Task<string> ResetPasswordConfirm(ResetPasswordModel model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user != null)
             {
-                var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
+                var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(model.ResetCode));
+                var result = await _userManager.ResetPasswordAsync(user, decodedToken, model.Password);
                 return "OK";
             }
             return null;

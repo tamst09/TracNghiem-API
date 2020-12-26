@@ -30,6 +30,36 @@ namespace FrontEndWebApp.Controllers
             HttpContext.SignOutAsync();
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
+
+        public ActionResult ForgotPassword()
+        {
+            return View();
+        }
+        [HttpPost]
+        public async Task<ActionResult> ForgotPassword(ForgotPasswordModel model)
+        {
+            // send this to user email
+            var resetCode = await _authClient.GetResetPasswordCode(model);
+            if(resetCode != null)
+            {
+                ViewData["msg"] = "Check your email to complete changing your password";
+                return View();
+            }
+            ViewData["msg"] = "Your email is invalid. Please try again.";
+            return View(model);
+        }
+        public ActionResult ForgotPasswordConfirm(ResetPasswordModel model)
+        {
+            return View(model);
+        }
+        [HttpPost]
+        public async Task<ActionResult> ForgotPasswordConfirmOnPost(ResetPasswordModel model)
+        {
+            var changePasswordResult = await _authClient.ChangePassword(model.ResetCode, model);
+            if (changePasswordResult)
+                return View();
+            else return RedirectToAction("Login");
+        }
         //====================================================
 
         //========================== NORMAL LOGIN ==========================
@@ -49,27 +79,17 @@ namespace FrontEndWebApp.Controllers
                 return View(model);
             }
             
-            // jwt got from authentication API 
+            // jwt got from authentication API
             var result = _authClient.Authenticate(model).Result;
 
-            if (result == "wrong")
+            if (!string.IsNullOrEmpty(result.Error))
             {
-                ViewData["msg"] = "Invalid username or password";
-                return View(model);
-            }
-            else if (result == "notfound")
-            {
-                ViewData["msg"] = "User is not found";
-                return View(model);
-            }
-            else if (result == "error")
-            {
-                ViewData["msg"] = "Error";
+                ViewData["msg"] = result.Error;
                 return View(model);
             }
             else
             {
-                var userPrincipal = _authClient.ValidateToken(result);
+                var userPrincipal = _authClient.ValidateToken(result.Access_Token);
                 var authProperties = new AuthenticationProperties
                 {
                     // set false -> tạo ra cookie phiên -> thoát trình duyệt cookie bị xoá
@@ -77,7 +97,7 @@ namespace FrontEndWebApp.Controllers
                     IsPersistent = model.Rememberme
                 };
                 HttpContext.SignInAsync(userPrincipal, authProperties);
-                HttpContext.Response.Cookies.Append("access_token_cookie", TokenUtils.EncodeToken(result), new CookieOptions { HttpOnly = true, Secure = true });
+                HttpContext.Response.Cookies.Append("access_token_cookie", TokenUtils.EncodeToken(result.Access_Token), new CookieOptions { HttpOnly = true, Secure = true });
                 if (!string.IsNullOrEmpty(returnUrl))
                 {
                     return Redirect(returnUrl);

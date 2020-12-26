@@ -20,27 +20,25 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
     public class UsersController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IAuthClient _authClient;
         private HttpClient httpClient;
 
-        public UsersController(IHttpClientFactory httpClientFactory)
+        public UsersController(IHttpClientFactory httpClientFactory, IAuthClient authClient)
         {
             _httpClientFactory = httpClientFactory;
             httpClient = _httpClientFactory.CreateClient();
             httpClient.BaseAddress = new Uri(ConstStrings.BaseUrl);
+            _authClient = authClient;
         }
 
         // GET: UsersController
         public async Task<ActionResult> Index()
         {
             List<UserViewModel> lstAllUser = new List<UserViewModel>();
-            //var token = Request.Cookies["access_token_cookie"];
-            //HttpClient client = _httpClientFactory.CreateClient();
-            //client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-            //client.BaseAddress = new Uri(ConstStrings.BaseUrl);
             try
             {
                 var token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
-                if(token!=null)
+                if (token != null)
                     httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
                 var response = await httpClient.GetAsync("/api/users/");
                 if (response.IsSuccessStatusCode)
@@ -67,9 +65,20 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         }
 
         // GET: UsersController/Details/5
-        public ActionResult Details(int id)
+        public async Task<ActionResult> Details(int id)
         {
-            return View();
+            try
+            {
+                var access_token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+
+                var user = await _authClient.GetUserInfo(id, access_token);
+
+                return View(user);
+            }
+            catch (Exception)
+            {
+                return RedirectToAction("Index", "Users");
+            }
         }
 
         // GET: UsersController/Create
@@ -124,19 +133,33 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         }
 
         // GET: UsersController/Edit/5
-        public ActionResult Edit(int id)
+        public async Task<ActionResult> Edit(int id)
         {
-            return View();
+            try
+            {
+                var access_token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var user = await _authClient.GetUserInfo(id, access_token);
+                if(user!=null)
+                    return View(user);
+                else
+                    return RedirectToAction("Index", "Users");
+            }
+            catch
+            {
+                return RedirectToAction("Index", "Users");
+            }
         }
 
         // POST: UsersController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<ActionResult> Edit(int id, UserViewModel model)
         {
             try
             {
-                return RedirectToAction(nameof(Index));
+                var access_token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var userUpdated = await _authClient.UpdateProfile(id, model, access_token);
+                return RedirectToAction("Details", "Users", new { id = userUpdated.Id });
             }
             catch
             {

@@ -64,5 +64,5 @@
 </div>
 <div>
     @Html.ActionLink("Edit", "UpdateProfile", new { id = Model.Id })
-    <a asp-action="Index" asp-controller="Home" asp-area="Public">Back to home</a>
+    <button type="button" class="btn btn-link" onclick="window.history.back()">Trở về</button>
 </div>

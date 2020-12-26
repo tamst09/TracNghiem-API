@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TN.BackendAPI", "TN.Backend
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FrontEndWebApp", "FrontEndWebApp\FrontEndWebApp.csproj", "{4117951B-1BE2-4F89-91D7-A42D1DC41038}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TN.App", "..\..\..\2_Source_Code\WebsiteTracNghiem\TN.App\TN.App.csproj", "{8B3CC733-79B8-4CCF-879A-23AB0A8C3230}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{4117951B-1BE2-4F89-91D7-A42D1DC41038}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4117951B-1BE2-4F89-91D7-A42D1DC41038}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4117951B-1BE2-4F89-91D7-A42D1DC41038}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B3CC733-79B8-4CCF-879A-23AB0A8C3230}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B3CC733-79B8-4CCF-879A-23AB0A8C3230}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B3CC733-79B8-4CCF-879A-23AB0A8C3230}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B3CC733-79B8-4CCF-879A-23AB0A8C3230}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
