@@ -43,7 +43,7 @@ namespace FrontEndWebApp.Controllers
             if(resetCode != null)
             {
                 ViewData["msg"] = "Check your email to complete changing your password";
-                return View();
+                return View("/Views/Auth/ForgotPasswordOnPost.cshtml");
             }
             ViewData["msg"] = "Your email is invalid. Please try again.";
             return View(model);
