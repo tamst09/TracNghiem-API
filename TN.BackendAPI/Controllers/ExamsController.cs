@@ -47,7 +47,7 @@ namespace TN.BackendAPI.Controllers
         public async Task<IActionResult> PutExam(int id, Exam exam)
         {
 
-            var result = _examService.Update(exam);
+            var result = await _examService.Update(exam);
             if(result == null)
             {
                 return NotFound();

@@ -4,9 +4,9 @@ using System.Text;
 
 namespace TN.ViewModels.Common
 {
-    public class PagedResultVM<T>
+    // ==== Nhan ket qua sau khi phan trang ==== //
+    public class PagedResult<T> : PagedResultBase
     {
-        public int TotalRecord { get; set; }
         public List<T> Items { get; set; }
     }
 }

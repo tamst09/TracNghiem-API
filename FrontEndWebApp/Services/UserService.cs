@@ -1,27 +1,24 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Text;
-using System.Net.Http;
-using System.Threading.Tasks;
-using TN.ViewModels.Catalog.User;
-using System.Security.Claims;
+﻿using FrontEndWebApp.Settings;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using System;
 using System.IdentityModel.Tokens.Jwt;
-using FrontEndWebApp.Settings;
-using Microsoft.AspNetCore.Http;
-using TN.ViewModels.FacebookAuth;
-using TN.Data.Entities;
+using System.Net.Http;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
+using TN.ViewModels.Catalog.User;
 
 namespace FrontEndWebApp.Services
 {
-    public class AuthClientService : IAuthClient
+    public class UserService : IUserService
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private IConfiguration _config;
 
-        public AuthClientService(IHttpClientFactory httpClientFactory, IConfiguration config)
+        public UserService(IHttpClientFactory httpClientFactory, IConfiguration config)
         {
             _httpClientFactory = httpClientFactory;
             _config = config;

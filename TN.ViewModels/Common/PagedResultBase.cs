@@ -4,10 +4,11 @@ using System.Text;
 
 namespace TN.ViewModels.Common
 {
-    // ===== class cha dung de ke thua ===== //
-    public class PagingRequestBase
+    public class PagedResultBase
     {
         public int PageIndex { get; set; }
         public int PageSize { get; set; }
+        public int TotalRecords { get; set; }
+        public int TotalPages { get; set; }
     }
 }

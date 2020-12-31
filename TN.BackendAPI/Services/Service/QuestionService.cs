@@ -20,7 +20,7 @@ namespace TN.BackendAPI.Services.Service
             _db = db;
         }
 
-        public Task<PagedResultVM<Question>> GetAllQuestionPaging(GetQuestionPagingRequest request)
+        public Task<PagedResult<Question>> GetAllQuestionPaging(GetQuestionPagingRequest request)
         {
             throw new NotImplementedException();
         }

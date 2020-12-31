@@ -11,9 +11,9 @@ namespace FrontEndWebApp.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly IAuthClient _authClient;
+        private readonly IUserService _authClient;
 
-        public AuthController(IAuthClient authClient)
+        public AuthController(IUserService authClient)
         {
             _authClient = authClient;
         }
@@ -97,7 +97,7 @@ namespace FrontEndWebApp.Controllers
                     IsPersistent = model.Rememberme
                 };
                 HttpContext.SignInAsync(userPrincipal, authProperties);
-                HttpContext.Response.Cookies.Append("access_token_cookie", TokenUtils.EncodeToken(result.Access_Token), new CookieOptions { HttpOnly = true, Secure = true });
+                HttpContext.Response.Cookies.Append("access_token_cookie", Encoder.EncodeToken(result.Access_Token), new CookieOptions { HttpOnly = true, Secure = true });
                 if (!string.IsNullOrEmpty(returnUrl))
                 {
                     return Redirect(returnUrl);
@@ -160,7 +160,7 @@ namespace FrontEndWebApp.Controllers
                             IsPersistent = true
                         };
                         await HttpContext.SignInAsync(userPrincipal, authProperties);
-                        HttpContext.Response.Cookies.Append("access_token_cookie",TokenUtils.EncodeToken(jwttokenResponse.Access_Token), new CookieOptions { HttpOnly = true, Secure = true });
+                        HttpContext.Response.Cookies.Append("access_token_cookie",Encoder.EncodeToken(jwttokenResponse.Access_Token), new CookieOptions { HttpOnly = true, Secure = true });
                         if (jwttokenResponse.isNewLogin)
                         {
                             int uid = Convert.ToInt32(userPrincipal.FindFirst("UserID").Value);
@@ -185,7 +185,7 @@ namespace FrontEndWebApp.Controllers
         public async Task<IActionResult> ShowProfile()
         {
             var id = User.FindFirst("UserID");
-            var access_token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+            var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
             var user = await _authClient.GetUserInfo(Int32.Parse(id.Value), access_token);
             if (user != null)
                 return View(user);
@@ -201,7 +201,7 @@ namespace FrontEndWebApp.Controllers
                 // access denied
                 return View("Views/Auth/AccessDenied.cshtml");
             }
-            var access_token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+            var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
             var user = await _authClient.GetUserInfo(userID, access_token);
             if (user != null)
             {
@@ -226,7 +226,7 @@ namespace FrontEndWebApp.Controllers
             {
                 return Redirect("/Views/Auth/AccessDenied.cshtml");
             }
-            var access_token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+            var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
             var result = await _authClient.UpdateProfile(id, model, access_token);
             // success
             if (result != null)

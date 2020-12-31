@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace TN.ViewModels.Common
+namespace TN.ViewModels.Catalog.User
 {
     public class RefreshAccessTokenRequest
     {

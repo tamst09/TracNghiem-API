@@ -4,9 +4,8 @@ using System.Text;
 
 namespace TN.ViewModels.Common
 {
-    public class GetExamPagingRequest : PagingRequestBase
+    public class UserPagingRequest : PagingRequestBase
     {
         public string keyword { get; set; }
-        public int? CategoryID { get; set; }
     }
 }

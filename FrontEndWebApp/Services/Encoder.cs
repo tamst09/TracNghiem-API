@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FrontEndWebApp.Services
 {
-    public static class TokenUtils
+    public static class Encoder
     {
         // =========================== ENCODING & DECODING TOKEN BEFORE SAVING TO COOKIES ===========================
         public static string EncodeToken(string token)

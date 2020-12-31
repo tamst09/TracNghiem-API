@@ -6,15 +6,14 @@ using TN.Data.Entities;
 using TN.ViewModels.Catalog.User;
 using System.Text.Json;
 using System;
-using TN.ViewModels.Common;
 using TN.BackendAPI.Services.IServices;
 using TN.ViewModels.FacebookAuth;
+using TN.ViewModels.Common;
 
 namespace TN.BackendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly  IUserService _userService;
@@ -29,6 +28,18 @@ namespace TN.BackendAPI.Controllers
         public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers()
         {
             return Ok(await _userService.GetAll());
+        }
+
+        [HttpPost("paged")]
+        [Authorize("admin")]
+        public async Task<ActionResult<PagedResult<UserViewModel>>> GetUsersPaged(UserPagingRequest model)
+        {
+            var result = await _userService.GetListUserPaged(model);
+            if (result == null)
+            {
+                return BadRequest("Out of index");
+            }
+            return Ok(result);
         }
 
         // GET: api/Users/5

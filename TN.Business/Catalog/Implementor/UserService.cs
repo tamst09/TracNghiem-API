@@ -14,7 +14,6 @@ using TN.Business.Catalog.Interface;
 using TN.Data.DataContext;
 using TN.Data.Entities;
 using TN.ViewModels.Catalog.User;
-using TN.ViewModels.Common;
 
 namespace TN.Business.Catalog.Implementor
 {
@@ -172,7 +171,7 @@ namespace TN.Business.Catalog.Implementor
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user != null)
             {
-                var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
+                var result = await _userManager.ResetPasswordAsync(user, model.ResetCode, model.Password);
                 return "OK";
             }
             return null;

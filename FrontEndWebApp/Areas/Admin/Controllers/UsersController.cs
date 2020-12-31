@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TN.Data.Entities;
 using TN.ViewModels.Catalog.User;
+using TN.ViewModels.Common;
 
 namespace FrontEndWebApp.Areas.Admin.Controllers
 {
@@ -20,10 +21,10 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
     public class UsersController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IAuthClient _authClient;
+        private readonly IUserService _authClient;
         private HttpClient httpClient;
 
-        public UsersController(IHttpClientFactory httpClientFactory, IAuthClient authClient)
+        public UsersController(IHttpClientFactory httpClientFactory, IUserService authClient)
         {
             _httpClientFactory = httpClientFactory;
             httpClient = _httpClientFactory.CreateClient();
@@ -32,35 +33,44 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         }
 
         // GET: UsersController
-        public async Task<ActionResult> Index()
-        {
-            List<UserViewModel> lstAllUser = new List<UserViewModel>();
+        public async Task<ActionResult> Index(string keyword, int pageIndex = 1, int pageSize = 10)
+        {        
             try
             {
-                var token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+                //List<UserViewModel> lstAllUser = new List<UserViewModel>();
+                var model = new UserPagingRequest()
+                {
+                    keyword = keyword,
+                    PageIndex = pageIndex,
+                    PageSize = pageSize
+                };
+                var token = Services.Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 if (token != null)
                     httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-                var response = await httpClient.GetAsync("/api/users/");
+                var json = JsonConvert.SerializeObject(model);
+                var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await httpClient.PostAsync("/api/users/paged",httpContent);
                 if (response.IsSuccessStatusCode)
                 {
                     var lstuser = await response.Content.ReadAsStringAsync();
-                    lstAllUser = JsonConvert.DeserializeObject<List<UserViewModel>>(lstuser);
-                    return View(lstAllUser);
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) 
-                {
-                    // if not authorized
-                    return View(new List<UserViewModel>());
+                    var pagedResult = JsonConvert.DeserializeObject<PagedResult<UserViewModel>>(lstuser);
+                    return View(pagedResult);
                 }
                 else
                 {
-                    return View(new List<UserViewModel>());
+                    var result = new PagedResult<UserViewModel>();
+                    result.Items = null;
+                    result.PageIndex = 1;
+                    result.PageSize = 10;
+                    result.TotalPages = 1;
+                    result.TotalRecords = 0;
+                    return View(result);
                 }
             }
             catch (Exception)
             {
                 //throw;
-                return View(new List<UserViewModel>());
+                return View(new PagedResult<UserViewModel>());
             }
         }
 
@@ -69,7 +79,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                var access_token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var access_token = Services.Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
 
                 var user = await _authClient.GetUserInfo(id, access_token);
 
@@ -98,7 +108,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             }
             try
             {
-                var token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = Services.Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 if (token != null)
                     httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
                 var json = JsonConvert.SerializeObject(model);
@@ -137,7 +147,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                var access_token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var access_token = Services.Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var user = await _authClient.GetUserInfo(id, access_token);
                 if(user!=null)
                     return View(user);
@@ -157,7 +167,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                var access_token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var access_token = Services.Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var userUpdated = await _authClient.UpdateProfile(id, model, access_token);
                 return RedirectToAction("Details", "Users", new { id = userUpdated.Id });
             }
@@ -194,7 +204,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                var token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = Services.Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 if (token != null)
                     httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
                 var response = await httpClient.PostAsync("/api/users/LockUser/"+id.ToString(), null);
@@ -228,7 +238,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                var token = TokenUtils.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = Services.Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 if (token != null)
                     httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
                 var response = await httpClient.PostAsync("/api/users/RestoreUser/" + id.ToString(), null);

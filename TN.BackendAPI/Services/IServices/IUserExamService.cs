@@ -13,7 +13,7 @@ namespace TN.BackendAPI.Services.IServices
         Task<int> Update(Exam request, int userID);
         Task<int> Delete(int examID, int userID);
         Task IncreaseAttemps(int examID);
-        Task<PagedResultVM<Exam>> GetAllPaging(GetExamPagingRequest request);
+        Task<PagedResult<Exam>> GetAllPaging(ExamPagingRequest request);
         Task<List<Exam>> GetAll();
         Task<Exam> GetByID(int id);
     }

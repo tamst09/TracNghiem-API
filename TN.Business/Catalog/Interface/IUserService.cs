@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using TN.Data.Entities;
 using TN.ViewModels.Catalog.User;
-using TN.ViewModels.Common;
 
 namespace TN.Business.Catalog.Interface
 {

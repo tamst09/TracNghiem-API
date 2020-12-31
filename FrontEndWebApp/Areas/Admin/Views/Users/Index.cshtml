@@ -1,4 +1,4 @@
-﻿@model List<TN.ViewModels.Catalog.User.UserViewModel>
+﻿@model TN.ViewModels.Common.PagedResult<TN.ViewModels.Catalog.User.UserViewModel>
 
 @{
     ViewData["Title"] = "Danh sách người dùng";
@@ -35,43 +35,44 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var item in Model.Items)
         {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UserName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LastName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.FirstName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Email)
-            </td>
-            <td>
-                @if (item.isActive)
-                {
-                    <button id="status-@item.Id" onclick="LockAccount(@item.Id)" type="button" class="btn btn-block btn-success">Hoạt động</button>
-                }
-                else
-                {
-                    <button id="status-@item.Id" onclick="RestoreAccount(@item.Id)" type="button" class="btn btn-block btn-danger">Đã khoá</button>
-                }
-            </td>
-            <td>
-                @Html.ActionLink("Sửa", "Edit", new { id=item.Id }) |
-                @Html.ActionLink("Chi tiết", "Details", new { id=item.Id })
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Id)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UserName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.LastName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FirstName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Email)
+                </td>
+                <td>
+                    @if (item.isActive)
+                    {
+                        <button id="status-@item.Id" onclick="LockAccount(@item.Id)" type="button" class="btn btn-block btn-success">Hoạt động</button>
+                    }
+                    else
+                    {
+                        <button id="status-@item.Id" onclick="RestoreAccount(@item.Id)" type="button" class="btn btn-block btn-danger">Đã khoá</button>
+                    }
+                </td>
+                <td>
+                    @Html.ActionLink("Sửa", "Edit", new { id = item.Id }) |
+                    @Html.ActionLink("Chi tiết", "Details", new { id = item.Id })
 
-            </td>
-        </tr>
+                </td>
+            </tr>
         }
     </tbody>
 </table>
+@await Component.InvokeAsync("Pager", Model);
 
 @section Scripts
 {

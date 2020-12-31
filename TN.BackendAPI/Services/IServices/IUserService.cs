@@ -24,5 +24,6 @@ namespace TN.BackendAPI.Services.IServices
         bool ValidateRefreshToken(AppUser user, string refreshToken);
         Task<string> GetNewAccessToken(RefreshAccessTokenRequest refreshRequest);
         Task<JwtResponse> LoginWithFacebookToken(string accessToken);
+        Task<PagedResult<UserViewModel>> GetListUserPaged(UserPagingRequest model);
     }
 }

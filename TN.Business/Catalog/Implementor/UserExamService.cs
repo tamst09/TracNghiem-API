@@ -50,7 +50,7 @@ namespace TN.Business.Catalog.Implementor
             return await _db.Exams.ToListAsync();
         }
 
-        public async Task<PagedResultVM<Exam>> GetAllPaging(GetExamPagingRequest request)
+        public async Task<PagedResult<Exam>> GetAllPaging(ExamPagingRequest request)
         {
             var query = from e in _db.Exams
                         join c in _db.Categories on e.CategoryID equals c.ID
@@ -76,9 +76,9 @@ namespace TN.Business.Catalog.Implementor
                     OwnerID = e.OwnerID,
                     CategoryID = (int)e.CategoryID
                 }).ToListAsync();
-            var pageResult = new PagedResultVM<Exam>()
+            var pageResult = new PagedResult<Exam>()
             {
-                TotalRecord = totalrow,
+                TotalRecords = totalrow,
                 Items = data
             };
             return pageResult;
