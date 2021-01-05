@@ -237,7 +237,7 @@
                                 </a>
                                 <!-- Dropdown - User Information -->
                                 <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                                    <a class="dropdown-item" asp-area="" asp-action="ShowProfile" asp-controller="Auth">
+                                    <a class="dropdown-item" asp-area="" asp-action="ShowProfile" asp-controller="Account">
                                         <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                         Profile
                                     </a>
@@ -256,10 +256,10 @@
                         else
                         {
                             <li class="nav-item my-sm-auto mr-sm-2">
-                                <a class="btn btn-primary" id="login" asp-controller="Auth" asp-action="Login">Login</a>
+                                <a class="btn btn-primary" id="login" asp-controller="Account" asp-action="Login">Login</a>
                             </li>
                             <li class="nav-item my-sm-auto">
-                                <a class="btn btn-outline-primary" id="register" asp-controller="Auth" asp-action="Register">Register</a>
+                                <a class="btn btn-outline-primary" id="register" asp-controller="Account" asp-action="Register">Register</a>
                             </li>
                         }
                     </ul>
@@ -326,7 +326,7 @@
                 <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <form id="logoutForm" class="form-inline" method="post" asp-area="" asp-controller="Auth" asp-action="Logout">
+                    <form id="logoutForm" class="form-inline" method="post" asp-area="" asp-controller="Account" asp-action="Logout">
                         <button id="logout" type="submit" class="btn btn-primary">Logout</button>
                     </form>
                 </div>

@@ -2,23 +2,20 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using System.Text;
-using TN.BackendAPI.Settings;
 using TN.BackendAPI.Services.IServices;
+using TN.BackendAPI.Services.Service;
 using TN.Data.DataContext;
 using TN.Data.Entities;
-using TN.BackendAPI.Services.Service;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using Newtonsoft.Json;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Routing;
+using TN.ViewModels.Settings;
 
 namespace TN.BackendAPI
 {

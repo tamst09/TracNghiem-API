@@ -1,5 +1,4 @@
-﻿using FrontEndWebApp.Settings;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
@@ -10,17 +9,21 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using TN.ViewModels.Catalog.User;
+using TN.ViewModels.Settings;
 
 namespace FrontEndWebApp.Services
 {
-    public class UserService : IUserService
+    public class AccountService : IAccountService
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private IConfiguration _config;
+        private HttpClient _client;
 
-        public UserService(IHttpClientFactory httpClientFactory, IConfiguration config)
+        public AccountService(IHttpClientFactory httpClientFactory, IConfiguration config)
         {
             _httpClientFactory = httpClientFactory;
+            this._client = httpClientFactory.CreateClient();
+            this._client.BaseAddress = new Uri(ConstStrings.BASE_URL_API);
             _config = config;
         }
 
@@ -28,9 +31,7 @@ namespace FrontEndWebApp.Services
         {
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-            HttpClient client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri(ConstStrings.BaseUrl);
-            var response = await client.PostAsync("/api/users/login", httpContent);
+            var response = await _client.PostAsync("/api/users/login", httpContent);
             
             if (response.IsSuccessStatusCode)
             {
@@ -48,13 +49,11 @@ namespace FrontEndWebApp.Services
 
         public async Task<UserViewModel> GetUserInfo(int userId, string access_token)
         {
-            HttpClient client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri(ConstStrings.BaseUrl);
             if (!string.IsNullOrEmpty(access_token))
             {
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + access_token);
+                _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + access_token);
             }
-            var response = await client.GetAsync("/api/users/"+userId.ToString());
+            var response = await _client.GetAsync("/api/users/"+userId.ToString());
             
             if (response.IsSuccessStatusCode)
             {
@@ -72,10 +71,7 @@ namespace FrontEndWebApp.Services
         {
             var json = JsonConvert.SerializeObject(accesstoken);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-
-            HttpClient client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri(ConstStrings.BaseUrl);
-            var response = await client.PostAsync("/api/users/loginfb", httpContent);
+            var response = await _client.PostAsync("/api/users/loginfb", httpContent);
 
             if (response.IsSuccessStatusCode)
             {
@@ -90,10 +86,7 @@ namespace FrontEndWebApp.Services
         {
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-
-            HttpClient client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri(ConstStrings.BaseUrl);
-            var response = await client.PostAsync("/api/users/register", httpContent);
+            var response = await _client.PostAsync("/api/users/register", httpContent);
 
             if (response.IsSuccessStatusCode)
             {
@@ -114,14 +107,11 @@ namespace FrontEndWebApp.Services
             model.Id = uid;
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-
-            HttpClient client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri(ConstStrings.BaseUrl);
             if (!string.IsNullOrEmpty(access_token))
             {
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + access_token);
+                _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + access_token);
             }
-            var response = await client.PutAsync("/api/users/UpdateUser/"+uid.ToString(), httpContent);
+            var response = await _client.PutAsync("/api/users/UpdateUser/"+uid.ToString(), httpContent);
 
             if (response.IsSuccessStatusCode)
             {
@@ -139,10 +129,7 @@ namespace FrontEndWebApp.Services
         {
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-
-            HttpClient client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri(ConstStrings.BaseUrl);
-            var response = await client.PutAsync("/api/users/AddPassword/", httpContent);
+            var response = await _client.PutAsync("/api/users/AddPassword/", httpContent);
 
             if (response.IsSuccessStatusCode)
             {
@@ -172,14 +159,10 @@ namespace FrontEndWebApp.Services
         public async Task<string> GetResetPasswordCode(ForgotPasswordModel model)
         {
             var json = JsonConvert.SerializeObject(model);
-            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-
-            HttpClient client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri(ConstStrings.BaseUrl);
-            
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");            
             try
             {
-                var response = await client.PostAsync("api/Users/getresetcode", httpContent);
+                var response = await _client.PostAsync("api/Users/getresetcode", httpContent);
                 if (response.IsSuccessStatusCode)
                 {
                     string responseResult = await response.Content.ReadAsStringAsync();
@@ -199,11 +182,9 @@ namespace FrontEndWebApp.Services
         {
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-            HttpClient client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri(ConstStrings.BaseUrl);
             try
             {
-                var response = await client.PostAsync("api/Users/resetpass/", httpContent);
+                var response = await _client.PostAsync("api/Users/resetpass/", httpContent);
                 if (response.IsSuccessStatusCode)
                 {
                     var responseResult = await response.Content.ReadAsStringAsync();

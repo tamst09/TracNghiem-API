@@ -5,8 +5,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
-using TN.BackendAPI.Settings;
 using TN.ViewModels.FacebookAuth;
+using TN.ViewModels.Settings;
 
 namespace TN.BackendAPI.Services.Service
 {

@@ -1,3 +1,4 @@
+using FrontEndWebApp.Areas.Admin.AdminServices;
 using FrontEndWebApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -9,7 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Net.Http;
 using System.Text;
+using TN.ViewModels.Settings;
 
 namespace FrontEndWebApp
 {
@@ -27,7 +30,10 @@ namespace FrontEndWebApp
         {
             //services.AddHttpContextAccessor();
             services.AddSession();
-
+            // Dependency Injection
+            services.AddTransient<IAccountService, AccountService>();
+            services.AddTransient<IUserManage, UserManage>();
+            services.AddTransient<ICategoryManage, CategoryManage>();
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -38,9 +44,9 @@ namespace FrontEndWebApp
             })
                 .AddCookie(cookieoptions => 
                 {
-                    cookieoptions.LoginPath = new PathString("/Auth/Login");
-                    cookieoptions.LogoutPath = new PathString("/Auth/Login");
-                    cookieoptions.AccessDeniedPath = new PathString("/Views/Auth/AccessDenied");
+                    cookieoptions.LoginPath = new PathString("/Account/Login");
+                    cookieoptions.LogoutPath = new PathString("/Account/Login");
+                    cookieoptions.AccessDeniedPath = new PathString("/Views/Account/AccessDenied");
                     // thoi gian cookie het han
                     cookieoptions.ExpireTimeSpan = TimeSpan.FromHours(3);
                     // tu dong gia han cookie neu co request gui di
@@ -74,7 +80,7 @@ namespace FrontEndWebApp
             });
             services.AddControllersWithViews();
             services.AddHttpClient();
-            services.AddTransient<IUserService, UserService>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -96,7 +102,7 @@ namespace FrontEndWebApp
             app.UseStaticFiles();
             app.UseRouting();
             app.UseAuthorization();
-            //app.UseStatusCodePagesWithRedirects("/Auth/AccessDenied");
+            //app.UseStatusCodePagesWithRedirects("/Account/AccessDenied");
             //app.Use(async (context, next) =>
             //{
             //    var token = TokenUtils.DecodeToken(context.Request.Cookies["access_token_cookie"]);
@@ -107,6 +113,31 @@ namespace FrontEndWebApp
             //    };
             //    await next();
             //});
+            app.Use(async (context, next) =>
+            {
+                HttpClient client = new HttpClient();
+                client.BaseAddress = new Uri(ConstStrings.BASE_URL_API);
+                var token = Services.Encoder.DecodeToken(context.Request.Cookies["access_token_cookie"]);
+                if (token != null)
+                    client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+                if (context.User == null)
+                {
+                    await next();
+                }
+                var uid = context.User.FindFirst("UserID");
+                
+                if (uid!=null)
+                {
+                    var validAccount = await client.GetAsync("/api/users/getStatus/" + uid.Value);
+                    if (!validAccount.IsSuccessStatusCode)
+                    {
+                        context.Response.Cookies.Delete("access_token_cookie");
+                        context.Response.Cookies.Delete("asp.authentication");
+                        await next();
+                    }
+                }
+                await next();
+            });
             app.UseEndpoints(endpoints =>
             {
                 //endpoints.MapAreaControllerRoute(

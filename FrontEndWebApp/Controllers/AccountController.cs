@@ -9,13 +9,13 @@ using TN.ViewModels.Catalog.User;
 
 namespace FrontEndWebApp.Controllers
 {
-    public class AuthController : Controller
+    public class AccountController : Controller
     {
-        private readonly IUserService _authClient;
+        private readonly IAccountService _accountService;
 
-        public AuthController(IUserService authClient)
+        public AccountController(IAccountService authClient)
         {
-            _authClient = authClient;
+            _accountService = authClient;
         }
         // ========================== COMMON ==========================
         public IActionResult Index()
@@ -39,11 +39,11 @@ namespace FrontEndWebApp.Controllers
         public async Task<ActionResult> ForgotPassword(ForgotPasswordModel model)
         {
             // send this to user email
-            var resetCode = await _authClient.GetResetPasswordCode(model);
+            var resetCode = await _accountService.GetResetPasswordCode(model);
             if(resetCode != null)
             {
                 ViewData["msg"] = "Check your email to complete changing your password";
-                return View("/Views/Auth/ForgotPasswordOnPost.cshtml");
+                return View("/Views/Account/ForgotPasswordOnPost.cshtml");
             }
             ViewData["msg"] = "Your email is invalid. Please try again.";
             return View(model);
@@ -55,10 +55,17 @@ namespace FrontEndWebApp.Controllers
         [HttpPost]
         public async Task<ActionResult> ForgotPasswordConfirmOnPost(ResetPasswordModel model)
         {
-            var changePasswordResult = await _authClient.ChangePassword(model.ResetCode, model);
+            var changePasswordResult = await _accountService.ChangePassword(model.ResetCode, model);
             if (changePasswordResult)
+            {
+                ViewData["IsResetSuccessfully"] = true;
                 return View();
-            else return RedirectToAction("Login");
+            }
+            else
+            {
+                ViewData["IsResetSuccessfully"] = false;
+                return View();
+            }
         }
         //====================================================
 
@@ -80,7 +87,7 @@ namespace FrontEndWebApp.Controllers
             }
             
             // jwt got from authentication API
-            var result = _authClient.Authenticate(model).Result;
+            var result = _accountService.Authenticate(model).Result;
 
             if (!string.IsNullOrEmpty(result.Error))
             {
@@ -89,7 +96,7 @@ namespace FrontEndWebApp.Controllers
             }
             else
             {
-                var userPrincipal = _authClient.ValidateToken(result.Access_Token);
+                var userPrincipal = _accountService.ValidateToken(result.Access_Token);
                 var authProperties = new AuthenticationProperties
                 {
                     // set false -> tạo ra cookie phiên -> thoát trình duyệt cookie bị xoá
@@ -118,7 +125,7 @@ namespace FrontEndWebApp.Controllers
             {
                 return View(model);
             }
-            var user = await _authClient.Register(model);
+            var user = await _accountService.Register(model);
             if (user != null)
             {
                 if (!string.IsNullOrEmpty(user.Error))
@@ -149,10 +156,10 @@ namespace FrontEndWebApp.Controllers
                 else
                 {
                     // get jwt from api
-                    var jwttokenResponse = await _authClient.LoginFacebook(token);
+                    var jwttokenResponse = await _accountService.LoginFacebook(token);
                     if (jwttokenResponse != null)
                     {
-                        var userPrincipal = _authClient.ValidateToken(jwttokenResponse.Access_Token);
+                        var userPrincipal = _accountService.ValidateToken(jwttokenResponse.Access_Token);
                         var authProperties = new AuthenticationProperties
                         {
                             // set false -> tạo ra cookie phiên -> thoát trình duyệt cookie bị xoá
@@ -186,7 +193,7 @@ namespace FrontEndWebApp.Controllers
         {
             var id = User.FindFirst("UserID");
             var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var user = await _authClient.GetUserInfo(Int32.Parse(id.Value), access_token);
+            var user = await _accountService.GetUserInfo(Int32.Parse(id.Value), access_token);
             if (user != null)
                 return View(user);
             return View();
@@ -199,10 +206,10 @@ namespace FrontEndWebApp.Controllers
             if (id != userID)
             {
                 // access denied
-                return View("Views/Auth/AccessDenied.cshtml");
+                return View("Views/Account/AccessDenied.cshtml");
             }
             var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var user = await _authClient.GetUserInfo(userID, access_token);
+            var user = await _accountService.GetUserInfo(userID, access_token);
             if (user != null)
             {
                 ViewData["uid"] = userID;
@@ -224,10 +231,10 @@ namespace FrontEndWebApp.Controllers
             var userID = Int32.Parse(User.FindFirst("UserID").Value);
             if(id != userID)
             {
-                return Redirect("/Views/Auth/AccessDenied.cshtml");
+                return Redirect("/Views/Account/AccessDenied.cshtml");
             }
             var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var result = await _authClient.UpdateProfile(id, model, access_token);
+            var result = await _accountService.UpdateProfile(id, model, access_token);
             // success
             if (result != null)
                 return RedirectToAction(nameof(ShowProfile), new { id = result.Id });

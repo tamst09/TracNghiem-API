@@ -9,7 +9,7 @@ using TN.ViewModels.FacebookAuth;
 
 namespace FrontEndWebApp.Services
 {
-    public interface IUserService
+    public interface IAccountService
     {
         Task<JwtResponse> Authenticate(LoginModel model);
         Task<JwtResponse> Register(RegisterModel model);

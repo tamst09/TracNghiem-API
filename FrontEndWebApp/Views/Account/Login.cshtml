@@ -126,7 +126,7 @@
 
                                         <hr>
                                     </form>
-                                    <form id="external-account" asp-action="ExternalLogin" asp-controller="Auth" method="post" class="user">
+                                    <form id="external-account" asp-action="ExternalLogin" asp-controller="Account" method="post" class="user">
                                         <div>
                                             <input type="hidden" name="token" id="fbTokenValue" />
                                             <input type="hidden" name="provider" id="fbProviderValue" />
@@ -140,10 +140,10 @@
                                     </form>
                                     <hr>
                                     <div class="text-center">
-                                        <a asp-controller="Auth" asp-action="ForgotPassword" class="small">Forgot Password?</a>
+                                        <a asp-controller="Account" asp-action="ForgotPassword" class="small">Forgot Password?</a>
                                     </div>
                                     <div class="text-center">
-                                        <a asp-action="Register" asp-controller="Auth" class="small">Create an Account!</a>
+                                        <a asp-action="Register" asp-controller="Account" class="small">Create an Account!</a>
                                     </div>
                                 </div>
                             </div>

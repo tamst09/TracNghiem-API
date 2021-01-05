@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Text.Encodings.Web;
 using System.Security.Policy;
 using TN.ViewModels.Common;
+using TN.ViewModels.Settings;
 
 namespace TN.BackendAPI.Services.Service
 {
@@ -50,6 +51,43 @@ namespace TN.BackendAPI.Services.Service
         {
             var user = await _dbContext.Users.FindAsync(id);
             return user;
+        }
+        public async Task<PagedResult<UserViewModel>> GetListUserPaged(UserPagingRequest model)
+        {
+            //throw new NotImplementedException();
+            // Query tat ca user hien co
+            var allUser = await _dbContext.Users.ToListAsync();
+            // check keyword de xem co dang tim kiem hay phan loai ko
+            // sau do gan vao Query o tren
+            if (!string.IsNullOrEmpty(model.keyword))
+            {
+                allUser = allUser.Where(u => u.UserName.Contains(model.keyword) ||
+                u.Email.Contains(model.keyword) ||
+                u.PhoneNumber.Contains(model.keyword) ||
+                u.FirstName.Contains(model.keyword)
+                ).ToList();
+            }
+            // get total row from query
+            int totalrecord = allUser.Count;
+            // get so trang
+            int soTrang = (totalrecord % model.PageSize == 0) ? (totalrecord / model.PageSize) : (totalrecord / model.PageSize + 1);
+            // get data and paging
+            var data = allUser.Skip((model.PageIndex - 1) * model.PageSize)
+                .Take(model.PageSize)
+                .Select(u => new UserViewModel()
+                {
+                    Id = u.Id,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Email = u.Email,
+                    DoB = u.DoB,
+                    PhoneNumber = u.PhoneNumber,
+                    UserName = u.UserName,
+                    isActive = u.isActive
+                })
+                .ToList();
+            // return
+            return new PagedResult<UserViewModel>() { Items = data, TotalRecords = totalrecord, TotalPages = soTrang, PageIndex = model.PageIndex, PageSize = model.PageSize };
         }
         public async Task<AppUser> EditUserInfo(int id, UserViewModel model)
         {
@@ -361,7 +399,7 @@ namespace TN.BackendAPI.Services.Service
             {
                 var resetCode = await _userManager.GeneratePasswordResetTokenAsync(user);
                 resetCode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetCode));
-                var callbackUrl = "https://localhost:44363/Auth/ForgotPasswordConfirm/?ResetCode=" + resetCode + "&Email=" + model.Email;
+                var callbackUrl = ConstStrings.BASE_URL_WEB_CLIENT+"/Account/ForgotPasswordConfirm/?ResetCode=" + resetCode + "&Email=" + model.Email;
                 await _emailSender.SendEmailAsync(model.Email, "Reset password confirmation", $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
                 return resetCode;
             }
@@ -396,42 +434,6 @@ namespace TN.BackendAPI.Services.Service
             return _dbContext.Users.Any(e => e.Id == id);
         }
 
-        public async Task<PagedResult<UserViewModel>> GetListUserPaged(UserPagingRequest model)
-        {
-            //throw new NotImplementedException();
-            // Query tat ca user hien co
-            var allUser = await _dbContext.Users.ToListAsync();
-            // check keyword de xem co dang tim kiem hay phan loai ko
-            // sau do gan vao Query o tren
-            if (!string.IsNullOrEmpty(model.keyword))
-            {
-                allUser = allUser.Where(u => u.UserName.Contains(model.keyword) || 
-                u.Email.Contains(model.keyword) || 
-                u.PhoneNumber.Contains(model.keyword) ||
-                u.FirstName.Contains(model.keyword)
-                ).ToList();
-            }
-            // get total row from query
-            int totalrecord = allUser.Count;
-            // get so trang
-            int soTrang = (totalrecord % model.PageSize == 0) ? (totalrecord / model.PageSize) : (totalrecord / model.PageSize + 1);
-            // get data and paging
-            var data = allUser.Skip((model.PageIndex - 1) * model.PageSize)
-                .Take(model.PageSize)
-                .Select(u => new UserViewModel()
-                {
-                    Id = u.Id,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    Email = u.Email,
-                    DoB = u.DoB,
-                    PhoneNumber = u.PhoneNumber,
-                    UserName = u.UserName,
-                    isActive = u.isActive
-                })
-                .ToList();
-            // return
-            return new PagedResult<UserViewModel>() { Items = data, TotalRecords = totalrecord, TotalPages = soTrang, PageIndex = model.PageIndex, PageSize = model.PageSize };
-        }
+        
     }
 }

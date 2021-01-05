@@ -19,25 +19,38 @@ namespace TN.BackendAPI.Services.Service
         }
         public async Task<Category> Create(Category request)
         {
-            _db.Categories.Add(new Category()
+            var findResult = _db.Categories.Where(c => c.CategoryName == request.CategoryName).FirstOrDefault();
+            if (findResult!=null && !findResult.isActive)
+            {
+                findResult.Exams = null;
+                findResult.isActive = true;
+                return findResult;
+            }
+            var newCategory = new Category()
             {
                 CategoryName = request.CategoryName,
                 isActive = true,
                 Exams = null
-            });
+            };
+            _db.Categories.Add(newCategory);
             await _db.SaveChangesAsync();
-            return request;
+            return newCategory;
         }
 
         public async Task<Category> Update(Category request)
         {
             try
             {
-                _db.Entry(request).State = EntityState.Modified;
-                await _db.SaveChangesAsync();
-                return request;
+                var findResult = _db.Categories.Where(c => c.ID == request.ID && c.isActive == true).FirstOrDefault();
+                if (findResult != null)
+                {
+                    findResult.CategoryName = request.CategoryName;
+                    await _db.SaveChangesAsync();
+                    return findResult;
+                }
+                return null;
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception e)
             {
                 return null;
             }

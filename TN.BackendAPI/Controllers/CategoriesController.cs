@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace TN.BackendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles ="admin")]
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
@@ -20,10 +22,9 @@ namespace TN.BackendAPI.Controllers
             _categoryService = categoryService;
         }
 
-
-
         // GET: api/Categories
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<List<Category>>> GetCategories()
         {
             return await _categoryService.GetAll();
@@ -31,14 +32,11 @@ namespace TN.BackendAPI.Controllers
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<Category>> GetCategory(int id)
         {
             var category = await _categoryService.GetByID(id);
-            if (category != null)
-            {
-                return Ok(category);
-            }
-            return NotFound("Category is not found");
+            return Ok(category);
         }
 
         // PUT: api/Categories/5
@@ -47,14 +45,14 @@ namespace TN.BackendAPI.Controllers
         {
             if (id != category.ID)
             {
-                return BadRequest(category);
+                return Ok(null);
             }
-            var flag = await _categoryService.Update(category);
-            if (flag == null)
+            var updateResult = await _categoryService.Update(category);
+            if (updateResult == null)
             {
-                return BadRequest("Update failed");
+                return Ok(null);
             }
-            return Ok(category);
+            return Ok(updateResult);
         }
 
         // POST: api/Categories
@@ -62,17 +60,19 @@ namespace TN.BackendAPI.Controllers
         public async Task<ActionResult<Category>> PostCategory([Bind("CategoryName")]Category category)
         {
 
-            await _categoryService.Create(category);
-            return Ok(category);
-            //return CreatedAtAction("GetCategory", new { id = category.ID }, category);
+            var createTask = await _categoryService.Create(category);
+            return Ok(createTask);
         }
 
         // DELETE: api/Categories/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<Category>> DeleteCategory(int id)
         {
-            await _categoryService.Delete(id);
-            return Ok();
+            var deleteResult = await _categoryService.Delete(id);
+            if (deleteResult)
+                return Ok("Success");
+            else
+                return Ok();
         }
     }
 }

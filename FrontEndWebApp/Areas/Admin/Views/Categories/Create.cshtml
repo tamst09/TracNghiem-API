@@ -1,0 +1,29 @@
+﻿@model TN.Data.Entities.Category
+
+@{
+    ViewData["Title"] = "Tạo mới";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Thêm mới chủ đề</h1>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+
+            <div class="form-group">
+                <label asp-for="CategoryName" class="control-label">Tên chủ đề</label>
+                <input asp-for="CategoryName" class="form-control" />
+            </div>
+            <div class="text-danger">@ViewData["msg"]</div>
+            <div class="form-group">
+                <input type="submit" value="Tạo" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Về danh sách</a>
+</div>
+

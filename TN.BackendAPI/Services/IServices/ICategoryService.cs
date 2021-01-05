@@ -10,7 +10,7 @@ namespace TN.BackendAPI.Services.IServices
     {
         Task<Category> Create(Category request);
         Task<Category> Update(Category request);
-        Task<bool> Delete(int examID);
+        Task<bool> Delete(int id);
         Task<List<Category>> GetAll();
         Task<Category> GetByID(int id);
     }

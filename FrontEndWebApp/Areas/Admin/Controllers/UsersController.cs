@@ -1,16 +1,9 @@
-﻿using FrontEndWebApp.Services;
-using FrontEndWebApp.Settings;
+﻿using FrontEndWebApp.Areas.Admin.AdminServices;
+using FrontEndWebApp.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using TN.Data.Entities;
 using TN.ViewModels.Catalog.User;
 using TN.ViewModels.Common;
 
@@ -20,16 +13,13 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
     [Authorize(Roles ="admin")]
     public class UsersController : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IUserService _authClient;
-        private HttpClient httpClient;
+        private readonly IAccountService _accountService;   // thao tac voi tai khoan
+        private readonly IUserManage _userManage;           // quan ly user cua admin
 
-        public UsersController(IHttpClientFactory httpClientFactory, IUserService authClient)
+        public UsersController(IAccountService accountService, IUserManage userManage)
         {
-            _httpClientFactory = httpClientFactory;
-            httpClient = _httpClientFactory.CreateClient();
-            httpClient.BaseAddress = new Uri(ConstStrings.BaseUrl);
-            _authClient = authClient;
+            _accountService = accountService;
+            _userManage = userManage;
         }
 
         // GET: UsersController
@@ -44,33 +34,13 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                     PageIndex = pageIndex,
                     PageSize = pageSize
                 };
-                var token = Services.Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                if (token != null)
-                    httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-                var json = JsonConvert.SerializeObject(model);
-                var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await httpClient.PostAsync("/api/users/paged",httpContent);
-                if (response.IsSuccessStatusCode)
-                {
-                    var lstuser = await response.Content.ReadAsStringAsync();
-                    var pagedResult = JsonConvert.DeserializeObject<PagedResult<UserViewModel>>(lstuser);
-                    return View(pagedResult);
-                }
-                else
-                {
-                    var result = new PagedResult<UserViewModel>();
-                    result.Items = null;
-                    result.PageIndex = 1;
-                    result.PageSize = 10;
-                    result.TotalPages = 1;
-                    result.TotalRecords = 0;
-                    return View(result);
-                }
+                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var listUserResult = await _userManage.GetListUserPaged(model, token);
+                return View(listUserResult);
             }
             catch (Exception)
             {
-                //throw;
-                return View(new PagedResult<UserViewModel>());
+                return RedirectToAction("Index", "Home");
             }
         }
 
@@ -79,10 +49,8 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                var access_token = Services.Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-
-                var user = await _authClient.GetUserInfo(id, access_token);
-
+                var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var user = await _accountService.GetUserInfo(id, access_token);
                 return View(user);
             }
             catch (Exception)
@@ -108,36 +76,20 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             }
             try
             {
-                var token = Services.Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                if (token != null)
-                    httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-                var json = JsonConvert.SerializeObject(model);
-                var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await httpClient.PostAsync("/api/users/CreateUser/",httpContent);
-                if (response.IsSuccessStatusCode)
+                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var createUserResult = await _userManage.CreateUser(model, token);
+                //error
+                if(createUserResult.Error!=null || createUserResult.Access_Token == null)
                 {
-                    var result = await response.Content.ReadAsStringAsync();
-                    JwtResponse jwtResponse = JsonConvert.DeserializeObject<JwtResponse>(result);
-                    if(jwtResponse.Error!=null || jwtResponse.Access_Token == null)
-                    {
-                        ViewData["Error"] = jwtResponse.Error;
-                        return View(model);
-                    }
-                    return RedirectToAction(nameof(Index));
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                {
-                    // if not authorized
+                    ViewData["Error"] = createUserResult.Error;
                     return View(model);
                 }
-                else
-                {
-                    return View(model);
-                }
+                //success
+                return RedirectToAction(nameof(Index));
             }
             catch
             {
-                ViewData["Error"] = "Can't connect to server. Please do it again.";
+                ViewData["Error"] = "Can't connect to server. Please try later.";
                 return View();
             }
         }
@@ -147,8 +99,8 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                var access_token = Services.Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                var user = await _authClient.GetUserInfo(id, access_token);
+                var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var user = await _accountService.GetUserInfo(id, access_token);
                 if(user!=null)
                     return View(user);
                 else
@@ -167,8 +119,8 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                var access_token = Services.Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                var userUpdated = await _authClient.UpdateProfile(id, model, access_token);
+                var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var userUpdated = await _accountService.UpdateProfile(id, model, access_token);
                 return RedirectToAction("Details", "Users", new { id = userUpdated.Id });
             }
             catch
@@ -176,41 +128,16 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                 return View();
             }
         }
-
-        // GET: UsersController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: UsersController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
         // POST: Users/LockUser/5
         [HttpPost]
         public async Task<ActionResult> LockUser(int id)
         {
             try
             {
-                var token = Services.Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                if (token != null)
-                    httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-                var response = await httpClient.PostAsync("/api/users/LockUser/"+id.ToString(), null);
-                if (response.IsSuccessStatusCode)
+                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var lockUserResult = await _userManage.LockUser(id, token);
+                if (lockUserResult)
                 {
-                    var result = await response.Content.ReadAsStringAsync();
                     return Json(new
                     {
                         statusChanged = true
@@ -238,13 +165,10 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                var token = Services.Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                if (token != null)
-                    httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-                var response = await httpClient.PostAsync("/api/users/RestoreUser/" + id.ToString(), null);
-                if (response.IsSuccessStatusCode)
+                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var lockUserResult = await _userManage.RestoreUser(id, token);
+                if (lockUserResult)
                 {
-                    var result = await response.Content.ReadAsStringAsync();
                     return Json(new
                     {
                         statusChanged = true

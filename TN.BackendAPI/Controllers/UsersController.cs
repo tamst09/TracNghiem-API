@@ -14,6 +14,7 @@ namespace TN.BackendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly  IUserService _userService;
@@ -52,6 +53,21 @@ namespace TN.BackendAPI.Controllers
                 return NotFound();
             }
             return Ok(user);
+        }
+
+        // GET: api/Users/5
+        [HttpGet("getStatus/{id}")]
+        public async Task<ActionResult<AppUser>> GetStatus(int id)
+        {
+            var user = await _userService.GetByID(id);
+            if (user!=null && user.isActive)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
 
         // GET: api/Users/detail/5

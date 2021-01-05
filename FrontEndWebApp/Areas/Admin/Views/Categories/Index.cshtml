@@ -1,0 +1,39 @@
+﻿@model List<TN.Data.Entities.Category>
+
+@{
+    ViewData["Title"] = "Chủ đề";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Quản lý chủ đề</h1>
+
+<p>
+    <a asp-action="Create">Thêm chủ đề</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                ID
+            </th>
+            <th>
+                Tên chủ đề
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.ID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CategoryName)
+            </td>
+            <td>
+                @Html.ActionLink("Sửa", "Edit", new { id = item.ID })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
