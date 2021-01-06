@@ -16,7 +16,6 @@ using System.ComponentModel;
 
 namespace TN.App.Areas.Identity.Pages.Account
 {
-    [AllowAnonymous]
     public class LoginModel : PageModel
     {
         private readonly UserManager<AppUser> _userManager;

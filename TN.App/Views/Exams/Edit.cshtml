@@ -19,10 +19,10 @@
                 <input asp-for="ExamName" class="form-control" />
                 <span asp-validation-for="ExamName" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="isPrivate" class="control-label">Is Private</label>
-                <input type="checkbox" asp-for="isPrivate" class="form-control"/>
-                <span asp-validation-for="isPrivate" class="text-danger"></span>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="isPrivate" /> @Html.DisplayNameFor(model => model.isPrivate)
+                </label>
             </div>
             <div class="form-group">
                 <label asp-for="Time" class="control-label"></label>
@@ -53,6 +53,11 @@
                 <label asp-for="OwnerID" class="control-label"></label>
                 <select asp-for="OwnerID" class="form-control" asp-items="ViewBag.OwnerID"></select>
                 <span asp-validation-for="OwnerID" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="isActive" /> @Html.DisplayNameFor(model => model.isActive)
+                </label>
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />

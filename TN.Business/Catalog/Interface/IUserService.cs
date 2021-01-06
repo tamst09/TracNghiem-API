@@ -1,19 +1,23 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using TN.Data.Entities;
-using TN.Data.Model;
-using TN.ViewModels.Catalog.Users;
+using TN.ViewModels.Catalog.User;
 
 namespace TN.Business.Catalog.Interface
 {
     public interface IUserService
     {
-        Task<JwtResponse> register(RegisterRequest request);
-        Task<IEnumerable<AppUser>> getAll();
-        Task<AppUser> getByID(int id);
-        Task<string> authenticate(LoginRequest request);
-        Task<AppUser> editUserInfo(int id, AppUser user);
-        Task<AppUser> createUser(AppUser user);
-        Task<bool> deleteUser(int id);
+        Task<JwtResponse> Register(RegisterModel request);
+        Task<IEnumerable<AppUser>> GetAll();
+        Task<AppUser> GetByID(int id);
+        Task<JwtResponse> Authenticate(LoginModel request);
+        Task<AppUser> EditUserInfo(int id, AppUser user);
+        Task<bool> DeleteUser(int id);
+        Task<string> ResetPassword(ForgotPasswordModel model);
+        Task<string> ResetPasswordConfirm(ResetPasswordModel model);
+        Task<AppUser> GetUserByAccessToken(string accessToken);
+        RefreshToken GenerateRefreshToken();
+        bool ValidateRefreshToken(AppUser user, string refreshToken);
+        Task<string> GetNewAccessToken(RefreshAccessTokenRequest refreshRequest);
     }
 }

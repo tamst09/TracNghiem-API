@@ -1,0 +1,110 @@
+﻿@model TN.ViewModels.Common.PagedResult<TN.ViewModels.Catalog.User.UserViewModel>
+
+@{
+    ViewData["Title"] = "Danh sách người dùng";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p>
+    <a asp-action="Create">Thêm người dùng</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                ID
+            </th>
+            <th>
+                Tên tài khoản
+            </th>
+            <th>
+                Họ
+            </th>
+            <th>
+                Tên
+            </th>
+            <th>
+                Email
+            </th>
+            <th>
+                Trạng thái
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Id)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UserName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.LastName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FirstName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Email)
+                </td>
+                <td>
+                    @if (item.isActive)
+                    {
+                        <button id="status-@item.Id" onclick="LockAccount(@item.Id)" type="button" class="btn btn-block btn-success">Hoạt động</button>
+                    }
+                    else
+                    {
+                        <button id="status-@item.Id" onclick="RestoreAccount(@item.Id)" type="button" class="btn btn-block btn-danger">Đã khoá</button>
+                    }
+                </td>
+                <td>
+                    @Html.ActionLink("Sửa", "Edit", new { id = item.Id }) |
+                    @Html.ActionLink("Chi tiết", "Details", new { id = item.Id })
+
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@await Component.InvokeAsync("Pager", Model)
+
+@section Scripts
+{
+    <script>
+        function LockAccount(id) {
+            $.ajax({
+                type: "POST",
+                url: "users/LockUser/" + id,
+                success: function (res) {
+                    if (res.statusChanged) {
+                        location.reload();
+                    }
+                    else {
+                        console.log("Lock failed");
+                    }
+                }
+            });
+        };
+        function RestoreAccount(id) {
+            $.ajax({
+                type: "POST",
+                url: "users/RestoreUser/" + id,
+                success: function (res) {
+                    if (res.statusChanged) {
+                        location.reload();
+                    }
+                    else {
+                        console.log("Unlock failed");
+                    }
+                }
+            });
+        };
+    </script>
+}
+

@@ -38,23 +38,7 @@ namespace TN.App
                     .AddEntityFrameworkStores<TNDbContext>()
                     .AddDefaultTokenProviders();
 
-            //Add facebook and google login
-            services.AddAuthentication()
-                .AddFacebook(facebookOptions =>
-                {
-                    facebookOptions.AppId = Configuration["Authentication:Facebook:AppId"];
-                    facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecret"];
-                    facebookOptions.AccessDeniedPath = "/Identity/Account/AccessDenied";
-                })
-                .AddGoogle(options =>
-                {
-                    IConfigurationSection googleAuthNSection =
-                        Configuration.GetSection("Authentication:Google");
-
-                    options.ClientId = googleAuthNSection["ClientId"];
-                    options.ClientSecret = googleAuthNSection["ClientSecret"];
-                    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
-                });
+            
 
             //Declare DI
             services.AddTransient<UserManager<AppUser>, UserManager<AppUser>>();
@@ -97,8 +81,6 @@ namespace TN.App
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
-            app.UseAuthentication();
-            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(

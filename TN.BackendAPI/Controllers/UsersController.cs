@@ -2,10 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TN.Business.Catalog.Interface;
 using TN.Data.Entities;
-using TN.Data.Model;
-using TN.ViewModels.Catalog.Users;
+using TN.ViewModels.Catalog.User;
+using System.Text.Json;
+using System;
+using TN.BackendAPI.Services.IServices;
+using TN.ViewModels.FacebookAuth;
+using TN.ViewModels.Common;
 
 namespace TN.BackendAPI.Controllers
 {
@@ -22,16 +25,29 @@ namespace TN.BackendAPI.Controllers
         }
         // GET: api/Users
         [HttpGet]
+        [Authorize("admin")]
         public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers()
         {
-            return Ok(await _userService.getAll());
+            return Ok(await _userService.GetAll());
+        }
+
+        [HttpPost("paged")]
+        [Authorize("admin")]
+        public async Task<ActionResult<PagedResult<UserViewModel>>> GetUsersPaged(UserPagingRequest model)
+        {
+            var result = await _userService.GetListUserPaged(model);
+            if (result == null)
+            {
+                return BadRequest("Out of index");
+            }
+            return Ok(result);
         }
 
         // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<ActionResult<AppUser>> GetUser(int id)
         {
-            var user = await _userService.getByID(id);
+            var user = await _userService.GetByID(id);
             if (user == null)
             {
                 return NotFound();
@@ -39,11 +55,26 @@ namespace TN.BackendAPI.Controllers
             return Ok(user);
         }
 
+        // GET: api/Users/5
+        [HttpGet("getStatus/{id}")]
+        public async Task<ActionResult<AppUser>> GetStatus(int id)
+        {
+            var user = await _userService.GetByID(id);
+            if (user!=null && user.isActive)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
         // GET: api/Users/detail/5
         [HttpGet("detail/{id}")]
         public async Task<ActionResult<AppUser>> GetUserDetails(int id)
         {
-            var user = await _userService.getByID(id);
+            var user = await _userService.GetByID(id);
             if (user == null)
             {
                 return NotFound();
@@ -54,160 +85,144 @@ namespace TN.BackendAPI.Controllers
         // POST: api/Users/login
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<ActionResult<JwtResponse>> Login([FromBody] LoginRequest request)
+        public async Task<ActionResult> Login([FromBody] LoginModel request)
         {
-            if (!ModelState.IsValid)
+            var result = await _userService.Login(request);
+            if (result == null || result.Error != null)
             {
-                return BadRequest(ModelState);
+                return BadRequest(result);
             }
-            var result = await _userService.authenticate(request);
-            if (result == "wrong")
-            {
-                return BadRequest("Wrong username or password");
-            }
-            else if(result == "null")
-            {
-                return NotFound("User is not found");
-            }            
             return Ok(result);
         }
 
-        // POST: api/Users
+        // POST: api/Users/register
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<ActionResult<AppUser>> RegisterUser([FromBody] RegisterRequest request)
+        public async Task<ActionResult<JwtResponse>> RegisterUser([FromBody] RegisterModel request)
         {
-            if (!ModelState.IsValid)
+            var result = await _userService.Register(request);
+            if (!string.IsNullOrEmpty(result.Error))
             {
-                return BadRequest(ModelState);
+                return BadRequest(result);
             }
-            var result = await _userService.register(request);
-            if (result == null) return BadRequest("Unsuccesfully register");
             return Ok(result);
         }
 
-        // GET: api/Users
-        //[HttpPost("RefreshToken")]
-        //public async Task<ActionResult<UserWithToken>> RefreshToken([FromBody] RefreshRequest refreshRequest)
-        //{
-        //    AppUser user = await GetUserFromAccessToken(refreshRequest.AccessToken);
+        // POST: api/Users/getresetcode
+        [HttpPost("getresetcode")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel model)
+        {
+            var resultStringCode = await _userService.ResetPassword(model);
+            if(resultStringCode!=null)
+                return Ok(resultStringCode);
+            return NotFound("User is not found");
+        }
 
-        //    if (user != null && ValidateRefreshToken(user, refreshRequest.RefreshToken))
-        //    {
-        //        UserWithToken userWithToken = new UserWithToken(user);
-        //        userWithToken.AccessToken = GenerateAccessToken(user);
+        // POST: api/Users/resetpass
+        [HttpPost("resetpass")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
+        {
+            var result = await _userService.ResetPasswordConfirm(model);
+            if (result=="OK")
+            {
+                return Ok("Password Changed");
+            }
+            return NotFound("user not found");
+        }
 
-        //        return userWithToken;
-        //    }
 
-        //    return null;
-        //}
-
-        // GET: api/Users
-        //[HttpPost("GetUserByAccessToken")]
-        //public async Task<ActionResult<AppUser>> GetUserByAccessToken([FromBody] string accessToken)
-        //{
-        //    AppUser user = await GetUserFromAccessToken(accessToken);
-
-        //    if (user != null)
-        //    {
-        //        return user;
-        //    }
-
-        //    return null;
-        //}
-
-        //private bool ValidateRefreshToken(AppUser user, string refreshToken)
-        //{
-
-        //    RefreshToken refreshTokenUser = _context.RefreshTokens.Where(rt => rt.Token == refreshToken)
-        //                                        .OrderByDescending(rt => rt.ExpiryDate)
-        //                                        .FirstOrDefault();
-
-        //    if (refreshTokenUser != null && refreshTokenUser.UserId == user.Id
-        //        && refreshTokenUser.ExpiryDate > DateTime.UtcNow)
-        //    {
-        //        return true;
-        //    }
-
-        //    return false;
-        //}
-
-        //private async Task<AppUser> GetUserFromAccessToken(string accessToken)
-        //{
-        //    try
-        //    {
-        //        var tokenHandler = new JwtSecurityTokenHandler();
-        //        var key = Encoding.ASCII.GetBytes(_configuration["Tokens:SecretKey"]);
-
-        //        var tokenValidationParameters = new TokenValidationParameters
-        //        {
-        //            ValidateIssuerSigningKey = true,
-        //            IssuerSigningKey = new SymmetricSecurityKey(key),
-        //            ValidateIssuer = false,
-        //            ValidateAudience = false
-        //        };
-
-        //        SecurityToken securityToken;
-        //        var principle = tokenHandler.ValidateToken(accessToken, tokenValidationParameters, out securityToken);
-
-        //        JwtSecurityToken jwtSecurityToken = securityToken as JwtSecurityToken;
-
-        //        if (jwtSecurityToken != null && jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-        //        {
-        //            var userId = principle.FindFirst(ClaimTypes.Name)?.Value;
-        //            return await _context.Users.Where(u => u.Id == Convert.ToInt32(userId)).FirstOrDefaultAsync();
-        //        }
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return new AppUser();
-        //    }
-
-        //    return new AppUser();
-        //}
-
-        //private RefreshToken GenerateRefreshToken()
-        //{
-        //    RefreshToken refreshToken = new RefreshToken();
-
-        //    var randomNumber = new byte[32];
-        //    using (var rng = RandomNumberGenerator.Create())
-        //    {
-        //        rng.GetBytes(randomNumber);
-        //        refreshToken.Token = Convert.ToBase64String(randomNumber);
-        //    }
-        //    refreshToken.ExpiryDate = DateTime.UtcNow.AddDays(7);
-
-        //    return refreshToken;
-        //}
+        //POST: api/Users/RefreshToken
+        [HttpPost("RefreshToken")]
+        [AllowAnonymous]
+        public async Task<ActionResult> RefreshToken([FromBody] RefreshAccessTokenRequest refreshRequest)
+        {
+            string newAccessToken = await _userService.GetNewAccessToken(refreshRequest);
+            if (!String.IsNullOrEmpty(newAccessToken))
+            {
+                return Ok(new { access_token = newAccessToken });
+            }
+            return BadRequest("User not found or Refresh Token is invalid");
+        }
 
 
         // PUT: api/Users/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPut("UpdateUser/{id}")]
-        public async Task<ActionResult<AppUser>> PutUser(int id, AppUser user)
+        public async Task<ActionResult<AppUser>> PutUser(int id, [FromBody] UserViewModel user)
         {
-            return await _userService.editUserInfo(id, user);
+            var u = await _userService.EditUserInfo(id, user);
+            return Ok(u);
         }
 
         // POST: api/Users
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost("CreateUser")]
-        public async Task<ActionResult<AppUser>> PostUser(AppUser user)
+        public async Task<ActionResult<JwtResponse>> PostUser([FromBody]RegisterModel user)
         {
-            return await _userService.createUser(user);
+            var u = await _userService.Register(user);
+            return Ok(u);
         }
 
         // DELETE: api/Users/5
         [HttpDelete("DeleteUser/{id}")]
+        [Authorize("admin")]
         public async Task<ActionResult<bool>> DeleteUser(int id)
         {
-            return await _userService.deleteUser(id);
+            return await _userService.DeleteUser(id);
         }
 
-        
+        [HttpPost("loginfb")]
+        [AllowAnonymous]
+        public async Task<ActionResult<JwtResponse>> LoginFacebook([FromBody]string accesstoken)
+        {
+            var loginUser = await _userService.LoginWithFacebookToken(accesstoken);
+            return Ok(loginUser);
+        }
+
+        [HttpPut("AddPassword")]
+        [AllowAnonymous]
+        public async Task<ActionResult<AppUser>> AddPasswordForNewUser(ResetPasswordModel model)
+        {
+            var user = await _userService.AddPassword(model);
+            if (user == null)
+            {
+                return BadRequest();
+            }
+            return Ok(user);
+        }
+
+        [HttpPost("LockUser/{id}")]
+        [Authorize("admin")]
+        public async Task<ActionResult> LockUser(int id)
+        {
+            var lockUserResult = await _userService.DeleteUser(id);
+            if (lockUserResult)
+            {
+                return Ok("Locked user - UID: "+id);
+            }
+            else
+            {
+                return BadRequest("Locked user failed");
+            }
+        }
+
+        [HttpPost("RestoreUser/{id}")]
+        [Authorize("admin")]
+        public async Task<ActionResult> RestoreUser(int id)
+        {
+            var lockUserResult = await _userService.RestoreUser(id);
+            if (lockUserResult)
+            {
+                return Ok("Unlocked user - UID: " + id);
+            }
+            else
+            {
+                return BadRequest("Unlocked user failed");
+            }
+        }
     }
 }

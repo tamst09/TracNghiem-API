@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TN.Data.DataContext;
 using TN.Data.Entities;
-using TN.ViewModels.Catalog;
+using TN.ViewModels.Catalog.Question;
 
 namespace TN.BackendAPI.Controllers
 {
@@ -70,7 +70,7 @@ namespace TN.BackendAPI.Controllers
 
         // POST: api/Questions
         [HttpPost]
-        public async Task<ActionResult<Question>> PostQuestion(QuestionVM question)
+        public async Task<ActionResult<Question>> PostQuestion(QuestionModel question)
         {
             _context.Questions.Add(new Question { 
                 ID = question.ID,

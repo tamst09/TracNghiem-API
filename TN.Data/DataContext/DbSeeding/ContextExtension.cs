@@ -44,6 +44,7 @@ namespace TN.Data.DataContext.DbSeeding
                     FirstName = "Admin",
                     LastName = "Default",
                     DoB = new DateTime(1999, 4, 26),
+                    PhoneNumber = "0336709707",
                     isActive = true
                 },
                 new AppUser
@@ -59,6 +60,7 @@ namespace TN.Data.DataContext.DbSeeding
                     FirstName = "User",
                     LastName = "Default",
                     DoB = new DateTime(1999, 4, 26),
+                    PhoneNumber = "0336709707",
                     isActive = true
                 }
             );

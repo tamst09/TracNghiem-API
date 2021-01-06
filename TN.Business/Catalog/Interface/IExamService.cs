@@ -7,12 +7,12 @@ namespace TN.Business.Catalog.Interface
 {
     public interface IExamService
     {
-        Task<Exam> create(Exam request, int userID);
-        Task<Exam> update(Exam request);
-        Task<bool> delete(int examID);
-        Task<int> increaseAttemps(int examID);
-        Task<PagedResultVM<Exam>> getAllPaging(GetExamPagingRequest request);
-        Task<List<Exam>> getAll();
-        Task<Exam> getByID(int id);
+        Task<Exam> Create(Exam request, int userID);
+        Task<Exam> Update(Exam request);
+        Task<bool> Delete(int examID);
+        Task<int> IncreaseAttemps(int examID);
+        Task<PagedResult<Exam>> GetAllPaging(ExamPagingRequest request);
+        Task<List<Exam>> GetAll();
+        Task<Exam> GetByID(int id);
     }
 }

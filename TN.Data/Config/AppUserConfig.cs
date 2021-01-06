@@ -11,10 +11,17 @@ namespace TN.Data.Config
     {
         public void Configure(EntityTypeBuilder<AppUser> builder)
         {
-            builder.ToTable("AppUsers");
-            builder.Property(u => u.FirstName).IsRequired().HasMaxLength(200);
-            builder.Property(u => u.LastName).IsRequired().HasMaxLength(200);
+            builder.HasKey(u => u.Id);
+            builder.Property(u => u.UserName).IsRequired().HasMaxLength(50);
+            builder.Property(u => u.FirstName).IsRequired().HasMaxLength(50);
+            builder.Property(u => u.LastName).IsRequired().HasMaxLength(50);
+            builder.Property(u => u.Email).IsRequired().HasMaxLength(50);
+            builder.Property(u => u.PhoneNumber).IsRequired(false).HasMaxLength(50);
             builder.Property(u => u.DoB).IsRequired();
+            builder.Property(u => u.PasswordHash).IsRequired(false);
+            builder.Property(u => u.isActive).HasDefaultValue(true);
+            builder.Property(user => user.RefreshTokenValue).IsRequired(required: false);
+            builder.HasOne(u => u.RefreshToken).WithOne(t => t.User).IsRequired(false);
         }
     }
 }

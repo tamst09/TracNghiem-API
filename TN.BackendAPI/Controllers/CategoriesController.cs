@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
 
@@ -10,34 +12,31 @@ namespace TN.BackendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles ="admin")]
     public class CategoriesController : ControllerBase
     {
-        private readonly TNDbContext _db;
+        private readonly ICategoryService _categoryService;
 
-        public CategoriesController(TNDbContext context)
+        public CategoriesController(ICategoryService categoryService)
         {
-            _db = context;
+            _categoryService = categoryService;
         }
 
         // GET: api/Categories
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<List<Category>>> GetCategories()
         {
-            var categoryList = await _db.Categories.ToListAsync();
-            return categoryList;
+            return await _categoryService.GetAll();
         }
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<Category>> GetCategory(int id)
         {
-            var category = await _db.Categories.Include(c => c.Exams).FirstOrDefaultAsync(c => c.ID == id);
-            if (category != null)
-            {
-                category.Exams = category.Exams.OrderBy(e => e.ExamName).ToList();
-                return category;
-            }
-            return NotFound();
+            var category = await _categoryService.GetByID(id);
+            return Ok(category);
         }
 
         // PUT: api/Categories/5
@@ -46,56 +45,34 @@ namespace TN.BackendAPI.Controllers
         {
             if (id != category.ID)
             {
-                return BadRequest();
+                return Ok(null);
             }
-            try
+            var updateResult = await _categoryService.Update(category);
+            if (updateResult == null)
             {
-                _db.Entry(category).State = EntityState.Modified;
-                await _db.SaveChangesAsync();
-                return Ok(category);
+                return Ok(null);
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CategoryExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            return Ok(updateResult);
         }
 
         // POST: api/Categories
         [HttpPost]
-        public async Task<ActionResult<Category>> PostCategory([Bind("ID","CategoryName")]Category category)
+        public async Task<ActionResult<Category>> PostCategory([Bind("CategoryName")]Category category)
         {
-            _db.Categories.Add(new Category() { CategoryName = category.CategoryName });
-            await _db.SaveChangesAsync();
-            return Ok(category);
-            //return CreatedAtAction("GetCategory", new { id = category.ID }, category);
+
+            var createTask = await _categoryService.Create(category);
+            return Ok(createTask);
         }
 
         // DELETE: api/Categories/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<Category>> DeleteCategory(int id)
         {
-            var category = await _db.Categories.FindAsync(id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-
-            _db.Categories.Remove(category);
-            await _db.SaveChangesAsync();
-
-            return Ok();
-        }
-
-        private bool CategoryExists(int id)
-        {
-            return _db.Categories.Any(e => e.ID == id);
+            var deleteResult = await _categoryService.Delete(id);
+            if (deleteResult)
+                return Ok("Success");
+            else
+                return Ok();
         }
     }
 }

@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using TN.Business.Catalog.Interface;
 using TN.Data.DataContext;
 using TN.Data.Entities;
 
@@ -15,28 +13,17 @@ namespace TN.App.Controllers
     public class ExamsController : Controller
     {
         private readonly TNDbContext _context;
-        private readonly SignInManager<AppUser> _signInManager;
-        private readonly UserManager<AppUser> _userManager;
-        private readonly IExamService _examManager;
 
-        public ExamsController(TNDbContext context,
-            SignInManager<AppUser> signInManager,
-            UserManager<AppUser> userManager,
-            IExamService examManager)
+        public ExamsController(TNDbContext context)
         {
             _context = context;
-            _signInManager = signInManager;
-            _userManager = userManager;
-            _examManager = examManager;
         }
 
         // GET: Exams
         public async Task<IActionResult> Index()
         {
-            var r = await _examManager.GetAll();
-            
-            //var tNDbContext = _context.Exams.Include(e => e.Category).Include(e => e.Owner).OrderBy(e=>e.ExamName);
-            return View(r);
+            var tNDbContext = _context.Exams.Include(e => e.Category).Include(e => e.Owner);
+            return View(await tNDbContext.ToListAsync());
         }
 
         // GET: Exams/Details/5
@@ -63,8 +50,7 @@ namespace TN.App.Controllers
         public IActionResult Create()
         {
             ViewData["CategoryID"] = new SelectList(_context.Categories, "ID", "CategoryName");
-            ViewData["OwnerID"] = _userManager.GetUserId(_signInManager.Context.User);
-            ViewData["OwnerUsername"] = _userManager.GetUserName(_signInManager.Context.User);
+            ViewData["OwnerID"] = new SelectList(_context.Users, "Id", "Id");
             return View();
         }
 
@@ -73,18 +59,16 @@ namespace TN.App.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ExamName,isPrivate,Time,ImageURL,CategoryID,OwnerID")] Exam exam)
+        public async Task<IActionResult> Create([Bind("ID,ExamName,isPrivate,Time,ImageURL,TimeCreated,NumOfAttemps,CategoryID,OwnerID,isActive")] Exam exam)
         {
             if (ModelState.IsValid)
             {
-                //exam.OwnerID = Convert.ToInt32(_userManager.GetUserId(_signInManager.Context.User));
-                //_context.Add(exam);
-                //await _context.SaveChangesAsync();
-                await _examManager.Create(exam, Convert.ToInt32(_userManager.GetUserId(_signInManager.Context.User)));
+                _context.Add(exam);
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             ViewData["CategoryID"] = new SelectList(_context.Categories, "ID", "CategoryName", exam.CategoryID);
-            ViewData["OwnerID"] = _userManager.GetUserId(_signInManager.Context.User);
+            ViewData["OwnerID"] = new SelectList(_context.Users, "Id", "Id", exam.OwnerID);
             return View(exam);
         }
 
@@ -101,19 +85,9 @@ namespace TN.App.Controllers
             {
                 return NotFound();
             }
-            else
-            {
-                if(exam.OwnerID.ToString() != _userManager.GetUserId(_signInManager.Context.User))
-                {
-                    return Redirect("/Identity/Account/AccessDenied");
-                }
-                else
-                {
-                    ViewData["CategoryID"] = new SelectList(_context.Categories, "ID", "CategoryName", exam.CategoryID);
-                    ViewData["OwnerID"] = new SelectList(_context.Users, "Id", "Id", exam.OwnerID);
-                    return View(exam);
-                }
-            }
+            ViewData["CategoryID"] = new SelectList(_context.Categories, "ID", "CategoryName", exam.CategoryID);
+            ViewData["OwnerID"] = new SelectList(_context.Users, "Id", "Id", exam.OwnerID);
+            return View(exam);
         }
 
         // POST: Exams/Edit/5
@@ -121,7 +95,7 @@ namespace TN.App.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,ExamName,isPrivate,Time,ImageURL,TimeCreated,NumOfAttemps,CategoryID,OwnerID")] Exam exam)
+        public async Task<IActionResult> Edit(int id, [Bind("ID,ExamName,isPrivate,Time,ImageURL,TimeCreated,NumOfAttemps,CategoryID,OwnerID,isActive")] Exam exam)
         {
             if (id != exam.ID)
             {
@@ -152,6 +126,7 @@ namespace TN.App.Controllers
             ViewData["OwnerID"] = new SelectList(_context.Users, "Id", "Id", exam.OwnerID);
             return View(exam);
         }
+
         // GET: Exams/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {

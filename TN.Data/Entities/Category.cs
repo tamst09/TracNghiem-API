@@ -9,6 +9,6 @@ namespace TN.Data.Entities
         public int ID { get; set; }
         public string CategoryName { get; set; }    //tên chủ đề
         public List<Exam> Exams { get; set; }
-        public bool isAcive { get; set; }
+        public bool isActive { get; set; }
     }
 }

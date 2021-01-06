@@ -9,12 +9,11 @@ namespace TN.Business.Catalog.Interface
 {
     public interface IQuestionService
     {
-        Task<PagedResultVM<Question>> GetAllQuestionPaging(GetQuestionPagingRequest request);
-        Task<List<Question>> GetAll();
+        Task<PagedResult<Question>> GetAllQuestionPaging(GetQuestionPagingRequest request);
         Task<List<Question>> GetListQuestionByExam(int examID);
+        Task<Question> Create(Question request, int examID);
+        Task<Question> Update(Question request);
+        Task<bool> Delete(int questionID);
         Task<Question> GetByID(int id);
-        Task<int> Create(Question request, int examID);
-        Task<int> Update(Question request);
-        Task<int> Delete(int questionID);
     }
 }

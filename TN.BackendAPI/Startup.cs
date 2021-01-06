@@ -9,12 +9,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System;
+using Newtonsoft.Json;
 using System.Text;
-using TN.Business.Catalog.Implementor;
-using TN.Business.Catalog.Interface;
+using TN.BackendAPI.Services.IServices;
+using TN.BackendAPI.Services.Service;
 using TN.Data.DataContext;
 using TN.Data.Entities;
+using TN.ViewModels.Settings;
 
 namespace TN.BackendAPI
 {
@@ -44,6 +45,7 @@ namespace TN.BackendAPI
             services.AddTransient<IUserExamService, UserExamService>();
             services.AddTransient<IExamService, ExamService>();
             services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IFacebookAuth, FacebookAuthService>();
             services.AddTransient<IEmailSender, EmailSender>(i =>
                 new EmailSender(
                     Configuration["EmailSender:Host"],
@@ -53,30 +55,67 @@ namespace TN.BackendAPI
                     Configuration["EmailSender:Password"]
 
             ));
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                    .AddJwtBearer(options =>
-                    {
-                        options.RequireHttpsMetadata = true;
-                        options.SaveToken = true;
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateIssuer = false,
-                            ValidateAudience = false,
-                            ValidateLifetime = true,
-                            ClockSkew = TimeSpan.Zero,
-                            ValidateIssuerSigningKey = true,
-                            ValidIssuer = Configuration["Jwt:Issuer"],
-                            ValidAudience = Configuration["Jwt:Issuer"],
-                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:SecretKey"]))
-                        };
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequiredLength = 8;
+                options.Password.RequiredUniqueChars = 0;
+            });
+            
+            services.AddAuthentication(opt => 
+            {
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options => 
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = false;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = Configuration["Tokens:Issuer"],
+                    ValidAudience = Configuration["Tokens:Issuer"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:SecretKey"]))
+                };
+            });
+
+            //add login with fb
+            var fbAuthSettings = new FBAuthSettings();
+            Configuration.Bind(nameof(FBAuthSettings), fbAuthSettings);
+            services.AddSingleton(fbAuthSettings);
+            services.AddHttpClient();
+            services.AddAuthorization(options => {
+                options.AddPolicy("admin",
+                    authBuilder => {
+                        authBuilder.RequireRole("admin");
                     });
+                options.AddPolicy("user",
+                    authBuilder => {
+                        authBuilder.RequireRole("user");
+                    });
+            });
             services.AddControllersWithViews().AddNewtonsoftJson(
-                options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+                options => {
+                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                }
+            );
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+            });
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Swagger", Version = "v1" });
             });
-
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -86,12 +125,14 @@ namespace TN.BackendAPI
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            app.UseAuthentication();
             app.UseHttpsRedirection();
             app.UseRouting();
-            app.UseAuthentication();
+            app.UseCors();
             app.UseAuthorization();
-
+                        app.UseCors(
+                options => options.AllowAnyOrigin().AllowAnyMethod()
+            );
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {

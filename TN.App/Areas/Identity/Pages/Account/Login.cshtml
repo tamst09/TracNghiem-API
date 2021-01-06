@@ -70,10 +70,10 @@
                                     </form>
                                     <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="user">
                                         <div>
-                                            <button type="submit" name="provider" value="@Model.ExternalLogins[0].Name" class="btn btn-facebook btn-user btn-block">
+                                            <button type="submit" name="provider" value="Facebook" class="btn btn-facebook btn-user btn-block">
                                                 <i class="fab fa-facebook-f fa-fw"></i> Login with Facebook
                                             </button>
-                                            <button type="submit" name="provider" value="@Model.ExternalLogins[1].Name" class="btn btn-google btn-user btn-block">
+                                            <button type="submit" name="provider" value="Google" class="btn btn-google btn-user btn-block">
                                                 <i class="fab fa-google fa-fw"></i> Login with Google
                                             </button>
                                         </div>

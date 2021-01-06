@@ -69,9 +69,26 @@
     <Compile Remove="Migrations\20201110064706_Initial Creation.Designer.cs" />
     <Compile Remove="Migrations\20201110065125_Initial Creation 2.cs" />
     <Compile Remove="Migrations\20201110065125_Initial Creation 2.Designer.cs" />
+    <Compile Remove="Migrations\20201110065423_Init.cs" />
+    <Compile Remove="Migrations\20201110065423_Init.Designer.cs" />
+    <Compile Remove="Migrations\20201121073317_add refreshToken.cs" />
+    <Compile Remove="Migrations\20201121073317_add refreshToken.Designer.cs" />
+    <Compile Remove="Migrations\20201201142803_add isActive property.cs" />
+    <Compile Remove="Migrations\20201201142803_add isActive property.Designer.cs" />
+    <Compile Remove="Migrations\20201212102102_add refresh token entity.cs" />
+    <Compile Remove="Migrations\20201212102102_add refresh token entity.Designer.cs" />
+    <Compile Remove="Migrations\20201212102346_add refresh token entity.cs" />
+    <Compile Remove="Migrations\20201212102346_add refresh token entity.Designer.cs" />
+    <Compile Remove="Migrations\20201212103016_add refresh token entity.cs" />
+    <Compile Remove="Migrations\20201212103016_add refresh token entity.Designer.cs" />
+    <Compile Remove="Migrations\20201216101256_change app user config.cs" />
+    <Compile Remove="Migrations\20201216101256_change app user config.Designer.cs" />
+    <Compile Remove="Migrations\20201216105654_add the first db.cs" />
+    <Compile Remove="Migrations\20201216105654_add the first db.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.8">

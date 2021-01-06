@@ -12,4 +12,8 @@
     <ProjectReference Include="..\TN.Data\TN.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Catalog\Category\" />
+  </ItemGroup>
+
 </Project>

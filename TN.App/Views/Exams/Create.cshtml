@@ -18,10 +18,10 @@
                 <input asp-for="ExamName" class="form-control" />
                 <span asp-validation-for="ExamName" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="isPrivate" class="control-label">Private</label>
-                <input type="checkbox" asp-for="isPrivate" class="form-control"/>
-                <span asp-validation-for="isPrivate" class="text-danger"></span>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="isPrivate" /> @Html.DisplayNameFor(model => model.isPrivate)
+                </label>
             </div>
             <div class="form-group">
                 <label asp-for="Time" class="control-label"></label>
@@ -34,13 +34,22 @@
                 <span asp-validation-for="ImageURL" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label asp-for="TimeCreated" class="control-label"></label>
+                <input asp-for="TimeCreated" class="form-control" />
+                <span asp-validation-for="TimeCreated" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label asp-for="CategoryID" class="control-label"></label>
                 <select asp-for="CategoryID" class ="form-control" asp-items="ViewBag.CategoryID"></select>
             </div>
             <div class="form-group">
                 <label asp-for="OwnerID" class="control-label"></label>
-                <input type="hidden" readonly asp-for="OwnerID" class ="form-control" value="@ViewBag.OwnerID"/>
-                <input type="text" readonly class ="form-control" value="@ViewData["OwnerUsername"]"/>
+                <select asp-for="OwnerID" class ="form-control" asp-items="ViewBag.OwnerID"></select>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="isActive" /> @Html.DisplayNameFor(model => model.isActive)
+                </label>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />

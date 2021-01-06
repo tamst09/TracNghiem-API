@@ -15,7 +15,7 @@ namespace TN.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.9")
+                .HasAnnotation("ProductVersion", "3.1.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
@@ -167,7 +167,7 @@ namespace TN.Data.Migrations
                         new
                         {
                             Id = 1,
-                            ConcurrencyStamp = "913db26c-ff4e-44de-9ab2-74cd07787eaa",
+                            ConcurrencyStamp = "15db273c-8d6f-409b-9d3f-45482c14958e",
                             Description = "Administrator level",
                             Name = "admin",
                             NormalizedName = "ADMIN"
@@ -175,7 +175,7 @@ namespace TN.Data.Migrations
                         new
                         {
                             Id = 2,
-                            ConcurrencyStamp = "cc4df11a-8219-4941-b7bd-3af3fb3fb19c",
+                            ConcurrencyStamp = "146e1f78-88ed-4e05-9cbd-2decc8f5c2f9",
                             Description = "User level",
                             Name = "user",
                             NormalizedName = "USER"
@@ -203,17 +203,22 @@ namespace TN.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
-                        .HasColumnType("nvarchar(256)")
-                        .HasMaxLength(256);
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
                     b.Property<string>("FirstName")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
 
                     b.Property<string>("LastName")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -233,10 +238,14 @@ namespace TN.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("RefreshTokenValue")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -245,11 +254,14 @@ namespace TN.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("UserName")
-                        .HasColumnType("nvarchar(256)")
-                        .HasMaxLength(256);
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
 
                     b.Property<bool>("isActive")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.HasKey("Id");
 
@@ -261,6 +273,10 @@ namespace TN.Data.Migrations
                         .HasName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
+                    b.HasIndex("RefreshTokenValue")
+                        .IsUnique()
+                        .HasFilter("[RefreshTokenValue] IS NOT NULL");
+
                     b.ToTable("AspNetUsers");
 
                     b.HasData(
@@ -268,7 +284,7 @@ namespace TN.Data.Migrations
                         {
                             Id = 1,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "1b27f345-617f-4a6f-9bf4-a6e3a0f02994",
+                            ConcurrencyStamp = "6f6a0a43-7e29-4e0d-b00d-e705a667fbcf",
                             DoB = new DateTime(1999, 4, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "tamst09@gmail.com",
                             EmailConfirmed = true,
@@ -277,7 +293,8 @@ namespace TN.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "TAMST09@GMAIL.COM",
                             NormalizedUserName = "admin1999",
-                            PasswordHash = "AQAAAAEAACcQAAAAEAlH/Aro5MHIYa0E3mswzCk98gi1VGi9xXiyU0gNIxgmy54rVhtGgMXU0/TycMuNSQ==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEP5orOhGpPG3DmkeK/aCuYf+4dguYgc+BSXVMWPmqbf2oh3ev/98NxMVNHMMXuRjvg==",
+                            PhoneNumber = "0336709707",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "",
                             TwoFactorEnabled = false,
@@ -288,7 +305,7 @@ namespace TN.Data.Migrations
                         {
                             Id = 2,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "e114ac7e-e533-49f7-9b50-92c610f9f121",
+                            ConcurrencyStamp = "8ae0dfc1-aa3b-4255-a8c4-5c1b87ccb088",
                             DoB = new DateTime(1999, 4, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "thtt260499@gmail.com",
                             EmailConfirmed = true,
@@ -297,7 +314,8 @@ namespace TN.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "THTT260499@GMAIL.COM",
                             NormalizedUserName = "USER1999",
-                            PasswordHash = "AQAAAAEAACcQAAAAEPpKBXr11kznWYbRGJvulQBU1RDNPeJ5MvSoJCxFRfVQ27ZfN/bboMwsdz1CbR+rcQ==",
+                            PasswordHash = "AQAAAAEAACcQAAAAED9tRurcyflHfJeFtTxQsv2kC1tIkPG3/j/UOMK/Q6qZ4s+962m/QTzHkCfcjOupKQ==",
+                            PhoneNumber = "0336709707",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "",
                             TwoFactorEnabled = false,
@@ -320,8 +338,10 @@ namespace TN.Data.Migrations
                         .HasColumnType("nvarchar(100)")
                         .HasMaxLength(100);
 
-                    b.Property<bool>("isAcive")
-                        .HasColumnType("bit");
+                    b.Property<bool>("isActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.HasKey("ID");
 
@@ -361,7 +381,9 @@ namespace TN.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("isActive")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<bool>("isPrivate")
                         .HasColumnType("bit");
@@ -481,13 +503,28 @@ namespace TN.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<bool>("isActive")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.HasKey("ID");
 
                     b.HasIndex("ExamID");
 
                     b.ToTable("Questions");
+                });
+
+            modelBuilder.Entity("TN.Data.Entities.RefreshToken", b =>
+                {
+                    b.Property<string>("Token")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Token");
+
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("TN.Data.Entities.Result", b =>
@@ -557,6 +594,13 @@ namespace TN.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("TN.Data.Entities.AppUser", b =>
+                {
+                    b.HasOne("TN.Data.Entities.RefreshToken", "RefreshToken")
+                        .WithOne("User")
+                        .HasForeignKey("TN.Data.Entities.AppUser", "RefreshTokenValue");
                 });
 
             modelBuilder.Entity("TN.Data.Entities.Exam", b =>
