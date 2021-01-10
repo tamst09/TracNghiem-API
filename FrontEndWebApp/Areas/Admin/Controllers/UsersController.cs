@@ -1,6 +1,7 @@
 ﻿using FrontEndWebApp.Areas.Admin.AdminServices;
 using FrontEndWebApp.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -24,7 +25,8 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
 
         // GET: UsersController
         public async Task<ActionResult> Index(string keyword, int pageIndex = 1, int pageSize = 10)
-        {        
+        {
+            
             try
             {
                 //List<UserViewModel> lstAllUser = new List<UserViewModel>();
@@ -34,7 +36,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                     PageIndex = pageIndex,
                     PageSize = pageSize
                 };
-                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var listUserResult = await _userManage.GetListUserPaged(model, token);
                 return View(listUserResult);
             }
@@ -47,9 +49,10 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         // GET: UsersController/Details/5
         public async Task<ActionResult> Details(int id)
         {
+            
             try
             {
-                var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var user = await _accountService.GetUserInfo(id, access_token);
                 return View(user);
             }
@@ -62,6 +65,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         // GET: UsersController/Create
         public ActionResult Create()
         {
+            
             return View();
         }
 
@@ -76,7 +80,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             }
             try
             {
-                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var createUserResult = await _userManage.CreateUser(model, token);
                 //error
                 if(createUserResult.Error!=null || createUserResult.Access_Token == null)
@@ -97,9 +101,10 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         // GET: UsersController/Edit/5
         public async Task<ActionResult> Edit(int id)
         {
+           
             try
             {
-                var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var user = await _accountService.GetUserInfo(id, access_token);
                 if(user!=null)
                     return View(user);
@@ -119,7 +124,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var userUpdated = await _accountService.UpdateProfile(id, model, access_token);
                 return RedirectToAction("Details", "Users", new { id = userUpdated.Id });
             }
@@ -134,7 +139,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var lockUserResult = await _userManage.LockUser(id, token);
                 if (lockUserResult)
                 {
@@ -165,7 +170,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var lockUserResult = await _userManage.RestoreUser(id, token);
                 if (lockUserResult)
                 {

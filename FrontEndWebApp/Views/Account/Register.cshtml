@@ -78,6 +78,31 @@
                                     <span asp-validation-for="ConfirmPassword" class="text-danger text-sm-left"></span>
                                 </div>
                             </div>
+                            <div class="form-group custom-file">
+                                <input asp-for="AvatarFile" type="file" class="custom-file-input" id="customFile">
+                                <label for="customFile" class="custom-file-label">Upload your avatar</label>
+                            </div>
+                            @if (ViewData["IsRegisterSuccess"] != null)
+                            {
+                                @if ((bool)ViewData["IsRegisterSuccess"])
+                                {
+                                    <div class="form-group row align-content-lg-center">
+                                        <div class="alert alert-success alert-dismissible">
+                                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                            <strong>Success!</strong> Login to continue.
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="form-group row align-content-lg-center">
+                                        <div class="d-none alert alert-success alert-dismissible">
+                                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                            <strong>Fail!</strong> Oh sorry!! Something went wrong. Press F5 and try again.
+                                        </div>
+                                    </div>
+                                }
+                            }
                             <div class="form-group row align-content-lg-center">
                                 <div class="col text-center">
                                     <span class="text-danger ">@ViewData["msg"]</span>
@@ -114,6 +139,16 @@
 </body>
 
 </html>
+
+
+<script>
+    // Add the following code if you want the name of the file appear on select
+    $(".custom-file-input").on("change", function () {
+        var fileName = $(this).val().split("\\").pop();
+        $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+    });
+</script>
+
 
 
 

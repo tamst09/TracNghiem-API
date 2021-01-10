@@ -43,7 +43,7 @@ namespace TN.BackendAPI.Services.Service
             _emailSender = emailSender;
         }
         #region CRUD
-        public async Task<IEnumerable<AppUser>> GetAll()
+        public async Task<List<AppUser>> GetAll()
         {
             return await _dbContext.Users.ToListAsync();
         }
@@ -83,7 +83,8 @@ namespace TN.BackendAPI.Services.Service
                     DoB = u.DoB,
                     PhoneNumber = u.PhoneNumber,
                     UserName = u.UserName,
-                    isActive = u.isActive
+                    isActive = u.isActive,
+                    Avatar = u.Avatar
                 })
                 .ToList();
             // return
@@ -96,14 +97,28 @@ namespace TN.BackendAPI.Services.Service
                 return null;
             }
             var user = await _dbContext.Users.FindAsync(id);
-            user.Id = model.Id;
-            user.FirstName = model.FirstName;
-            user.LastName = model.LastName;
-            user.UserName = model.UserName;
-            user.DoB = model.DoB;
-            user.Email = model.Email;
-            user.PhoneNumber = model.PhoneNumber;
+            if (!string.IsNullOrEmpty(model.FirstName)&&!string.IsNullOrEmpty(model.LastName))
+            {
+                user.FirstName = model.FirstName;
+                user.LastName = model.LastName;
+            }
+            if(model.DoB != null)
+            {
+                user.DoB = model.DoB;
+            }
+            if (model.Email != null)
+            {
+                user.Email = model.Email;
+            }
+            if (model.PhoneNumber != null)
+            {
+                user.PhoneNumber = model.PhoneNumber;
+            }
             user.isActive = model.isActive;
+            if (model.Avatar != null)
+            {
+                user.Avatar = model.Avatar;
+            }
             try
             {
                 await _dbContext.SaveChangesAsync();
@@ -143,7 +158,6 @@ namespace TN.BackendAPI.Services.Service
             {
                 return false;
             }
-
             user.isActive = true;
             await _dbContext.SaveChangesAsync();
 
@@ -171,7 +185,7 @@ namespace TN.BackendAPI.Services.Service
             // access_token is available
             if (userlogin.RefreshTokenValue != null)
             {
-                userlogin.RefreshToken.ExpiryDate = DateTime.Now.AddDays(7);
+                userlogin.RefreshToken.ExpiryDate = DateTime.UtcNow.AddDays(7);
                 await _dbContext.SaveChangesAsync();
                 return new JwtResponse() { Access_Token = access_token, Refresh_Token = userlogin.RefreshToken.Token }; // return access_token with refresh_token
             }
@@ -194,12 +208,12 @@ namespace TN.BackendAPI.Services.Service
                 return null;
             }
             bool isNewUser = true;
-            var userInfo = await _facebookAuth.GetUserInfoAsync(accessToken);
-            var user = await _dbContext.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.Email == userInfo.Email);
+            var FbUserInfo = await _facebookAuth.GetUserInfoAsync(accessToken);
+            var user = await _dbContext.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.Email == FbUserInfo.Email);
 
             if (user == null)
             {
-                var findFacebookUID = await _dbContext.UserTokens.FirstOrDefaultAsync(p => p.LoginProvider == "Facebook" && p.Name == "fbID" && p.Value == userInfo.Id);
+                var findFacebookUID = await _dbContext.UserTokens.FirstOrDefaultAsync(p => p.LoginProvider == "Facebook" && p.Name == "fbID" && p.Value == FbUserInfo.Id);
                 if (findFacebookUID != null)
                 {
                     user = await _userManager.FindByIdAsync(findFacebookUID.UserId.ToString());
@@ -212,18 +226,19 @@ namespace TN.BackendAPI.Services.Service
                 isNewUser = true;
                 user = new AppUser()
                 {
-                    FirstName = userInfo.FirstName,
-                    LastName = userInfo.LastName,
-                    Email = userInfo.Email,
-                    UserName = userInfo.Email,
-                    isActive = true
+                    FirstName = FbUserInfo.FirstName,
+                    LastName = FbUserInfo.LastName,
+                    Email = FbUserInfo.Email,
+                    UserName = FbUserInfo.Email,
+                    isActive = true,
+                    Avatar = "/images/cover/user/default_avatar.png"
                 };
                 var createdResult = await _userManager.CreateAsync(user);
                 if(createdResult.Succeeded)
                 {
                     await _userManager.AddLoginAsync(user, new UserLoginInfo("Facebook", user.Email, "Facebook"));
                     await _userManager.AddToRoleAsync(user, "user");
-                    await _userManager.SetAuthenticationTokenAsync(user, "Facebook", "fbID", userInfo.Id);
+                    await _userManager.SetAuthenticationTokenAsync(user, "Facebook", "fbID", FbUserInfo.Id);
                 }
                 else
                 {
@@ -234,7 +249,7 @@ namespace TN.BackendAPI.Services.Service
             else
             {
                 isNewUser = false;
-                var checkProdiverResult = await _userManager.FindByLoginAsync("Facebook", userInfo.Email);
+                var checkProdiverResult = await _userManager.FindByLoginAsync("Facebook", FbUserInfo.Email);
                 // ko phai tk facebook
                 if (checkProdiverResult == null)
                 {
@@ -243,7 +258,7 @@ namespace TN.BackendAPI.Services.Service
                     var checkAuthTokenTask = await _userManager.GetAuthenticationTokenAsync(user, "Facebook", "fbID");
                     if(checkAuthTokenTask == null)
                     {
-                        await _userManager.SetAuthenticationTokenAsync(user, "Facebook", "fbID", userInfo.Id);
+                        await _userManager.SetAuthenticationTokenAsync(user, "Facebook", "fbID", FbUserInfo.Id);
                     }
                 }
             }
@@ -252,7 +267,7 @@ namespace TN.BackendAPI.Services.Service
             // access_token is available
             if (user.RefreshTokenValue != null)
             {
-                user.RefreshToken.ExpiryDate = DateTime.Now.AddDays(7);
+                user.RefreshToken.ExpiryDate = DateTime.UtcNow.AddDays(7);
                 await _dbContext.SaveChangesAsync();
                 return new JwtResponse() { Access_Token = access_token, Refresh_Token = user.RefreshToken.Token, isNewLogin = isNewUser };
             }
@@ -269,6 +284,10 @@ namespace TN.BackendAPI.Services.Service
         }
         public async Task<JwtResponse> Register(RegisterModel model)
         {
+            if (string.IsNullOrEmpty(model.AvatarPhotoURL))
+            {
+                model.AvatarPhotoURL = "/images/cover/user/default.png";
+            }
             var user = new AppUser()
             {
                 UserName = model.UserName,
@@ -276,7 +295,8 @@ namespace TN.BackendAPI.Services.Service
                 LastName = model.LastName,
                 Email = model.Email,
                 DoB = model.DoB,
-                PhoneNumber = model.PhoneNumber
+                PhoneNumber = model.PhoneNumber,
+                Avatar = model.AvatarPhotoURL
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
@@ -329,7 +349,7 @@ namespace TN.BackendAPI.Services.Service
                 refreshToken.Token = Convert.ToBase64String(randomNumber);
             }
             //thoi han token
-            refreshToken.ExpiryDate = DateTime.Now.AddDays(7);
+            refreshToken.ExpiryDate = DateTime.UtcNow.AddDays(7);
             return refreshToken;
         }
         // Xac thuc han su dung refreshToken
@@ -379,10 +399,10 @@ namespace TN.BackendAPI.Services.Service
             AppUser user = await GetUserByAccessToken(refreshRequest.AccessToken);
             if (user != null && ValidateRefreshToken(user, refreshRequest.RefreshToken))
             {
-                var u = user.RefreshToken.ExpiryDate.Subtract(DateTime.Now);
+                var u = user.RefreshToken.ExpiryDate.Subtract(DateTime.UtcNow);
                 if (u.TotalDays < 2)
                 {
-                    user.RefreshToken.ExpiryDate = DateTime.Now.AddDays(7);
+                    user.RefreshToken.ExpiryDate = DateTime.UtcNow.AddDays(7);
                 }
                 return GenerateAccessToken(user);
             }

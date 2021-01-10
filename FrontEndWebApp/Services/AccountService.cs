@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,13 +16,11 @@ namespace FrontEndWebApp.Services
 {
     public class AccountService : IAccountService
     {
-        private readonly IHttpClientFactory _httpClientFactory;
         private IConfiguration _config;
         private HttpClient _client;
 
         public AccountService(IHttpClientFactory httpClientFactory, IConfiguration config)
         {
-            _httpClientFactory = httpClientFactory;
             this._client = httpClientFactory.CreateClient();
             this._client.BaseAddress = new Uri(ConstStrings.BASE_URL_API);
             _config = config;
@@ -51,7 +50,7 @@ namespace FrontEndWebApp.Services
         {
             if (!string.IsNullOrEmpty(access_token))
             {
-                _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + access_token);
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
             }
             var response = await _client.GetAsync("/api/users/"+userId.ToString());
             
@@ -109,7 +108,7 @@ namespace FrontEndWebApp.Services
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
             if (!string.IsNullOrEmpty(access_token))
             {
-                _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + access_token);
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
             }
             var response = await _client.PutAsync("/api/users/UpdateUser/"+uid.ToString(), httpContent);
 
@@ -149,6 +148,7 @@ namespace FrontEndWebApp.Services
             SecurityToken validatedToken;
             TokenValidationParameters parameters = new TokenValidationParameters();
             parameters.ValidateLifetime = true;
+            parameters.RequireExpirationTime = true;
             parameters.ValidAudience = _config["Tokens:Issuer"];
             parameters.ValidIssuer = _config["Tokens:Issuer"];
             parameters.IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Tokens:SecretKey"]));

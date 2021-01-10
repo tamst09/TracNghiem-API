@@ -50,25 +50,6 @@
                         user_email = response.email; //get user email
                         // you can store this data into your database
                     });
-                    //$.ajax({
-                    //    type: "POST",
-                    //    url: "/Auth/LoginFacebook",
-                    //    data: JSON.stringify(response)
-                    //    contentType: "application/json; charset=utf-8",
-                    //    dataType: "json",
-                    //    success: function (result) {
-                    //        console.log("post ok");
-                    //        if (result.redirectUrl !== undefined) {
-                    //            window.location.replace(result.redirectUrl);
-                    //        }
-                    //    },
-                    //    failure: function (response) {
-                    //        console.log("post failure");
-                    //    },
-                    //    error: function (response) {
-                    //        console.log("post error");
-                    //    }
-                    //})
 
                 } else {
                     //user hit cancel button
@@ -100,7 +81,9 @@
                     <div class="card-body p-0">
                         <!-- Nested Row within Card Body -->
                         <div class="row">
-                            <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
+                            <div class="col-lg-6">
+                                <img style="max-width: 100%; max-height: 100%; background-size: cover;" src="~/images/common/loginbg.jpg"/>
+                            </div>
                             <div class="col-lg-6">
                                 <div class="p-5">
                                     <div class="text-center">

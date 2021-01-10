@@ -9,9 +9,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
+using TN.Data.Entities;
 using TN.ViewModels.Settings;
 
 namespace FrontEndWebApp
@@ -51,7 +54,7 @@ namespace FrontEndWebApp
                     cookieoptions.ExpireTimeSpan = TimeSpan.FromHours(3);
                     // tu dong gia han cookie neu co request gui di
                     cookieoptions.SlidingExpiration = true;
-                    cookieoptions.Cookie.Name = "asp.authentication";
+                    cookieoptions.Cookie.Name = "Asp_Authentication";
                 })
                 .AddJwtBearer(jwtOptions =>
                 {
@@ -95,44 +98,49 @@ namespace FrontEndWebApp
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
-
+            app.UseExceptionHandler("/Home/Error");
             app.UseAuthentication();
             app.UseHttpsRedirection();
             app.UseSession();
             app.UseStaticFiles();
             app.UseRouting();
             app.UseAuthorization();
-            //app.UseStatusCodePagesWithRedirects("/Account/AccessDenied");
-            //app.Use(async (context, next) =>
-            //{
-            //    var token = TokenUtils.DecodeToken(context.Request.Cookies["access_token_cookie"]);
-            //    if (!string.IsNullOrEmpty(token))
-            //    {
-            //        context.Request.HttpContext.Request.Headers.Add("Authorization", "Bearer " + token);
-            //        context.Request.Headers.Add("Authorization", "Bearer " + token);
-            //    };
-            //    await next();
-            //});
+            
             app.Use(async (context, next) =>
             {
                 HttpClient client = new HttpClient();
                 client.BaseAddress = new Uri(ConstStrings.BASE_URL_API);
-                var token = Services.Encoder.DecodeToken(context.Request.Cookies["access_token_cookie"]);
+                var token = CookieEncoder.DecodeToken(context.Request.Cookies["access_token_cookie"]);
                 if (token != null)
-                    client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 if (context.User == null)
                 {
                     await next();
                 }
                 var uid = context.User.FindFirst("UserID");
-                
                 if (uid!=null)
                 {
-                    var validAccount = await client.GetAsync("/api/users/getStatus/" + uid.Value);
-                    if (!validAccount.IsSuccessStatusCode)
+                    try
                     {
-                        context.Response.Cookies.Delete("access_token_cookie");
-                        context.Response.Cookies.Delete("asp.authentication");
+                        var avatar = await client.GetAsync("/api/users/" + uid.Value);
+                        if (avatar.IsSuccessStatusCode)
+                        {
+                            var body = await avatar.Content.ReadAsStringAsync();
+                            AppUser user = JsonConvert.DeserializeObject<AppUser>(body);
+                            if (user==null || !user.isActive)
+                            {
+                                context.Response.Cookies.Delete("access_token_cookie");
+                                context.Response.Cookies.Delete("Asp_Authentication");
+                            }
+                            else
+                            {
+                                Global.Avatar_Url = user.Avatar;
+                            }
+                            await next();
+                        }
+                    }
+                    catch (Exception)
+                    {
                         await next();
                     }
                 }

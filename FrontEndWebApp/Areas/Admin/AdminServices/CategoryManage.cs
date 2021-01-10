@@ -3,9 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Category;
 using TN.ViewModels.Settings;
 
 namespace FrontEndWebApp.Areas.Admin.AdminServices
@@ -25,7 +27,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
         public async Task<bool> Create(Category model, string accessToken)
         {
             if (accessToken != null)
-                _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync("/api/categories/", httpContent);
@@ -47,8 +49,30 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
         public async Task<bool> Delete(int id, string accessToken)
         {
             if (accessToken != null)
-                _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             var response = await _httpClient.DeleteAsync("/api/categories/"+id.ToString());
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                if (result != null)
+                {
+                    return true;
+                }
+                return false;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteRange(DeleteRangeModel<int> lstId, string accessToken)
+        {
+            if (accessToken != null)
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var json = JsonConvert.SerializeObject(lstId);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("/api/categories/deleterange", httpContent);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsStringAsync();
@@ -97,7 +121,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
         public async Task<Category> Update(int id, Category model, string accessToken)
         {
             if (accessToken != null)
-                _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await _httpClient.PutAsync("/api/categories/"+id.ToString(), httpContent);

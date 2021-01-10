@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -42,5 +43,8 @@ namespace TN.ViewModels.Catalog.User
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
+
+        public IFormFile AvatarFile { get; set; }
+        public string AvatarPhotoURL { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using TN.ViewModels.Catalog.User;
@@ -26,7 +27,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
         public async Task<JwtResponse> CreateUser(UserViewModel model, string access_token)
         {
             if (access_token != null)
-                _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + access_token);
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync("/api/users/CreateUser/", httpContent);
@@ -42,18 +43,32 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             }
         }
 
-        public Task<List<UserViewModel>> GetListUser(string access_token)
+        public async Task<NumberUserInfo> GetNumberOfUsers(string access_token)
         {
-            throw new NotImplementedException();
+            if (access_token != null)
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
+            }
+            var response = await _httpClient.GetAsync("/api/users/getNumber");
+            if (response.IsSuccessStatusCode)
+            {
+                var resContent = await response.Content.ReadAsStringAsync();
+                var numberUserInfo = JsonConvert.DeserializeObject<NumberUserInfo>(resContent);
+                return numberUserInfo;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public async Task<PagedResult<UserViewModel>> GetListUserPaged(UserPagingRequest model, string access_token)
         {
             if (access_token != null)
-                _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + access_token);
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("/api/users/paged", httpContent);
+            var response = await _httpClient.PostAsync("/api/users/paged/", httpContent);
             if (response.IsSuccessStatusCode)
             {
                 var lstuser = await response.Content.ReadAsStringAsync();
@@ -72,10 +87,27 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             }
         }
 
+        public async Task<UserViewModel> GetOneUser(string access_token, int id)
+        {
+            if (access_token != null)
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
+            var response = await _httpClient.GetAsync("/api/users/"+id.ToString());
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var user = JsonConvert.DeserializeObject<UserViewModel>(responseContent);
+                return user;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public async Task<bool> LockUser(int id, string accessToken)
         {
             if (accessToken != null)
-                _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             var response = await _httpClient.PostAsync("/api/users/LockUser/" + id.ToString(), null);
             if (response.IsSuccessStatusCode)
             {
@@ -89,7 +121,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
         public async Task<bool> RestoreUser(int id, string accessToken)
         {
             if (accessToken != null)
-                _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             var response = await _httpClient.PostAsync("/api/users/RestoreUser/" + id.ToString(), null);
             if (response.IsSuccessStatusCode)
             {

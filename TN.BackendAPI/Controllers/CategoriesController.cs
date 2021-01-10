@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Category;
 
 namespace TN.BackendAPI.Controllers
 {
@@ -66,9 +67,21 @@ namespace TN.BackendAPI.Controllers
 
         // DELETE: api/Categories/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Category>> DeleteCategory(int id)
+        public async Task<ActionResult> DeleteCategory(int id)
         {
             var deleteResult = await _categoryService.Delete(id);
+            if (deleteResult)
+                return Ok("Success");
+            else
+                return Ok();
+        }
+
+        // DELETE: api/Categories/DeleteRange
+        [HttpPost("DeleteRange")]
+        [AllowAnonymous]
+        public async Task<ActionResult> DeleteManyCategory(DeleteRangeModel<int> lstCategoryId)
+        {
+            var deleteResult = await _categoryService.DeleteListCategory(lstCategoryId);
             if (deleteResult)
                 return Ok("Success");
             else

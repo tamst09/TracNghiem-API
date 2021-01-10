@@ -1,8 +1,11 @@
 ﻿using FrontEndWebApp.Services;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Threading.Tasks;
 using TN.ViewModels.Catalog.User;
 
@@ -12,10 +15,12 @@ namespace FrontEndWebApp.Controllers
     public class AccountController : Controller
     {
         private readonly IAccountService _accountService;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public AccountController(IAccountService authClient)
+        public AccountController(IAccountService authClient, IWebHostEnvironment webHostEnvironment)
         {
             _accountService = authClient;
+            _webHostEnvironment = webHostEnvironment;
         }
         // ========================== COMMON ==========================
         public IActionResult Index()
@@ -102,9 +107,18 @@ namespace FrontEndWebApp.Controllers
                     // set false -> tạo ra cookie phiên -> thoát trình duyệt cookie bị xoá
                     // set true -> cookie có thời hạn đc set trong Startup.cs và ko bị mất khi thoát
                     IsPersistent = model.Rememberme
+                    //ExpiresUtc = DateTime.UtcNow.AddSeconds(10)
                 };
                 HttpContext.SignInAsync(userPrincipal, authProperties);
-                HttpContext.Response.Cookies.Append("access_token_cookie", Encoder.EncodeToken(result.Access_Token), new CookieOptions { HttpOnly = true, Secure = true });
+                if (model.Rememberme)
+                {
+                    HttpContext.Response.Cookies.Append("access_token_cookie", CookieEncoder.EncodeToken(result.Access_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(3), HttpOnly = true, Secure = true });
+                }
+                else
+                {
+                    HttpContext.Response.Cookies.Append("access_token_cookie", CookieEncoder.EncodeToken(result.Access_Token), new CookieOptions { HttpOnly = true, Secure = true });
+                }
+                
                 if (!string.IsNullOrEmpty(returnUrl))
                 {
                     return Redirect(returnUrl);
@@ -125,6 +139,16 @@ namespace FrontEndWebApp.Controllers
             {
                 return View(model);
             }
+            if (model.AvatarPhotoURL != null)
+            {
+                string folder = "images/cover/user/";
+                folder += Guid.NewGuid().ToString() + "_" + model.AvatarFile.FileName;
+                model.AvatarPhotoURL = "/" + folder;
+                string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
+                await model.AvatarFile.CopyToAsync(new FileStream(serverFolder, FileMode.Create));
+            }
+            model.AvatarFile = null;
+            string url = model.AvatarPhotoURL;
             var user = await _accountService.Register(model);
             if (user != null)
             {
@@ -133,9 +157,10 @@ namespace FrontEndWebApp.Controllers
                     ViewData["msg"] = user.Error;
                     return View(model);
                 }
-                return RedirectToAction(nameof(Login));
+                ViewData["IsRegisterSuccess"] = true;
+                return View(new RegisterModel());
             }
-            ViewData["msg"] = "Unsuccessful register.";
+            ViewData["IsRegisterSuccess"] = false;
             return View(model);
         }
 
@@ -167,7 +192,7 @@ namespace FrontEndWebApp.Controllers
                             IsPersistent = true
                         };
                         await HttpContext.SignInAsync(userPrincipal, authProperties);
-                        HttpContext.Response.Cookies.Append("access_token_cookie",Encoder.EncodeToken(jwttokenResponse.Access_Token), new CookieOptions { HttpOnly = true, Secure = true });
+                        HttpContext.Response.Cookies.Append("access_token_cookie",CookieEncoder.EncodeToken(jwttokenResponse.Access_Token), new CookieOptions { HttpOnly = true, Secure = true });
                         if (jwttokenResponse.isNewLogin)
                         {
                             int uid = Convert.ToInt32(userPrincipal.FindFirst("UserID").Value);
@@ -192,7 +217,7 @@ namespace FrontEndWebApp.Controllers
         public async Task<IActionResult> ShowProfile()
         {
             var id = User.FindFirst("UserID");
-            var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+            var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
             var user = await _accountService.GetUserInfo(Int32.Parse(id.Value), access_token);
             if (user != null)
                 return View(user);
@@ -208,7 +233,7 @@ namespace FrontEndWebApp.Controllers
                 // access denied
                 return View("Views/Account/AccessDenied.cshtml");
             }
-            var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+            var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
             var user = await _accountService.GetUserInfo(userID, access_token);
             if (user != null)
             {
@@ -228,12 +253,22 @@ namespace FrontEndWebApp.Controllers
                     id
                 });
             }
+            if (model.AvatarPhoto != null)
+            {
+                string folder = "images/cover/user/";
+                folder += Guid.NewGuid().ToString() + "_" + model.AvatarPhoto.FileName;
+                model.Avatar = "/"+folder;
+                string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
+                await model.AvatarPhoto.CopyToAsync(new FileStream(serverFolder, FileMode.Create));
+            }
+            model.AvatarPhoto = null;
+            string url = model.Avatar;
             var userID = Int32.Parse(User.FindFirst("UserID").Value);
             if(id != userID)
             {
                 return Redirect("/Views/Account/AccessDenied.cshtml");
             }
-            var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+            var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
             var result = await _accountService.UpdateProfile(id, model, access_token);
             // success
             if (result != null)

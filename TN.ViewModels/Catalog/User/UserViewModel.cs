@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -44,5 +45,8 @@ namespace TN.ViewModels.Catalog.User
         public string ConfirmPassword { get; set; }
 
         public bool isActive { get; set; }
+
+        public IFormFile AvatarPhoto { get; set; }
+        public string Avatar { get; set; }
     }
 }

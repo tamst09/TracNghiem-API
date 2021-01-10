@@ -1,7 +1,77 @@
 ﻿@{
-    ViewData["Title"] = "Index";
+    TN.ViewModels.Common.NumberUserInfo numberUserInfo = (TN.ViewModels.Common.NumberUserInfo)ViewData["TotalUser"];
+    ViewData["Title"] = "Trang chủ";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Chào mừng ADMIN yêu dấu</h1>
+<h1 class="text-center">THỐNG KÊ</h1>
+<hr />
+
+
+<div class="row">
+    @if (ViewData["TotalUser"] != null)
+    {
+        <div class="col-lg-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-money fa-fw"></i>Tài khoản</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-striped text-center">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Đang sử dụng</th>
+                                    <th>Bị khoá</th>
+                                    <th>Tổng</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Số lượng</td>
+                                    <td>@numberUserInfo.TotalActiveUser</td>
+                                    <td>@numberUserInfo.TotalInactiveUser</td>
+                                    <td>@numberUserInfo.TotalUser</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-right">
+                        <a asp-area="Admin" asp-controller="Users" asp-action="Index">Chi tiết <i class="fa fa-arrow-circle-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    <div class="col-lg-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-money fa-fw"></i>Chủ đề</h3>
+            </div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped text-center">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Tổng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Số lượng</td>
+                                <td>@ViewData["TotalCategory"]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-right">
+                    <a asp-area="Admin" asp-controller="Categories" asp-action="Index">Chi tiết <i class="fa fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 

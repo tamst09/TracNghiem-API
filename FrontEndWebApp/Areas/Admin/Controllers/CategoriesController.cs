@@ -1,12 +1,14 @@
 ﻿using FrontEndWebApp.Areas.Admin.AdminServices;
 using FrontEndWebApp.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Category;
 
 namespace FrontEndWebApp.Areas.Admin.Controllers
 {
@@ -23,6 +25,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
 
         public async Task<ActionResult> Index()
         {
+            ViewData["Avatar"] = HttpContext.Session.GetString("avatarURL");
             try
             {
                 List<Category> categories = new List<Category>();
@@ -37,6 +40,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
 
         public ActionResult Create()
         {
+            ViewData["Avatar"] = HttpContext.Session.GetString("avatarURL");
             ViewData["msg"] = "";
             try
             {
@@ -58,7 +62,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                     ViewData["msg"] = "Tên chủ đề không được bỏ trống";
                     return View(model);
                 }
-                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var result = await _categoryService.Create(model, token);
                 if (result)
                 {
@@ -76,6 +80,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
 
         public async Task<ActionResult> Edit(int id)
         {
+            ViewData["Avatar"] = HttpContext.Session.GetString("avatarURL");
             ViewData["msg"] = "";
             try
             {
@@ -104,7 +109,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                     ViewData["msg"] = "Tên chủ đề không được bỏ trống";
                     return View(model);
                 }
-                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 await _categoryService.Update(id, model, token);
                 return RedirectToAction("Index");
             }
@@ -118,12 +123,37 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var result = await _categoryService.Delete(id, token);
+                return RedirectToAction("Index");
+                //return Json(new { deleteResult = result });
+            }
+            catch
+            {
+                return RedirectToAction("Index");
+                //return Json(new { deleteResult = false });
+            }
+        }
+        [HttpPost]
+        public async Task<ActionResult> DeleteRange([FromBody]int[] s)
+        {
+            try
+            {
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                if (s.Length == 0)
+                {
+                    return Json(new { deleteResult = false });
+                }
+                DeleteRangeModel<int> temp = new DeleteRangeModel<int>();
+                temp.ListItem = new List<int>();
+                temp.ListItem.AddRange(s);
+                var result = await _categoryService.DeleteRange(temp, token);
+                //return RedirectToAction("Index");
                 return Json(new { deleteResult = result });
             }
-            catch (Exception)
+            catch
             {
+                //return RedirectToAction("Index");
                 return Json(new { deleteResult = false });
             }
         }

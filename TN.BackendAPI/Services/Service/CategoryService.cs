@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Category;
 
 namespace TN.BackendAPI.Services.Service
 {
@@ -24,6 +25,7 @@ namespace TN.BackendAPI.Services.Service
             {
                 findResult.Exams = null;
                 findResult.isActive = true;
+                await _db.SaveChangesAsync();
                 return findResult;
             }
             var newCategory = new Category()
@@ -60,14 +62,50 @@ namespace TN.BackendAPI.Services.Service
         {
             var category = await _db.Categories.FindAsync(categoryID);
             if (category == null) return false;
+            foreach (var exam in category.Exams)
+            {
+                exam.CategoryID = null;
+                exam.Category = null;
+            }
             category.isActive = false;
             await _db.SaveChangesAsync();
             return true;
         }
 
+        public async Task<bool> DeleteListCategory(DeleteRangeModel<int> lstCategoryId)
+        {
+            try
+            {
+                IEnumerable<Category> lstCategory = new List<Category>();
+                foreach (var cID in lstCategoryId.ListItem)
+                {
+                    var category = await _db.Categories.FindAsync(cID);
+                    if (category.Exams != null)
+                    {
+                        foreach (var exam in category.Exams)
+                        {
+                            exam.CategoryID = null;
+                            exam.Category = null;
+                        }
+                    }
+                    category.isActive = false;
+                }
+                await _db.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         public async Task<List<Category>> GetAll()
         {
-            var categoryList = await _db.Categories.Where(c => c.isActive == true).ToListAsync();
+            var categoryList = await _db.Categories.Include(c => c.Exams).Where(c => c.isActive == true).ToListAsync();
+            foreach(var category in categoryList)
+            {
+                category.Exams = category.Exams.OrderBy(e => e.ExamName).ToList();
+            }
             return categoryList;
         }
 

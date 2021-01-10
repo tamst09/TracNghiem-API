@@ -4,6 +4,9 @@
     ViewData["Title"] = "Chủ đề";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.js" integrity="sha512-WNLxfP/8cVYL9sj8Jnp6et0BkubLP31jhTG9vhL/F5uEZmg5wEzKoXp1kJslzPQWwPT1eyMiSxlKCgzHLOTOTQ==" crossorigin="anonymous"></script>
+
 
 <h1>Quản lý chủ đề</h1>
 
@@ -14,26 +17,145 @@
     <thead>
         <tr>
             <th>
+                *
+            </th>
+            <th>
                 ID
             </th>
             <th>
                 Tên chủ đề
             </th>
+            <th>
+                Số lượng đề thi
+            </th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CategoryName)
-            </td>
-            <td>
-                @Html.ActionLink("Sửa", "Edit", new { id = item.ID })
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    <input onclick="addToSelected(@item.ID, this)" type="checkbox" value=""/>
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CategoryName)
+                </td>
+                <td>
+                    @item.Exams.Count
+                </td>
+                <td>
+                    @Html.ActionLink("Sửa", "Edit", new { id = item.ID })
+                </td>
+                <td>
+                    <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" data-uid="@item.ID">Xoá</button>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+<button class="btn btn-danger" data-toggle="modal" data-target="#deleteManyModal">Xoá các mục đã chọn</button>
+
+
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xác nhận</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">Bạn chắc chắn muốn xoá mục này?</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Đóng</button>
+                <form class="form-inline" asp-controller="Categories" asp-action="Delete" method="post">
+                    <input type="hidden" class="form-control" id="uidinput" name="id">
+                    <button type="submit" class="btn btn-primary">Xoá</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="deleteManyModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xác nhận</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">Bạn chắc chắn muốn xoá các mục đã chọn?<p class="text-danger" id="warning"></p></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Đóng</button>
+                <form class="form-inline" asp-controller="Categories" asp-action="DeleteRange" method="post">
+                    <button type="button" onclick="postToDelete()" class="btn btn-primary">Xoá</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts{
+    <script>
+        $('#deleteModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget) // Button that triggered the modal
+            var uid = button.data('uid') // Extract info from data-* attributes
+            // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+            // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+            var modal = $(this)
+            modal.find('#uidinput').val(uid)
+        });
+        let s = [] 
+        var msgTxt = document.getElementById("warning");
+        function addToSelected(id, checkbox) {
+            if (!checkbox.checked) {
+                removeFromSelected(id);
+            }
+            else {
+                s.push(id)
+                msgTxt.textContent = "";
+            }
+            
+            //console.log(s)
+            /*$.ajax({
+                type: "POST",
+                url: "categories/AddToSelectedCategories/" + id,
+                success: function (res) {
+                    console.log('Added');
+                }
+            });*/
+        }
+        function removeFromSelected(uid) {
+            s.forEach(function (value, index) {
+                console.log(index + "" + value);
+                if (value == uid) {
+                    s.splice(index, 1);
+                }
+            })
+        }
+        function postToDelete() {
+            if (s != null && s.length < 1) {
+                msgTxt.textContent = "Chưa chọn mục nào";
+            }
+            else {
+                $.ajax({
+                    type: "POST",
+                    url: "categories/DeleteRange/",
+                    contentType: 'application/json',
+                    data: JSON.stringify(s),
+                    success: function (res) {
+                        if (res.deleteResult == true)
+                            console.log('Deleted');
+                        else
+                            console.log('None');
+                        window.location.reload();
+                    }
+                });
+            }
+        }
+    </script>
+}
+

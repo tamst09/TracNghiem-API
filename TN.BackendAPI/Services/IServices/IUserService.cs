@@ -10,7 +10,7 @@ namespace TN.BackendAPI.Services.IServices
     public interface IUserService
     {
         Task<JwtResponse> Register(RegisterModel model);
-        Task<IEnumerable<AppUser>> GetAll();
+        Task<List<AppUser>> GetAll();
         Task<AppUser> GetByID(int id);
         Task<JwtResponse> Login(LoginModel model);
         Task<AppUser> EditUserInfo(int id, UserViewModel user);

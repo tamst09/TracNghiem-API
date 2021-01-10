@@ -4,10 +4,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using TN.Data.Entities;
 using TN.ViewModels.Catalog.User;
-using System.Text.Json;
 using System;
 using TN.BackendAPI.Services.IServices;
-using TN.ViewModels.FacebookAuth;
 using TN.ViewModels.Common;
 
 namespace TN.BackendAPI.Controllers
@@ -31,7 +29,7 @@ namespace TN.BackendAPI.Controllers
             return Ok(await _userService.GetAll());
         }
 
-        [HttpPost("paged")]
+        [HttpPost("Paged")]
         [Authorize("admin")]
         public async Task<ActionResult<PagedResult<UserViewModel>>> GetUsersPaged(UserPagingRequest model)
         {
@@ -55,8 +53,27 @@ namespace TN.BackendAPI.Controllers
             return Ok(user);
         }
 
-        // GET: api/Users/5
-        [HttpGet("getStatus/{id}")]
+        // GET: api/Users/GetNumber
+        [HttpGet("GetNumber")]
+        [Authorize("admin")]
+        public async Task<ActionResult<NumberUserInfo>> GetNumberUser()
+        {
+            NumberUserInfo response = new NumberUserInfo();
+            response.TotalActiveUser = 0;
+            response.TotalInactiveUser = 0;
+            var allUsers = await _userService.GetAll();
+            response.TotalUser = allUsers.Count;
+            foreach (var u in allUsers)
+            {
+                if (u.isActive)
+                    response.TotalActiveUser++;
+            }
+            response.TotalInactiveUser = response.TotalUser - response.TotalActiveUser;
+            return Ok(response);
+        }
+
+        // GET: api/GetStatus/5
+        [HttpGet("GetStatus/{id}")]
         public async Task<ActionResult<AppUser>> GetStatus(int id)
         {
             var user = await _userService.GetByID(id);
@@ -70,8 +87,8 @@ namespace TN.BackendAPI.Controllers
             }
         }
 
-        // GET: api/Users/detail/5
-        [HttpGet("detail/{id}")]
+        // GET: api/Users/Detail/5
+        [HttpGet("Detail/{id}")]
         public async Task<ActionResult<AppUser>> GetUserDetails(int id)
         {
             var user = await _userService.GetByID(id);
@@ -82,8 +99,8 @@ namespace TN.BackendAPI.Controllers
             return Ok(user);
         }
 
-        // POST: api/Users/login
-        [HttpPost("login")]
+        // POST: api/Users/Login
+        [HttpPost("Login")]
         [AllowAnonymous]
         public async Task<ActionResult> Login([FromBody] LoginModel request)
         {
@@ -96,7 +113,7 @@ namespace TN.BackendAPI.Controllers
         }
 
         // POST: api/Users/register
-        [HttpPost("register")]
+        [HttpPost("Register")]
         [AllowAnonymous]
         public async Task<ActionResult<JwtResponse>> RegisterUser([FromBody] RegisterModel request)
         {
@@ -108,8 +125,8 @@ namespace TN.BackendAPI.Controllers
             return Ok(result);
         }
 
-        // POST: api/Users/getresetcode
-        [HttpPost("getresetcode")]
+        // POST: api/Users/GetResetCode
+        [HttpPost("GetResetCode")]
         [AllowAnonymous]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel model)
         {
@@ -119,8 +136,8 @@ namespace TN.BackendAPI.Controllers
             return NotFound("User is not found");
         }
 
-        // POST: api/Users/resetpass
-        [HttpPost("resetpass")]
+        // POST: api/Users/ResetPass
+        [HttpPost("ResetPass")]
         [AllowAnonymous]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
         {
@@ -175,7 +192,7 @@ namespace TN.BackendAPI.Controllers
             return await _userService.DeleteUser(id);
         }
 
-        [HttpPost("loginfb")]
+        [HttpPost("LoginFb")]
         [AllowAnonymous]
         public async Task<ActionResult<JwtResponse>> LoginFacebook([FromBody]string accesstoken)
         {

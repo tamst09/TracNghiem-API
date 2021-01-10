@@ -10,7 +10,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
+using System;
 using System.Text;
+using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.BackendAPI.Services.Service;
 using TN.Data.DataContext;
@@ -76,6 +78,7 @@ namespace TN.BackendAPI
                 options.SaveToken = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
+                    ClockSkew = TimeSpan.FromSeconds(5),
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,

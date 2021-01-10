@@ -7,12 +7,22 @@ namespace TN.BackendAPI.Services.IServices
 {
     public interface IExamService
     {
-        Task<Exam> Create(Exam request, int userID);
-        Task<Exam> Update(Exam request);
-        Task<bool> Delete(int examID);
-        Task<int> IncreaseAttemps(int examID);
-        Task<PagedResult<Exam>> GetAllPaging(ExamPagingRequest request);
+        // ADMIN
         Task<List<Exam>> GetAll();
+        Task<PagedResult<Exam>> GetAllPaging(ExamPagingRequest model);
         Task<Exam> GetByID(int id);
+        Task<bool> Update(Exam request);
+        Task<bool> Delete(int examID);
+
+        //USER
+        Task<List<Exam>> GetAll(int userID);
+        Task<PagedResult<Exam>> GetAllPaging(ExamPagingRequest model, int userID);
+        Task<Exam> GetByID(int id, int userID);
+        Task<bool> Update(Exam request, int userID);
+        Task<bool> Delete(int examID, int userID);
+
+        //COMMON
+        Task<Exam> Create(Exam request, int userID);
+        Task<int> IncreaseAttemps(int examID);
     }
 }
