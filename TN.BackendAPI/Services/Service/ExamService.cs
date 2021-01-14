@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Common;
 
 namespace TN.BackendAPI.Services.Service
@@ -196,8 +197,14 @@ namespace TN.BackendAPI.Services.Service
         //===================================================================================================
 
         //======================================== COMMON REGION ============================================
-        public async Task<Exam> Create(Exam request, int userID)
+        public async Task<Exam> Create(ExamModel request, int userID)
         {
+            var owner = _db.Users.Where(u => u.Id == userID).FirstOrDefault();
+            if(owner==null || owner.isActive == false)
+            {
+                return null;
+            }
+            var category = _db.Categories.Where(c => c.ID == request.CategoryID).FirstOrDefault();
             var exam = new Exam()
             {
                 ExamName = request.ExamName,
@@ -207,7 +214,10 @@ namespace TN.BackendAPI.Services.Service
                 TimeCreated = DateTime.Now,
                 NumOfAttemps = 0,
                 CategoryID = request.CategoryID,
+                Category = _db.Categories.Where(c => c.ID == request.CategoryID).FirstOrDefault(),
                 OwnerID = userID,
+                Owner = _db.Users.Where(u => u.Id == userID).FirstOrDefault(),
+                Questions = null,
                 isActive = true
             };
             _db.Exams.Add(exam);
@@ -218,7 +228,8 @@ namespace TN.BackendAPI.Services.Service
         {
             var exam = await _db.Exams.FindAsync(examID);
             exam.NumOfAttemps += 1;
-            return await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
+            return exam.NumOfAttemps;
         }
         //===================================================================================================
     }

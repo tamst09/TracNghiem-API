@@ -42,7 +42,8 @@ namespace TN.BackendAPI.Services.Service
             _facebookAuth = facebookAuth;
             _emailSender = emailSender;
         }
-        #region CRUD
+
+        //=============================== MANAGE USER ==========================================
         public async Task<List<AppUser>> GetAll()
         {
             return await _dbContext.Users.ToListAsync();
@@ -125,14 +126,7 @@ namespace TN.BackendAPI.Services.Service
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!UserExists(id))
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
+                return null;
             }
             var user2 = await _dbContext.Users.FindAsync(id);
             return user2;
@@ -163,9 +157,10 @@ namespace TN.BackendAPI.Services.Service
 
             return true;
         }
-        #endregion
+        //--------------------------------------------------------------------------------------
 
-        #region AUTHENTICATION
+
+        //=============================== AUTHENTICATION =======================================
         public async Task<JwtResponse> Login(LoginModel model)
         {
             //var user = await _userManager.FindByNameAsync(request.UserName);
@@ -310,9 +305,9 @@ namespace TN.BackendAPI.Services.Service
             var error = result.Errors.First();
             return new JwtResponse() { Error = error.Description };
         }
-        #endregion
+        //--------------------------------------------------------------------------------------
 
-        #region TOKEN UTILS
+        //=================================  TOKEN  ============================================
         // tao access token
         private string GenerateAccessToken(AppUser user)
         {
@@ -384,7 +379,7 @@ namespace TN.BackendAPI.Services.Service
                 if (jwtSecurityToken != null && jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
                 {
                     var userName = principle.FindFirst(ClaimTypes.Name)?.Value;
-                    return await _dbContext.Users.Where(u => u.UserName == userName).Include(u => u.RefreshToken).FirstOrDefaultAsync();
+                    return await _dbContext.Users.Where(u => u.UserName == userName && u.isActive == true).Include(u => u.RefreshToken).FirstOrDefaultAsync();
                 }
                 else return null;
             }
@@ -394,7 +389,7 @@ namespace TN.BackendAPI.Services.Service
             }
         }
         //gia han access_token va tra ve client
-        public async Task<string> GetNewAccessToken(RefreshAccessTokenRequest refreshRequest)
+        public async Task<string> GenerateAccessTokenWithRefressToken(RefreshAccessTokenRequest refreshRequest)
         {
             AppUser user = await GetUserByAccessToken(refreshRequest.AccessToken);
             if (user != null && ValidateRefreshToken(user, refreshRequest.RefreshToken))
@@ -408,9 +403,27 @@ namespace TN.BackendAPI.Services.Service
             }
             return null;
         }
-        #endregion
+        // lay refresh token bang accessToken
+        public async Task<RefreshToken> GetRefreshTokenByAccessToken(string accessToken)
+        {
+            var user = await GetUserByAccessToken(accessToken);
+            if(user == null)
+            {
+                return null;
+            }
+            else
+            {
+                if(user.RefreshToken.ExpiryDate < DateTime.UtcNow)
+                {
+                    user.RefreshToken = GenerateRefreshToken();
+                }
+                return user.RefreshToken;
+            }
+        }
+        //--------------------------------------------------------------------------------------
 
-        #region ACCOUNT MANAGE
+
+        //=================================== PASSWORD =========================================
         // tao ra code va gui den email, code nay dung de confirm
         public async Task<string> ResetPassword(ForgotPasswordModel model)
         {
@@ -426,16 +439,16 @@ namespace TN.BackendAPI.Services.Service
             return null;
         }
         // dung code nhan duoc trong mail va confirm
-        public async Task<string> ResetPasswordConfirm(ResetPasswordModel model)
+        public async Task<bool> ResetPasswordConfirm(ResetPasswordModel model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user != null)
             {
                 var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(model.ResetCode));
                 var result = await _userManager.ResetPasswordAsync(user, decodedToken, model.Password);
-                return "OK";
+                return true;
             }
-            return null;
+            return false;
         }
         public async Task<AppUser> AddPassword(ResetPasswordModel model)
         {
@@ -447,7 +460,9 @@ namespace TN.BackendAPI.Services.Service
             }
             return user;
         }
-        #endregion
+
+        //--------------------------------------------------------------------------------------
+
 
         private bool UserExists(int id)
         {

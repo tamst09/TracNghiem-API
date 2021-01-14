@@ -8,6 +8,7 @@ using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
 using TN.ViewModels.Catalog.Category;
+using TN.ViewModels.Common;
 
 namespace TN.BackendAPI.Controllers
 {
@@ -26,18 +27,23 @@ namespace TN.BackendAPI.Controllers
         // GET: api/Categories
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult<List<Category>>> GetCategories()
+        public async Task<IActionResult> GetCategories()
         {
-            return await _categoryService.GetAll();
+            var allCategory = await _categoryService.GetAll();
+            return Ok(new ResponseBase<List<Category>>() { data = allCategory });
         }
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public async Task<ActionResult<Category>> GetCategory(int id)
+        public async Task<IActionResult> GetCategory(int id)
         {
             var category = await _categoryService.GetByID(id);
-            return Ok(category);
+            if (category != null)
+            {
+                return Ok(new ResponseBase<Category>() { data = category });
+            }
+            return Ok(new ResponseBase<Category>() { msg = "Category not found" });
         }
 
         // PUT: api/Categories/5
@@ -46,46 +52,45 @@ namespace TN.BackendAPI.Controllers
         {
             if (id != category.ID)
             {
-                return Ok(null);
+                return Ok(new ResponseBase<Category>() { msg = "Invalid category" });
             }
             var updateResult = await _categoryService.Update(category);
             if (updateResult == null)
             {
-                return Ok(null);
+                return Ok(new ResponseBase<Category>() { msg = "Update failed" });
             }
-            return Ok(updateResult);
+            return Ok(new ResponseBase<Category>() { data = updateResult });
         }
 
         // POST: api/Categories
         [HttpPost]
-        public async Task<ActionResult<Category>> PostCategory([Bind("CategoryName")]Category category)
+        public async Task<IActionResult> PostCategory([Bind("CategoryName")]Category category)
         {
-
-            var createTask = await _categoryService.Create(category);
-            return Ok(createTask);
+            var createResult = await _categoryService.Create(category);
+            return Ok(new ResponseBase<Category>() { data = createResult });
         }
 
         // DELETE: api/Categories/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteCategory(int id)
+        public async Task<IActionResult> DeleteCategory(int id)
         {
             var deleteResult = await _categoryService.Delete(id);
             if (deleteResult)
-                return Ok("Success");
+                return Ok(new ResponseBase<Category>() { });
             else
-                return Ok();
+                return Ok(new ResponseBase<Category>() { msg = "Delete failed" });
         }
 
         // DELETE: api/Categories/DeleteRange
         [HttpPost("DeleteRange")]
         [AllowAnonymous]
-        public async Task<ActionResult> DeleteManyCategory(DeleteRangeModel<int> lstCategoryId)
+        public async Task<IActionResult> DeleteManyCategory(DeleteRangeModel<int> lstCategoryId)
         {
             var deleteResult = await _categoryService.DeleteListCategory(lstCategoryId);
             if (deleteResult)
-                return Ok("Success");
+                return Ok(new ResponseBase<Category>() { });
             else
-                return Ok();
+                return Ok(new ResponseBase<Category>() { msg = "Delete failed" });
         }
     }
 }

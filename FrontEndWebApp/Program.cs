@@ -13,6 +13,8 @@ namespace FrontEndWebApp
     { 
         public static string Avatar_Url = "/images/cover/user/default_avatar.png";
         public static string ExamImg_Url = "/images/cover/exam/default_cover.jpg";
+        public static string AccessToken = "";
+        public static string RefreshToken = "";
     } 
     public class Program
     {

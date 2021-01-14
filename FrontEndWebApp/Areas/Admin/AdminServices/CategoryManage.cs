@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TN.Data.Entities;
 using TN.ViewModels.Catalog.Category;
+using TN.ViewModels.Common;
 using TN.ViewModels.Settings;
 
 namespace FrontEndWebApp.Areas.Admin.AdminServices
@@ -24,7 +25,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             _httpClient.BaseAddress = new Uri(ConstStrings.BASE_URL_API);
         }
 
-        public async Task<bool> Create(Category model, string accessToken)
+        public async Task<ResponseBase<Category>> Create(Category model, string accessToken)
         {
             if (accessToken != null)
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -33,40 +34,34 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             var response = await _httpClient.PostAsync("/api/categories/", httpContent);
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsStringAsync();
-                if (result != null)
-                {
-                    return true;
-                }
-                return false;
+                var body = await response.Content.ReadAsStringAsync();
+                ResponseBase<Category> category = JsonConvert.DeserializeObject<ResponseBase<Category>>(body);
+                return category;
             }
             else
             {
-                return false;
+                return null;
             }
         }
 
-        public async Task<bool> Delete(int id, string accessToken)
+        public async Task<ResponseBase<string>> Delete(int id, string accessToken)
         {
             if (accessToken != null)
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             var response = await _httpClient.DeleteAsync("/api/categories/"+id.ToString());
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsStringAsync();
-                if (result != null)
-                {
-                    return true;
-                }
-                return false;
+                var body = await response.Content.ReadAsStringAsync();
+                ResponseBase<string> deleteResult = JsonConvert.DeserializeObject<ResponseBase<string>>(body);
+                return deleteResult;
             }
             else
             {
-                return false;
+                return null;
             }
         }
 
-        public async Task<bool> DeleteRange(DeleteRangeModel<int> lstId, string accessToken)
+        public async Task<ResponseBase<string>> DeleteRange(DeleteRangeModel<int> lstId, string accessToken)
         {
             if (accessToken != null)
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -75,26 +70,23 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             var response = await _httpClient.PostAsync("/api/categories/deleterange", httpContent);
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsStringAsync();
-                if (result != null)
-                {
-                    return true;
-                }
-                return false;
+                var body = await response.Content.ReadAsStringAsync();
+                ResponseBase<string> deleteResult = JsonConvert.DeserializeObject<ResponseBase<string>>(body);
+                return deleteResult;
             }
             else
             {
-                return false;
+                return null;
             }
         }
 
-        public async Task<List<Category>> GetAll()
+        public async Task<ResponseBase<List<Category>>> GetAll()
         {
             var response = await _httpClient.GetAsync("/api/categories/");
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsStringAsync();
-                List<Category> resultConverted = JsonConvert.DeserializeObject<List<Category>>(result);
+                ResponseBase<List<Category>> resultConverted = JsonConvert.DeserializeObject<ResponseBase<List<Category>>>(result);
                 return resultConverted;
             }
             else
@@ -103,13 +95,13 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             }
         }
 
-        public async Task<Category> GetByID(int id)
+        public async Task<ResponseBase<Category>> GetByID(int id)
         {
             var response = await _httpClient.GetAsync("/api/categories/"+id.ToString());
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsStringAsync();
-                Category resultConverted = JsonConvert.DeserializeObject<Category>(result);
+                ResponseBase<Category> resultConverted = JsonConvert.DeserializeObject<ResponseBase<Category>>(result);
                 return resultConverted;
             }
             else
@@ -118,7 +110,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             }
         }
 
-        public async Task<Category> Update(int id, Category model, string accessToken)
+        public async Task<ResponseBase<Category>> Update(int id, Category model, string accessToken)
         {
             if (accessToken != null)
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -128,7 +120,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsStringAsync();
-                Category resultConverted = JsonConvert.DeserializeObject<Category>(result);
+                ResponseBase<Category> resultConverted = JsonConvert.DeserializeObject<ResponseBase<Category>>(result);
                 return resultConverted;
             }
             else

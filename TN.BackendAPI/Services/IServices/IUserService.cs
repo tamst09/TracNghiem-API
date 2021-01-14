@@ -17,12 +17,13 @@ namespace TN.BackendAPI.Services.IServices
         Task<bool> DeleteUser(int id);
         Task<bool> RestoreUser(int id);
         Task<string> ResetPassword(ForgotPasswordModel model);
-        Task<string> ResetPasswordConfirm(ResetPasswordModel model);
+        Task<bool> ResetPasswordConfirm(ResetPasswordModel model);
         Task<AppUser> GetUserByAccessToken(string accessToken);
         Task<AppUser> AddPassword(ResetPasswordModel model);
         RefreshToken GenerateRefreshToken();
+        Task<RefreshToken> GetRefreshTokenByAccessToken(string accessToken);
         bool ValidateRefreshToken(AppUser user, string refreshToken);
-        Task<string> GetNewAccessToken(RefreshAccessTokenRequest refreshRequest);
+        Task<string> GenerateAccessTokenWithRefressToken(RefreshAccessTokenRequest refreshRequest);
         Task<JwtResponse> LoginWithFacebookToken(string accessToken);
         Task<PagedResult<UserViewModel>> GetListUserPaged(UserPagingRequest model);
     }

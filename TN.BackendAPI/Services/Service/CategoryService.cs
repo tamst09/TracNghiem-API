@@ -62,11 +62,15 @@ namespace TN.BackendAPI.Services.Service
         {
             var category = await _db.Categories.FindAsync(categoryID);
             if (category == null) return false;
-            foreach (var exam in category.Exams)
+            if (category.Exams != null)
             {
-                exam.CategoryID = null;
-                exam.Category = null;
+                foreach (var exam in category.Exams)
+                {
+                    exam.CategoryID = 0;
+                    exam.Category = null;
+                }
             }
+            
             category.isActive = false;
             await _db.SaveChangesAsync();
             return true;
@@ -84,7 +88,7 @@ namespace TN.BackendAPI.Services.Service
                     {
                         foreach (var exam in category.Exams)
                         {
-                            exam.CategoryID = null;
+                            exam.CategoryID = 0;
                             exam.Category = null;
                         }
                     }

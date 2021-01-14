@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Common;
 using TN.ViewModels.Settings;
 
@@ -23,18 +25,17 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             _httpClient.BaseAddress = new Uri(ConstStrings.BASE_URL_API);
         }
 
-        public async Task<List<Exam>> GetAll(string accessToken)
+        public async Task<ResponseBase<List<Exam>>> GetAll(string accessToken)
         {
             if (accessToken != null)
             {
-                //_httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             }
             var response = await _httpClient.GetAsync("/api/exams/");
             if (response.IsSuccessStatusCode)
             {
                 var resultContent = await response.Content.ReadAsStringAsync();
-                List<Exam> exams = JsonConvert.DeserializeObject<List<Exam>>(resultContent);
+                ResponseBase<List<Exam>> exams = JsonConvert.DeserializeObject<ResponseBase<List<Exam>>>(resultContent);
                 return exams;
             }
             else
@@ -48,18 +49,17 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             throw new NotImplementedException();
         }
 
-        public async Task<Exam> GetByID(int id, string accessToken)
+        public async Task<ResponseBase<Exam>> GetByID(int id, string accessToken)
         {
             if (accessToken != null)
             {
-                //_httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             }
             var response = await _httpClient.GetAsync("/api/exams/"+id.ToString());
             if (response.IsSuccessStatusCode)
             {
                 var resultContent = await response.Content.ReadAsStringAsync();
-                Exam exam = JsonConvert.DeserializeObject<Exam>(resultContent);
+                ResponseBase<Exam> exam = JsonConvert.DeserializeObject<ResponseBase<Exam>>(resultContent);
                 return exam;
             }
             else
@@ -68,24 +68,84 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             }
         }
 
-        public Task<bool> Update(Exam request, string accessToken)
+        public async Task<ResponseBase<Exam>> Update(int id, Exam model, string accessToken)
         {
-            throw new NotImplementedException();
+            if (accessToken != null)
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            }
+            var json = JsonConvert.SerializeObject(model);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PutAsync("/api/exams/"+id.ToString(), httpContent);
+            if (response.IsSuccessStatusCode)
+            {
+                var resultContent = await response.Content.ReadAsStringAsync();
+                ResponseBase<Exam> exam = JsonConvert.DeserializeObject<ResponseBase<Exam>>(resultContent);
+                return exam;
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        public Task<bool> Delete(int examID, string accessToken)
+        public async Task<ResponseBase<Exam>> Delete(int id, string accessToken)
         {
-            throw new NotImplementedException();
+            if (accessToken != null)
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            }
+            var response = await _httpClient.DeleteAsync("/api/exams/" + id.ToString());
+            if (response.IsSuccessStatusCode)
+            {
+                var resultContent = await response.Content.ReadAsStringAsync();
+                ResponseBase<Exam> exam = JsonConvert.DeserializeObject<ResponseBase<Exam>>(resultContent);
+                return exam;
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        public Task<Exam> Create(Exam request, int userID, string accessToken)
+        public async Task<ResponseBase<Exam>> Create(ExamModel model, int userID, string accessToken)
         {
-            throw new NotImplementedException();
+            if (accessToken != null)
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            }
+            var json = JsonConvert.SerializeObject(model);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("/api/exams/" + userID.ToString(), httpContent);
+            if (response.IsSuccessStatusCode)
+            {
+                var resultContent = await response.Content.ReadAsStringAsync();
+                ResponseBase<Exam> exam = JsonConvert.DeserializeObject<ResponseBase<Exam>>(resultContent);
+                return exam;
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        public Task<int> IncreaseAttemps(int examID, string accessToken)
+        public async Task<ResponseBase<int>> IncreaseAttemps(int id, string accessToken)
         {
-            throw new NotImplementedException();
+            if (accessToken != null)
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            }
+            var response = await _httpClient.PostAsync("/api/exams/IncreaseAttemp/" + id.ToString(), null);
+            if (response.IsSuccessStatusCode)
+            {
+                var resultContent = await response.Content.ReadAsStringAsync();
+                ResponseBase<int> attemps = JsonConvert.DeserializeObject<ResponseBase<int>>(resultContent);
+                return attemps;
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

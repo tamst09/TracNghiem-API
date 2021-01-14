@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Common;
 
 namespace TN.BackendAPI.Services.IServices
@@ -22,7 +23,7 @@ namespace TN.BackendAPI.Services.IServices
         Task<bool> Delete(int examID, int userID);
 
         //COMMON
-        Task<Exam> Create(Exam request, int userID);
+        Task<Exam> Create(ExamModel request, int userID);
         Task<int> IncreaseAttemps(int examID);
     }
 }

@@ -13,52 +13,53 @@
 <p>
     <a asp-action="Create">Thêm chủ đề</a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                *
-            </th>
-            <th>
-                ID
-            </th>
-            <th>
-                Tên chủ đề
-            </th>
-            <th>
-                Số lượng đề thi
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+@if (Model != null)
+{
+    <table class="table">
+        <thead>
             <tr>
-                <td>
-                    <input onclick="addToSelected(@item.ID, this)" type="checkbox" value=""/>
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.ID)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.CategoryName)
-                </td>
-                <td>
-                    @item.Exams.Count
-                </td>
-                <td>
-                    @Html.ActionLink("Sửa", "Edit", new { id = item.ID })
-                </td>
-                <td>
-                    <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" data-uid="@item.ID">Xoá</button>
-                </td>
+                <th>
+                    *
+                </th>
+                <th>
+                    ID
+                </th>
+                <th>
+                    Tên chủ đề
+                </th>
+                <th>
+                    Số lượng đề thi
+                </th>
             </tr>
-        }
-    </tbody>
-</table>
-<button class="btn btn-danger" data-toggle="modal" data-target="#deleteManyModal">Xoá các mục đã chọn</button>
-
-
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <input onclick="addToSelected(@item.ID, this)" type="checkbox" value=""/>
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ID)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CategoryName)
+                    </td>
+                    <td>
+                        @item.Exams.Count
+                    </td>
+                    <td>
+                        @Html.ActionLink("Sửa", "Edit", new { id = item.ID })
+                    </td>
+                    <td>
+                        <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" data-uid="@item.ID">Xoá</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button class="btn btn-danger" data-toggle="modal" data-target="#deleteManyModal">Xoá các mục đã chọn</button>
+}
 <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">

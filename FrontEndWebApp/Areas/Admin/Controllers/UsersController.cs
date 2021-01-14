@@ -38,7 +38,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                 };
                 var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var listUserResult = await _userManage.GetListUserPaged(model, token);
-                return View(listUserResult);
+                return View(listUserResult.data);
             }
             catch (Exception)
             {
@@ -54,7 +54,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             {
                 var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var user = await _accountService.GetUserInfo(id, access_token);
-                return View(user);
+                return View(user.data);
             }
             catch (Exception)
             {
@@ -83,9 +83,9 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                 var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var createUserResult = await _userManage.CreateUser(model, token);
                 //error
-                if(createUserResult.Error!=null || createUserResult.Access_Token == null)
+                if(createUserResult.msg!=null || createUserResult.data == null)
                 {
-                    ViewData["Error"] = createUserResult.Error;
+                    ViewData["Error"] = createUserResult.msg;
                     return View(model);
                 }
                 //success
@@ -106,8 +106,8 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             {
                 var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var user = await _accountService.GetUserInfo(id, access_token);
-                if(user!=null)
-                    return View(user);
+                if(user.data!=null)
+                    return View(user.data);
                 else
                     return RedirectToAction("Index", "Users");
             }
@@ -126,7 +126,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             {
                 var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var userUpdated = await _accountService.UpdateProfile(id, model, access_token);
-                return RedirectToAction("Details", "Users", new { id = userUpdated.Id });
+                return RedirectToAction("Details", "Users", new { id = userUpdated.data.Id });
             }
             catch
             {
@@ -141,7 +141,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             {
                 var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var lockUserResult = await _userManage.LockUser(id, token);
-                if (lockUserResult)
+                if (lockUserResult.msg == null)
                 {
                     return Json(new
                     {
@@ -172,7 +172,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             {
                 var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var lockUserResult = await _userManage.RestoreUser(id, token);
-                if (lockUserResult)
+                if (lockUserResult.msg == null)
                 {
                     return Json(new
                     {

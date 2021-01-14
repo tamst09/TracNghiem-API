@@ -25,16 +25,14 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
 
         public async Task<ActionResult> Index()
         {
-            ViewData["Avatar"] = HttpContext.Session.GetString("avatarURL");
             try
             {
-                List<Category> categories = new List<Category>();
-                categories = await _categoryService.GetAll();
-                return View(categories);
+                var categories = await _categoryService.GetAll();
+                return View(categories.data);
             }
             catch (Exception)
             {
-                return View(null);
+                return View();
             }
         }
 
@@ -64,12 +62,21 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                 }
                 var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var result = await _categoryService.Create(model, token);
-                if (result)
+                if (result.msg!=null)
                 {
-                    return RedirectToAction("Index");
+                    ViewData["msg"] = result.msg;
+                    return View(model);
                 }
-                ViewData["msg"] = "Something went wrong. Try again.";
-                return View(model);
+                else if (result.data != null)
+                {
+                    ViewData["msg"] = "Tạo mới thành công";
+                    return View(model);
+                }
+                else
+                {
+                    ViewData["msg"] = "Lỗi không xác định";
+                    return View(model);
+                }
             }
             catch (Exception)
             {
@@ -85,7 +92,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             try
             {
                 var model = await _categoryService.GetByID(id);
-                return View(model);
+                return View(model.data);
             }
             catch (Exception)
             {
@@ -148,8 +155,11 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                 temp.ListItem = new List<int>();
                 temp.ListItem.AddRange(s);
                 var result = await _categoryService.DeleteRange(temp, token);
-                //return RedirectToAction("Index");
-                return Json(new { deleteResult = result });
+                if (result.msg != null)
+                {
+                    return Json(new { deleteResult = false });
+                }
+                return Json(new { deleteResult = true });
             }
             catch
             {
