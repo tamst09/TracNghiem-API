@@ -177,7 +177,7 @@ namespace TN.BackendAPI.Controllers
         public async Task<IActionResult> GetRefreshTokenByAccessToken([FromBody] RefreshAccessTokenRequest accessToken)
         {
             var refreshToken = await _userService.GetRefreshTokenByAccessToken(accessToken.AccessToken);
-            if (refreshToken == null)
+            if (refreshToken != null)
                 return Ok(new ResponseBase<RefreshToken>() { data = refreshToken });
             return Ok(new ResponseBase<string>() { msg = "Invalid access token" });
         }

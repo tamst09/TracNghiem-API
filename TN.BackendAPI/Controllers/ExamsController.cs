@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Category;
 using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Common;
 
@@ -25,22 +26,27 @@ namespace TN.BackendAPI.Controllers
         }
 
         //=============================== ADMIN ===================================
+        // GET: api/Exams/Admin/
         [Authorize(Roles = "admin")]
-        [HttpGet]
+        [HttpGet("Admin")]
         public async Task<IActionResult> AdminGetAll()
         {
             var exams = await _examService.GetAll();
             return Ok(new ResponseBase<List<Exam>>() { data = exams });
         }
+
+        // POST: api/Exams/Admin/Paged
         [Authorize(Roles = "admin")]
-        [HttpPost("Paged")]
+        [HttpPost("Admin/Paged")]
         public async Task<IActionResult> AdminGetAllPaging(ExamPagingRequest model)
         {
             var exams = await _examService.GetAllPaging(model);
             return Ok(new ResponseBase<PagedResult<Exam>>() { data = exams });
         }
+
+        // GET: api/Exams/Admin/1
         [Authorize(Roles = "admin")]
-        [HttpGet("{id}")]
+        [HttpGet("Admin/{id}")]
         public async Task<IActionResult> AdminGetOne(int id)
         {
             var exam = await _examService.GetByID(id);
@@ -50,20 +56,37 @@ namespace TN.BackendAPI.Controllers
             }
             return Ok(new ResponseBase<Exam>() { msg = "Đề thi không có sẵn" });
         }
+
+        // DELETE: api/Exams/Admin/1
         [Authorize(Roles = "admin")]
-        [HttpDelete("{id}")]
+        [HttpDelete("Admin/{id}")]
         public async Task<IActionResult> AdminDeleteOne(int id)
         {
             var isDeleted = await _examService.Delete(id);
             if (isDeleted)
             {
-                return Ok(new ResponseBase<Exam>() { });
+                return Ok(new ResponseBase<string>() { });
             }
-            return Ok(new ResponseBase<Exam>() { msg = "Đề thi không có sẵn" });
+            return Ok(new ResponseBase<string>() { msg = "Đề thi không có sẵn" });
         }
+
+        // POST: api/Exams/Admin/DeleteMany
         [Authorize(Roles = "admin")]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> AdminUpdateOne(int id, Exam model)
+        [HttpPost("Admin/DeleteMany")]
+        public async Task<IActionResult> AdminDeleteMany(DeleteRangeModel<int> lstExamId)
+        {
+            var isDeleted = await _examService.DeleteMany(lstExamId);
+            if (isDeleted)
+            {
+                return Ok(new ResponseBase<string>() { });
+            }
+            return Ok(new ResponseBase<string>() { msg = "Xoá thất bại" });
+        }
+
+        // PUT: api/Exams/Admin/1
+        [Authorize(Roles = "admin")]
+        [HttpPut("Admin/{id}")]
+        public async Task<IActionResult> AdminUpdateOne(int id, ExamModel model)
         {
             if(id != model.ID)
             {
@@ -74,7 +97,7 @@ namespace TN.BackendAPI.Controllers
             {
                 return Ok(new ResponseBase<Exam>() { msg = "Lỗi cập nhật. Thử lại sau." });
             }
-            return Ok(new ResponseBase<Exam>() { data = model });
+            return Ok(new ResponseBase<Exam>() { });
         }
         //----------------------------------
         //================================== USER ===================================
@@ -111,7 +134,7 @@ namespace TN.BackendAPI.Controllers
             return Ok(new ResponseBase<Exam>() { msg = "Đề thi không tồn tại" });
         }
         [HttpPut("{id}/{userID}")]
-        public async Task<IActionResult> UserUpdateOne(int id, int userID, Exam model)
+        public async Task<IActionResult> UserUpdateOne(int id, int userID, ExamModel model)
         {
             if (id != model.ID)
             {
@@ -122,7 +145,7 @@ namespace TN.BackendAPI.Controllers
             {
                 return Ok(new ResponseBase<Exam>() { msg = "Lỗi cập nhật" });
             }
-            return Ok(new ResponseBase<Exam>() { data = model });
+            return Ok(new ResponseBase<Exam>() { });
         }
         //----------------------------------
         //================================== COMMON =====================================

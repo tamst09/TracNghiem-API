@@ -1,90 +1,91 @@
-﻿@model IEnumerable<TN.Data.Entities.Exam>
+﻿@model List<TN.Data.Entities.Exam>
 
 @{
-    ViewData["Title"] = "ViewAllExams";
+    ViewData["Title"] = "Danh sách đề thi";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 
-<h1>ViewAllExams</h1>
+<h1>Danh sách đề thi</h1>
+<h5 class="font-weight-bold">Chủ đề: @ViewData["CategoryName"]</h5>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-controller="Exams" asp-action="Create">Tạo mới</a>
 </p>
 <table class="table">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.ID)
+                Tên
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ExamName)
+                Số câu hỏi
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.isPrivate)
+                Thời gian làm
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Time)
+                Thời gian tạo
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ImageURL)
+                Số lượt làm
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.TimeCreated)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NumOfAttemps)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CategoryID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.OwnerID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.isActive)
+                Người đăng
             </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ExamName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.isPrivate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Time)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ImageURL)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TimeCreated)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NumOfAttemps)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CategoryID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.OwnerID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.isActive)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @item.ExamName
+                </td>
+                @if (item.Questions != null)
+                {
+                    <td>
+                        @item.Questions.Count
+                    </td>
+                }
+                else
+                {
+                    <td>
+                        0
+                    </td>
+                }
+                @if (item.Time != 0)
+                {
+                    <td>@(item.Time/60)m:@(item.Time%60)s</td>
+                }
+                else
+                {
+                    <td>Không giới hạn</td>
+                }
+                <td>
+                    @item.TimeCreated
+                </td>
+                <td>
+                    @item.NumOfAttemps
+                </td>
+                @if (item.Owner != null)
+                {
+                    <td>
+                        @item.Owner.UserName
+                    </td>
+                }
+                else
+                {
+                    <td>
+                        NULL
+                    </td>
+                }
+                <td>
+                    @Html.ActionLink("Sửa", "Edit", "Exams", new { id = item.ID }) |
+                    @Html.ActionLink("Chi tiết", "Details", new { id = item.ID }) |
+                    @Html.ActionLink("Xoá", "Delete", new { id = item.ID })
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

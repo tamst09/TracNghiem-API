@@ -11,7 +11,7 @@
 <h1>Quản lý chủ đề</h1>
 
 <p>
-    <a asp-action="Create">Thêm chủ đề</a>
+    <a asp-action="Create">Tạo mới</a>
 </p>
 @if (Model != null)
 {
@@ -69,7 +69,7 @@
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
-            <div class="modal-body">Bạn chắc chắn muốn xoá mục này?</div>
+            <div class="modal-body">Các bài thi thuộc chủ đề này cũng sẽ bị xoá. Bạn chắc chắn muốn xoá mục này?</div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" type="button" data-dismiss="modal">Đóng</button>
                 <form class="form-inline" asp-controller="Categories" asp-action="Delete" method="post">
@@ -89,7 +89,7 @@
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
-            <div class="modal-body">Bạn chắc chắn muốn xoá các mục đã chọn?<p class="text-danger" id="warning"></p></div>
+            <div class="modal-body">>Các bài thi thuộc các chủ đề này cũng sẽ bị xoá. Bạn chắc chắn muốn xoá các mục đã chọn?<p class="text-danger" id="warning"></p></div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" type="button" data-dismiss="modal">Đóng</button>
                 <form class="form-inline" asp-controller="Categories" asp-action="DeleteRange" method="post">

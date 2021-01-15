@@ -87,7 +87,6 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
 
         public async Task<ActionResult> Edit(int id)
         {
-            ViewData["Avatar"] = HttpContext.Session.GetString("avatarURL");
             ViewData["msg"] = "";
             try
             {
@@ -171,6 +170,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> ViewAllExams(int categoryID)
         {
+            ViewData["CategoryName"] = _categoryService.GetByID(categoryID).Result.data.CategoryName;
             var accessToken = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
             var lstExams = await _categoryService.GetAllExams(categoryID, accessToken);
             if(lstExams == null)
@@ -180,7 +180,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             }
             if(lstExams.StatusCode!=null && lstExams.StatusCode == "401")
             {
-                return RedirectToAction("Login", "Account", new { ReturnUrl = "Admin/Categories/Exams/"+categoryID.ToString()});
+                return RedirectToAction("Login", "Account", new { Area =""});
             }
             if(lstExams.msg != null || lstExams.data == null)
             {

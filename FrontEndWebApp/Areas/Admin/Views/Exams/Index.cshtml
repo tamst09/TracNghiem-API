@@ -11,8 +11,11 @@
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title"><i class="fa fa-money fa-fw"></i> Danh sách bài thi</h3>
+                <h3 class="panel-title">Danh sách bài thi</h3>
             </div>
+            <p>
+                <a asp-controller="Exams" asp-action="Create">Tạo mới</a>
+            </p>
             <div class="panel-body">
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover table-striped">
@@ -22,7 +25,7 @@
                                 <th>Tên đề thi</th>
                                 <th>Ngày tạo</th>
                                 <th>Lượt làm bài</th>
-                                <th>Thời gian làm bài</th>
+                                <th>Thời gian làm bài (phút)</th>
                                 <th>Số lượng câu hỏi</th>
                                 <th>Người đăng</th>
                                 <th>Chủ đề</th>
@@ -31,33 +34,103 @@
                         <tbody>
                             @foreach (var item in Model)
                             {
-                            <tr>
-                                <td>@item.ID</td>
-                                <td>@item.ExamName</td>
-                                <td>@item.TimeCreated</td>
-                                <td>@item.NumOfAttemps</td>
-                                @if (item.Time != 0)
-                                {
-                                    <td>@item.Time</td>
-                                }
-                                else
-                                {
-                                    <td>Không giới hạn</td>
-                                }
-                                <td>@item.Questions.Count</td>
-                                <td>@item.Owner.UserName</td>
-                                <td>@item.Category.CategoryName</td>
-                            </tr>
+                                <tr>
+                                    <td><input onclick="addToSelected(@item.ID, this)" type="checkbox" value="" /></td>
+                                    <td>@item.ExamName</td>
+                                    <td>@item.TimeCreated</td>
+                                    <td>@item.NumOfAttemps</td>
+                                    @if (item.Time != 0)
+                                    {
+                                        <td>@(item.Time/60)m:@(item.Time%60)s</td>
+                                    }
+                                    else
+                                    {
+                                        <td>Không giới hạn</td>
+                                    }
+                                    <td>@item.Questions.Count</td>
+                                    <td>@item.Owner.UserName</td>
+                                    <td>@item.Category.CategoryName</td>
+                                </tr>
                             }
                         </tbody>
                     </table>
+                    <button class="btn btn-danger" data-toggle="modal" data-target="#deleteManyModal">Xoá các mục đã chọn</button>
                 </div>
                 <div class="text-right">
-                    <a href="#">View All Transactions <i class="fa fa-arrow-circle-right"></i></a>
+                    <a href="#">View Details <i class="fa fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="deleteManyModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xác nhận</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Bạn muốn xoá các bài thi đã chọn?<p class="text-danger" id="warning"></p></div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Đóng</button>
+                    <form class="form-inline" asp-controller="Categories" asp-action="DeleteRange" method="post">
+                        <button type="button" onclick="postToDelete()" class="btn btn-primary">Xoá</button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 }
-
+@section Scripts{
+    <script>
+        $('#deleteModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget) // Button that triggered the modal
+            var uid = button.data('uid') // Extract info from data-* attributes
+            // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+            // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+            var modal = $(this)
+            modal.find('#uidinput').val(uid)
+        });
+        let s = []
+        var msgTxt = document.getElementById("warning");
+        function addToSelected(id, checkbox) {
+            if (!checkbox.checked) {
+                removeFromSelected(id);
+            }
+            else {
+                s.push(id)
+                msgTxt.textContent = "";
+            }
+        }
+        function removeFromSelected(uid) {
+            s.forEach(function (value, index) {
+                console.log(index + "" + value);
+                if (value == uid) {
+                    s.splice(index, 1);
+                }
+            })
+        }
+        function postToDelete() {
+            if (s != null && s.length < 1) {
+                msgTxt.textContent = "Chưa chọn mục nào";
+            }
+            else {
+                $.ajax({
+                    type: "POST",
+                    url: "Exams/DeleteMany/",
+                    contentType: 'application/json',
+                    data: JSON.stringify(s),
+                    success: function (res) {
+                        if (res.deleteResult == true)
+                            console.log('Deleted');
+                        else
+                            console.log('None');
+                        window.location.reload();
+                    }
+                });
+            }
+        }
+    </script>
+}
 

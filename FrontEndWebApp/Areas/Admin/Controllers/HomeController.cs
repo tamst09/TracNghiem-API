@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using TN.ViewModels.Common;
 
@@ -32,16 +33,12 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             ViewData["Error"] = "";
             ViewData["TotalUser"] = null;
             ViewData["TotalCategory"] = null ;
-            if (numberUser == null)
+            if (numberUser != null && numberCategory !=null)
             {
-                return RedirectToAction("Error", "Home");
-            }
-            else if (numberUser.msg != null)
-            {
-                ViewData["Error"] = numberUser.msg;
-            }
-            else
-            {
+                if (numberUser.msg!=null)
+                {
+                    ViewData["Error"] = numberUser.msg;
+                }
                 ViewData["TotalUser"] = numberUser.data;
                 ViewData["TotalCategory"] = numberCategory.data.Count;
             }

@@ -6,6 +6,7 @@ namespace TN.ViewModels.Catalog.Exams
 {
     public class ExamModel
     {
+        public int ID { get; set; }
         [Required(ErrorMessage = "Tên bài thi không được để trống")]
         public string ExamName { get; set; }
         public bool isPrivate { get; set; }  //trạng thái public hay private

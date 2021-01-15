@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Category;
 using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Common;
 using TN.ViewModels.Settings;
@@ -31,7 +32,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             }
-            var response = await _httpClient.GetAsync("/api/exams/");
+            var response = await _httpClient.GetAsync("/api/exams/Admin");
             if (response.IsSuccessStatusCode)
             {
                 var resultContent = await response.Content.ReadAsStringAsync();
@@ -55,7 +56,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             }
-            var response = await _httpClient.GetAsync("/api/exams/"+id.ToString());
+            var response = await _httpClient.GetAsync("/api/exams/Admin/"+id.ToString());
             if (response.IsSuccessStatusCode)
             {
                 var resultContent = await response.Content.ReadAsStringAsync();
@@ -68,7 +69,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             }
         }
 
-        public async Task<ResponseBase<Exam>> Update(int id, Exam model, string accessToken)
+        public async Task<ResponseBase<Exam>> Update(int id, ExamModel model, string accessToken)
         {
             if (accessToken != null)
             {
@@ -76,7 +77,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             }
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PutAsync("/api/exams/"+id.ToString(), httpContent);
+            var response = await _httpClient.PutAsync("/api/exams/Admin/"+id.ToString(), httpContent);
             if (response.IsSuccessStatusCode)
             {
                 var resultContent = await response.Content.ReadAsStringAsync();
@@ -95,12 +96,31 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             }
-            var response = await _httpClient.DeleteAsync("/api/exams/" + id.ToString());
+            var response = await _httpClient.DeleteAsync("/api/exams/Admin/" + id.ToString());
             if (response.IsSuccessStatusCode)
             {
                 var resultContent = await response.Content.ReadAsStringAsync();
                 ResponseBase<Exam> exam = JsonConvert.DeserializeObject<ResponseBase<Exam>>(resultContent);
                 return exam;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public async Task<ResponseBase<string>> DeleteMany(DeleteRangeModel<int> lstId, string accessToken)
+        {
+            if (accessToken != null)
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var json = JsonConvert.SerializeObject(lstId);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("api/Exams/Admin/DeleteMany", httpContent);
+            if (response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                ResponseBase<string> deleteResult = JsonConvert.DeserializeObject<ResponseBase<string>>(body);
+                return deleteResult;
             }
             else
             {

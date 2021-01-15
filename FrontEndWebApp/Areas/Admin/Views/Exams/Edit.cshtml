@@ -1,19 +1,22 @@
 ﻿@model TN.ViewModels.Catalog.Exams.ExamModel
 @inject FrontEndWebApp.Areas.Admin.AdminServices.ICategoryManage categoryManager
+
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Cập nhật đề thi";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
     List<TN.Data.Entities.Category> categories = new List<TN.Data.Entities.Category>();
     categories = categoryManager.GetAll().Result.data;
 }
 
-<h2>Thêm mới đề thi</h2>
+<h1>Cập nhật</h1>
+
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="text-danger">@ViewData["msg"]</div>
+        <form asp-action="Edit">
+            <div class="form-group">
+                <input type="hidden" asp-for="ID" class="form-control" />
+            </div>
             <div class="form-group">
                 <label asp-for="ExamName" class="control-label">Tên đề thi</label>
                 <input asp-for="ExamName" class="form-control" />
@@ -30,7 +33,7 @@
                 <span class="text-danger">*Để nguyên nếu bạn không muốn thiết lập</span>
             </div>
             <div class="form-group">
-                <label asp-for="CategoryID" class="control-label"></label>
+                <label asp-for="CategoryID" class="control-label">Phân loại chủ đề</label>
                 <select asp-for="CategoryID" class="form-control">
                     @foreach (var category in categories)
                     {
@@ -39,13 +42,16 @@
                 </select>
             </div>
             <div class="form-group">
-                <input type="submit" value="Tạo" class="btn btn-primary" />
+                <span class="text-danger">@ViewData["msg"]</span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Lưu" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Về danh sách</a>
 </div>
 

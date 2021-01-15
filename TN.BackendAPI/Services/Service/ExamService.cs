@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Category;
 using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Common;
 
@@ -80,7 +81,7 @@ namespace TN.BackendAPI.Services.Service
             exam.Questions.OrderBy(e => e.STT).ToList();
             return exam;
         }
-        public async Task<bool> Update(Exam request)
+        public async Task<bool> Update(ExamModel request)
         {
             var exam = await _db.Exams.FindAsync(request.ID);
             if (exam == null) return false;
@@ -88,7 +89,6 @@ namespace TN.BackendAPI.Services.Service
             exam.isPrivate = request.isPrivate;
             exam.Time = request.Time * 60;
             exam.CategoryID = request.CategoryID;
-            exam.isActive = request.isActive;
             await _db.SaveChangesAsync();
             return true;
         }
@@ -99,6 +99,31 @@ namespace TN.BackendAPI.Services.Service
             exam.isActive = false;
             await _db.SaveChangesAsync();
             return true;
+        }
+        public async Task<bool> DeleteMany(DeleteRangeModel<int> lstExamId)
+        {
+            try
+            {
+                IEnumerable<Exam> lstExam = new List<Exam>();
+                foreach (var item in lstExamId.ListItem)
+                {
+                    var e = await _db.Exams.FindAsync(item);
+                    if (e.Questions != null)
+                    {
+                        foreach (var q in e.Questions)
+                        {
+                            q.isActive = false;
+                        }
+                    }
+                    e.isActive = false;
+                }
+                await _db.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
         //===================================================================================================
 
@@ -166,7 +191,7 @@ namespace TN.BackendAPI.Services.Service
             exam.Questions.OrderBy(e => e.STT).ToList();
             return exam;
         }
-        public async Task<bool> Update(Exam request, int userID)
+        public async Task<bool> Update(ExamModel request, int userID)
         {
             if (userID != request.OwnerID)
             {
@@ -178,7 +203,6 @@ namespace TN.BackendAPI.Services.Service
             exam.isPrivate = request.isPrivate;
             exam.Time = request.Time * 60;
             exam.CategoryID = request.CategoryID;
-            exam.isActive = request.isActive;
             await _db.SaveChangesAsync();
             return true;
         }

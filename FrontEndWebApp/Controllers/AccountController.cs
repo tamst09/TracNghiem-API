@@ -231,6 +231,7 @@ namespace FrontEndWebApp.Controllers
                             IsPersistent = true
                         };
                         await HttpContext.SignInAsync(userPrincipal, authProperties);
+                        HttpContext.Session.SetInt32("IsPersistent", 1);
                         HttpContext.Response.Cookies.Append("access_token_cookie",CookieEncoder.EncodeToken(jwttokenResponse.data.Access_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(4), HttpOnly = true, Secure = true });
                         HttpContext.Response.Cookies.Append("refresh_token_cookie",CookieEncoder.EncodeToken(jwttokenResponse.data.Refresh_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(8), HttpOnly = true, Secure = true });
                         if (jwttokenResponse.data.isNewLogin)

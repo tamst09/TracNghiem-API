@@ -88,8 +88,7 @@ namespace TN.BackendAPI.Services.Service
                     {
                         foreach (var exam in category.Exams)
                         {
-                            exam.CategoryID = 0;
-                            exam.Category = null;
+                            exam.isActive = false;
                         }
                     }
                     category.isActive = false;
@@ -108,7 +107,7 @@ namespace TN.BackendAPI.Services.Service
             var categoryList = await _db.Categories.Include(c => c.Exams).Where(c => c.isActive == true).ToListAsync();
             foreach(var category in categoryList)
             {
-                category.Exams = category.Exams.OrderBy(e => e.ExamName).ToList();
+                category.Exams = category.Exams.Where(e => e.isActive == true).ToList();
             }
             return categoryList;
         }
