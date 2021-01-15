@@ -20,6 +20,7 @@ namespace FrontEndWebApp.Services
         Task<ResponseBase<UserViewModel>> GetUserInfo(int userId, string access_token);
         Task<ResponseBase<UserViewModel>> AddPassword(ResetPasswordModel model);
         Task<ResponseBase<string>> GetResetPasswordCode(ForgotPasswordModel model);
-        Task<ResponseBase<string>> ChangePassword(string resetCode, ResetPasswordModel model);
+        Task<ResponseBase<string>> ResetPassword(string resetCode, ResetPasswordModel model);
+        Task<ResponseBase<string>> ChangePassword(string userID, ChangePasswordModel model, string accessToken);
     }
 }

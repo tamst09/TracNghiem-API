@@ -460,15 +460,29 @@ namespace TN.BackendAPI.Services.Service
             }
             return user;
         }
-
+        public async Task<string> ChangePassword(int userID, ChangePasswordModel model)
+        {
+            var user = await _dbContext.Users.FindAsync(userID);
+            if (user == null )
+            {
+                return "Tài khoản này không tồn tại";
+            }
+            if(user.isActive == false)
+            {
+                return "Tài khoản này đã bị khoá";
+            }
+            var IsPasswordOK = await _userManager.CheckPasswordAsync(user, model.CurrentPassword);
+            if (IsPasswordOK)
+            {
+                await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+                return null;
+            }
+            else
+            {
+                return "Mật khẩu cũ không đúng";
+            }
+        }
         //--------------------------------------------------------------------------------------
 
-
-        private bool UserExists(int id)
-        {
-            return _dbContext.Users.Any(e => e.Id == id);
-        }
-
-        
     }
 }

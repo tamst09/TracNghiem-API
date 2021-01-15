@@ -1,8 +1,7 @@
 ﻿@model TN.ViewModels.Catalog.User.UserViewModel
 
 @{
-    ViewData["Title"] = "ShowProfile";
-    ViewData["Avatar"] = Model.Avatar==null?"/images/cover/user/default_avatar.png":Model.Avatar;
+    ViewData["Title"] = "Profile";
     if (User.IsInRole("admin"))
     {
         Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
@@ -62,7 +61,8 @@
             </dl>
         </div>
         <div>
-            @Html.ActionLink("Cập nhật", "UpdateProfile", new { id = Model.Id })
+            <a class="btn btn-outline-primary" asp-controller="Account" asp-action="ChangePassword">Đổi mật khẩu</a>
+            <a class="btn btn-link" asp-controller="Account" asp-action="UpdateProfile" asp-route-id="@Model.Id">Cập nhật</a>
             <button type="button" class="btn btn-link" onclick="window.history.back()">Trở về</button>
         </div>
     </div>

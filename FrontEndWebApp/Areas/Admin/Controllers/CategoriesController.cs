@@ -167,5 +167,27 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                 return Json(new { deleteResult = false });
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> ViewAllExams(int categoryID)
+        {
+            var accessToken = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+            var lstExams = await _categoryService.GetAllExams(categoryID, accessToken);
+            if(lstExams == null)
+            {
+                ViewData["msg"] = "Lỗi kết nối máy chủ";
+                return View();
+            }
+            if(lstExams.StatusCode!=null && lstExams.StatusCode == "401")
+            {
+                return RedirectToAction("Login", "Account", new { ReturnUrl = "Admin/Categories/Exams/"+categoryID.ToString()});
+            }
+            if(lstExams.msg != null || lstExams.data == null)
+            {
+                ViewData["msg"] = lstExams.msg;
+                return View();
+            }
+            return View(lstExams.data);
+        }
     }
 }

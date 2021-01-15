@@ -20,6 +20,7 @@ namespace TN.BackendAPI.Services.IServices
         Task<bool> ResetPasswordConfirm(ResetPasswordModel model);
         Task<AppUser> GetUserByAccessToken(string accessToken);
         Task<AppUser> AddPassword(ResetPasswordModel model);
+        Task<string> ChangePassword(int userID, ChangePasswordModel model);
         RefreshToken GenerateRefreshToken();
         Task<RefreshToken> GetRefreshTokenByAccessToken(string accessToken);
         bool ValidateRefreshToken(AppUser user, string refreshToken);

@@ -61,7 +61,7 @@ namespace FrontEndWebApp.Controllers
         [HttpPost]
         public async Task<ActionResult> ForgotPasswordConfirmOnPost(ResetPasswordModel model)
         {
-            var changePasswordResult = await _accountService.ChangePassword(model.ResetCode, model);
+            var changePasswordResult = await _accountService.ResetPassword(model.ResetCode, model);
             if (changePasswordResult.msg==null)
             {
                 ViewData["IsResetSuccessfully"] = true;
@@ -70,6 +70,40 @@ namespace FrontEndWebApp.Controllers
             else
             {
                 ViewData["IsResetSuccessfully"] = false;
+                return View();
+            }
+        }
+
+        public async Task<IActionResult> ChangePassword()
+        {
+            ViewData["success"] = false;
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordModel model)
+        {
+            ViewData["success"] = false;
+            if (!ModelState.IsValid)
+            {
+                return View();
+            }
+            var userID = User.FindFirst("UserID").Value;
+            var accessToken = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+            var changeResult = await _accountService.ChangePassword(userID, model, accessToken);
+            if (changeResult != null)
+            {
+                if (changeResult.msg != null)
+                {
+                    ViewData["msg"] = changeResult.msg;
+                }
+                ViewData["msg"] = "Đổi mật khẩu thành công";
+                ViewData["success"] = true;
+                return View();
+            }
+            else
+            {
+                ViewData["msg"] = "Lỗi máy chủ. Vui lòng thử lại.";
                 return View();
             }
         }
@@ -85,7 +119,7 @@ namespace FrontEndWebApp.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginModel model, string returnUrl)
+        public async Task<IActionResult> Login(LoginModel model, string ReturnUrl)
         {
             if (!ModelState.IsValid)
             {
@@ -109,7 +143,7 @@ namespace FrontEndWebApp.Controllers
                     // set true -> cookie có thời hạn đc set trong Startup.cs và ko bị mất khi thoát
                     IsPersistent = model.Rememberme
                 };
-                HttpContext.SignInAsync(userPrincipal, authProperties);
+                await HttpContext.SignInAsync(userPrincipal, authProperties);
                 
                 if (model.Rememberme)
                 {
@@ -124,9 +158,9 @@ namespace FrontEndWebApp.Controllers
                     HttpContext.Response.Cookies.Append("refresh_token_cookie", CookieEncoder.EncodeToken(result.data.Refresh_Token), new CookieOptions { HttpOnly = true, Secure = true });
                 }
                 
-                if (!string.IsNullOrEmpty(returnUrl))
+                if (!string.IsNullOrEmpty(ReturnUrl))
                 {
-                    return Redirect(returnUrl);
+                    return Redirect(ReturnUrl);
                 }
                 return RedirectToAction("Index", "Home");
             }

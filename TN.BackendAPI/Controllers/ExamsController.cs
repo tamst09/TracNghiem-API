@@ -48,7 +48,7 @@ namespace TN.BackendAPI.Controllers
             {
                 return Ok(new ResponseBase<Exam>() { data = exam });
             }
-            return Ok(new ResponseBase<Exam>() { msg = "Exam not found" });
+            return Ok(new ResponseBase<Exam>() { msg = "Đề thi không có sẵn" });
         }
         [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
@@ -59,7 +59,7 @@ namespace TN.BackendAPI.Controllers
             {
                 return Ok(new ResponseBase<Exam>() { });
             }
-            return Ok(new ResponseBase<Exam>() { msg = "Exam not found" });
+            return Ok(new ResponseBase<Exam>() { msg = "Đề thi không có sẵn" });
         }
         [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
@@ -67,12 +67,12 @@ namespace TN.BackendAPI.Controllers
         {
             if(id != model.ID)
             {
-                return Ok(new ResponseBase<Exam>() { msg = "Invalid exam" });
+                return Ok(new ResponseBase<Exam>() { msg = "Đề thi không tồn tại" });
             }
             var updateResult = await _examService.Update(model);
             if (!updateResult)
             {
-                return Ok(new ResponseBase<Exam>() { msg = "Update failed" });
+                return Ok(new ResponseBase<Exam>() { msg = "Lỗi cập nhật. Thử lại sau." });
             }
             return Ok(new ResponseBase<Exam>() { data = model });
         }
@@ -98,7 +98,7 @@ namespace TN.BackendAPI.Controllers
             {
                 return Ok(new ResponseBase<Exam>() { data = exam });
             }
-            return Ok(new ResponseBase<Exam>() { msg = "Exam not found" });
+            return Ok(new ResponseBase<Exam>() { msg = "Đề thi không có sẵn" });
         }
         [HttpDelete("{id}/{userID}")]
         public async Task<IActionResult> UserDeleteOne(int id, int userID)
@@ -108,19 +108,19 @@ namespace TN.BackendAPI.Controllers
             {
                 return Ok(new ResponseBase<Exam>() { });
             }
-            return Ok(new ResponseBase<Exam>() { msg = "Exam not found" });
+            return Ok(new ResponseBase<Exam>() { msg = "Đề thi không tồn tại" });
         }
         [HttpPut("{id}/{userID}")]
         public async Task<IActionResult> UserUpdateOne(int id, int userID, Exam model)
         {
             if (id != model.ID)
             {
-                return Ok(new ResponseBase<Exam>() { msg = "Invalid exam" });
+                return Ok(new ResponseBase<Exam>() { msg = "Đề thi không hợp lệ" });
             }
             var updateResult = await _examService.Update(model, userID);
             if (!updateResult)
             {
-                return Ok(new ResponseBase<Exam>() { msg = "Update failed" });
+                return Ok(new ResponseBase<Exam>() { msg = "Lỗi cập nhật" });
             }
             return Ok(new ResponseBase<Exam>() { data = model });
         }
@@ -132,7 +132,7 @@ namespace TN.BackendAPI.Controllers
             var newExam = await _examService.Create(model, userID);
             if(newExam == null)
             {
-                return Ok(new ResponseBase<Exam>() { msg = "User is not valid" });
+                return Ok(new ResponseBase<Exam>() { msg = "Người dùng không hợp lệ" });
             }
             return Ok(new ResponseBase<Exam>() { data = newExam });
         }

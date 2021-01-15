@@ -201,13 +201,41 @@ namespace FrontEndWebApp.Services
                 return null;
             }
         }
-        public async Task<ResponseBase<string>> ChangePassword(string resetCode, ResetPasswordModel model)
+        public async Task<ResponseBase<string>> ResetPassword(string resetCode, ResetPasswordModel model)
         {
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
             try
             {
                 var response = await _client.PostAsync("api/Users/resetpass/", httpContent);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseResult = await response.Content.ReadAsStringAsync();
+                    ResponseBase<string> changePassResult = JsonConvert.DeserializeObject<ResponseBase<string>>(responseResult);
+                    return changePassResult;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<ResponseBase<string>> ChangePassword(string userID, ChangePasswordModel model, string accessToken)
+        {
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            }
+            var json = JsonConvert.SerializeObject(model);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            try
+            {
+                var response = await _client.PostAsync("api/Users/ChangePass/"+userID, httpContent);
                 if (response.IsSuccessStatusCode)
                 {
                     var responseResult = await response.Content.ReadAsStringAsync();

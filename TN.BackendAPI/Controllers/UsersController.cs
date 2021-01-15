@@ -151,6 +151,13 @@ namespace TN.BackendAPI.Controllers
             return Ok(new ResponseBase<string>() { msg = "User not found" });
         }
 
+        // POST: api/Users/ChangePass/1
+        [HttpPost("ChangePass/{userID}")]
+        public async Task<IActionResult> ChangePassword(int userID, [FromBody] ChangePasswordModel model)
+        {
+            var result = await _userService.ChangePassword(userID, model);
+            return Ok(new ResponseBase<string>() { msg = result });
+        }
 
         //POST: api/Users/RefreshToken
         [HttpPost("RefreshToken")]

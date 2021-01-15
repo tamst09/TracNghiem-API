@@ -38,7 +38,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             return View(allExam.data);   
         }
 
-        public async Task<IActionResult> Create()
+        public IActionResult Create()
         {
             return View();
         }

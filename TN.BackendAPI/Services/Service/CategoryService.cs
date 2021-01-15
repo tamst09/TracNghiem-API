@@ -123,5 +123,22 @@ namespace TN.BackendAPI.Services.Service
             category.Exams = category.Exams.OrderBy(e => e.ExamName).ToList();
             return category;
         }
+        public async Task<List<Exam>> AdminGetExams(int categoryID)
+        {
+            var exist = _db.Categories.Where(c => c.ID == categoryID && c.isActive == true);
+            if (exist != null)
+            {
+                var exams = _db.Exams.Where(e => e.CategoryID == categoryID && e.isActive == true).
+                    Include(e => e.Category).
+                    Include(e => e.Owner).
+                    Include(e => e.Questions).
+                    ToList();
+                return exams;
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }

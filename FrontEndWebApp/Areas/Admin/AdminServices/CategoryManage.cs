@@ -85,9 +85,32 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             var response = await _httpClient.GetAsync("/api/categories/");
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsStringAsync();
-                ResponseBase<List<Category>> resultConverted = JsonConvert.DeserializeObject<ResponseBase<List<Category>>>(result);
-                return resultConverted;
+                var body = await response.Content.ReadAsStringAsync();
+                ResponseBase<List<Category>> lstCategory = JsonConvert.DeserializeObject<ResponseBase<List<Category>>>(body);
+                return lstCategory;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public async Task<ResponseBase<List<Exam>>> GetAllExams(int id, string accessToken)
+        {
+            if (accessToken != null)
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            }
+            var response = await _httpClient.GetAsync("/api/categories/exams/"+id.ToString());
+            if (response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                ResponseBase<List<Exam>> lstExam = JsonConvert.DeserializeObject<ResponseBase<List<Exam>>>(body);
+                return lstExam;
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized || response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                return new ResponseBase<List<Exam>>() { StatusCode = "401" };
             }
             else
             {
