@@ -281,7 +281,7 @@ namespace TN.BackendAPI.Services.Service
         {
             if (string.IsNullOrEmpty(model.AvatarPhotoURL))
             {
-                model.AvatarPhotoURL = "/images/cover/user/default.png";
+                model.AvatarPhotoURL = "/images/cover/user/default_avatar.png";
             }
             var user = new AppUser()
             {

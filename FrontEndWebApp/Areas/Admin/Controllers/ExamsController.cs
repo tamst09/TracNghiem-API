@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using TN.Data.Entities;
 using TN.ViewModels.Catalog.Category;
 using TN.ViewModels.Catalog.Exams;
+using TN.ViewModels.Catalog.Question;
 
 namespace FrontEndWebApp.Areas.Admin.Controllers
 {
@@ -19,12 +20,14 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         private readonly IExamManage _examService;
         private readonly ICategoryManage _categoryService;
         private readonly IUserManage _userManage;
+        private readonly IQuestionManage _questionManage;
 
-        public ExamsController(IExamManage examService, ICategoryManage categoryService, IUserManage userManage)
+        public ExamsController(IExamManage examService, ICategoryManage categoryService, IUserManage userManage, IQuestionManage questionManage)
         {
             _examService = examService;
             _categoryService = categoryService;
             _userManage = userManage;
+            _questionManage = questionManage;
         }
 
         public async Task<IActionResult> Index()
@@ -41,6 +44,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
 
         public IActionResult Create()
         {
+            ViewData["msg"] = "";
             return View();
         }
         [HttpPost]
@@ -73,7 +77,6 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                 return View();
             }
         }
-
         public async Task<IActionResult> Edit(int id)
         {
             ViewData["msg"] = "";
@@ -136,9 +139,8 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                 return View();
             }
         }
-
         [HttpPost]
-        public async Task<ActionResult> DeleteMany([FromBody] int[] s)
+        public async Task<IActionResult> DeleteMany([FromBody] int[] s)
         {
             try
             {
@@ -163,6 +165,36 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                 return Json(new { deleteResult = false });
             }
         }
-
+        public async Task<IActionResult> ShowQuestions(int id, string keyword, int pageIndex = 1, int pageSize = 10)
+        {
+            ViewData["SubTitle"] = "";
+            ViewData["msg"] = "";
+            try
+            {
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var examName = await _examService.GetByID(id, token);
+                ViewData["SubTitle"] = examName!=null?"Đề thi: "+examName.data.ExamName:"";
+                var model = new QuestionPagingRequest()
+                {
+                    keyword = keyword,
+                    PageIndex = pageIndex,
+                    PageSize = pageSize
+                };
+                var allQuestions = await _questionManage.GetAllPaging(model, token);
+                if (allQuestions.msg != null)
+                {
+                    ViewData["msg"] = allQuestions.msg;
+                    return View();
+                }
+                if(allQuestions.data.Items!=null)
+                    allQuestions.data.Items = allQuestions.data.Items.Where(q => q.ExamID == id).ToList();
+                return View(allQuestions.data);
+            }
+            catch (Exception)
+            {
+                ViewData["msg"] = "Lỗi hệ thống. Vui lòng đăng nhập lại.";
+                return View();
+            }
+        }
     }
 }

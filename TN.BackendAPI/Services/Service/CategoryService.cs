@@ -52,7 +52,7 @@ namespace TN.BackendAPI.Services.Service
                 }
                 return null;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }

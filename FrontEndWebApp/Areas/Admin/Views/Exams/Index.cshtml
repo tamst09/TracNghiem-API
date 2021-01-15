@@ -29,6 +29,7 @@
                                 <th>Số lượng câu hỏi</th>
                                 <th>Người đăng</th>
                                 <th>Chủ đề</th>
+                                <th>Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -50,14 +51,14 @@
                                     <td>@item.Questions.Count</td>
                                     <td>@item.Owner.UserName</td>
                                     <td>@item.Category.CategoryName</td>
+                                    <td>
+                                        <a asp-action="ShowQuestions" asp-route-id="@item.ID">Xem toàn bộ câu hỏi <i class="fa fa-arrow-circle-right"></i></a>
+                                    </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
                     <button class="btn btn-danger" data-toggle="modal" data-target="#deleteManyModal">Xoá các mục đã chọn</button>
-                </div>
-                <div class="text-right">
-                    <a href="#">View Details <i class="fa fa-arrow-circle-right"></i></a>
                 </div>
             </div>
         </div>

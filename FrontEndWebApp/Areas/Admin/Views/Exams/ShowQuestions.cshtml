@@ -1,0 +1,117 @@
+﻿@model TN.ViewModels.Common.PagedResult<TN.Data.Entities.Question>
+
+@{
+    ViewData["Title"] = "Danh sách câu hỏi";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<h1>@ViewData["Title"]</h1>
+<h4>@ViewData["SubTitle"]</h4>
+
+@if (Model != null)
+{
+    <div class="d-sm-flex mb-4">
+        <!-- Topbar Search -->
+        <form asp-action="ShowQuestions" method="get" class="mr-sm-auto d-none d-sm-inline-block form-inline my-2 my-md-0 mw-100 navbar-search">
+            <div class="input-group">
+                <input name="keyword" type="text" class="form-control bg-light border-info small" placeholder="Tìm câu hỏi..." aria-label="Search" aria-describedby="basic-addon2">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search fa-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    ID
+                </th>
+                <th>
+                    Nội dung câu hỏi
+                </th>
+                <th>
+                    Số thứ tự
+                </th>
+                <th>
+                    Trạng thái
+                </th>
+                <th>
+                    Hành động
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td class="align-middle">
+                        @Html.DisplayFor(modelItem => item.ID)
+                    </td>
+                    <td class="align-middle">
+                        @Html.DisplayFor(modelItem => item.QuesContent)
+                    </td>
+                    <td class="align-middle">
+                        @Html.DisplayFor(modelItem => item.STT)
+                    </td>
+                    <td class="align-middle">
+                        @if (item.isActive)
+                        {
+                            <button id="status-@item.ID" type="button" class="btn btn-block btn-success">Hiện có</button>
+                        }
+                        else
+                        {
+                            <button id="status-@item.ID" type="button" class="btn btn-block btn-danger">Đã xoá</button>
+                        }
+                    </td>
+                    <td class="align-middle">
+                        @Html.ActionLink("Sửa", "Edit", new { id = item.ID }) |
+                        @Html.ActionLink("Chi tiết", "Details", new { id = item.ID })
+
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @await Component.InvokeAsync("Pager", Model)
+}
+else
+{
+    <p>@ViewData["msg"]</p>
+}
+@section Scripts
+{
+    <script>
+        function LockAccount(id) {
+            $.ajax({
+                type: "POST",
+                url: "users/LockUser/" + id,
+                success: function (res) {
+                    if (res.statusChanged) {
+                        location.reload();
+                    }
+                    else {
+                        console.log("Lock failed");
+                    }
+                }
+            });
+        };
+        function RestoreAccount(id) {
+            $.ajax({
+                type: "POST",
+                url: "users/RestoreUser/" + id,
+                success: function (res) {
+                    if (res.statusChanged) {
+                        location.reload();
+                    }
+                    else {
+                        console.log("Unlock failed");
+                    }
+                }
+            });
+        };
+    </script>
+}
+

@@ -14,6 +14,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
+    <meta name="google-signin-client_id" content="104872694801-4vdhqd2c8e32j65oqd50idd43dh08teo.apps.googleusercontent.com">
 
     <title>Sign in</title>
 
@@ -23,6 +24,9 @@
 
     <!-- Custom styles for this template-->
     <link href="~/css/sb-admin-2.min.css" rel="stylesheet">
+    <!-- Google api script -->
+    <script src="https://apis.google.com/js/platform.js?onload=onLoadGoogleCallback" async defer></script>
+    <!-- Facebook api script -->
     <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v9.0&appId=2364928580469501&autoLogAppEvents=1" nonce="ppQqlDkd"></script>
     <script>
         window.fbAsyncInit = function () {
@@ -40,8 +44,8 @@
         function fb_login() {
             FB.login(function (response) {
                 if (response.authResponse != null) {
-                    document.getElementById("fbTokenValue").value = response.authResponse.accessToken;
-                    document.getElementById("fbProviderValue").value = "Facebook";
+                    document.getElementById("TokenValue").value = response.authResponse.accessToken;
+                    document.getElementById("ProviderValue").value = "Facebook";
                     document.getElementById("external-account").submit();
 
 
@@ -65,6 +69,37 @@
             e.async = true;
             document.getElementById('fb-root').appendChild(e);
         }());
+
+        function onLoadGoogleCallback() {
+            gapi.load('auth2', function () {
+                auth2 = gapi.auth2.init({
+                    client_id: '104872694801-4vdhqd2c8e32j65oqd50idd43dh08teo.apps.googleusercontent.com',
+                    cookiepolicy: 'single_host_origin',
+                    scope: 'profile'
+                });
+
+                auth2.attachClickHandler(element, {},
+                    function (googleUser) {
+                        console.log(googleUser.getAuthResponse().id_token);
+                    }, function (error) {
+                        console.log('Sign-in error', error);
+                    }
+                );
+            });
+            element = document.getElementById('googleSignIn');
+        }
+
+        //function onSignIn(googleUser) {
+        //    var p = gapi.auth2.BasicProfile;
+        //    console.log(p);
+        //    var profile = googleUser.getBasicProfile();
+        //    var id_token = googleUser.getAuthResponse().id_token;
+        //    console.log(id_token);
+        //    console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+        //    console.log('Name: ' + profile.getName());
+        //    console.log('Image URL: ' + profile.getImageUrl());
+        //    console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
+        //}
     </script>
 </head>
 
@@ -111,12 +146,12 @@
                                     </form>
                                     <form id="external-account" asp-action="ExternalLogin" asp-controller="Account" method="post" class="user">
                                         <div>
-                                            <input type="hidden" name="token" id="fbTokenValue" />
-                                            <input type="hidden" name="provider" id="fbProviderValue" />
+                                            <input type="hidden" name="token" id="TokenValue" />
+                                            <input type="hidden" name="provider" id="ProviderValue" />
                                             <button type="button" onclick="fb_login()" class="btn btn-facebook btn-user btn-block">
                                                 <i class="fab fa-facebook-f fa-fw"></i> Login with Facebook
                                             </button>
-                                            <button type="submit" name="provider" value="Google" class="btn btn-google btn-user btn-block">
+                                            <button id="googleSignIn" type="button" class="btn btn-google btn-user btn-block" data-onsuccess="onSignIn">
                                                 <i class="fab fa-google fa-fw"></i> Login with Google
                                             </button>
                                         </div>

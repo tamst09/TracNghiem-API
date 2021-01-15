@@ -41,6 +41,7 @@ namespace FrontEndWebApp
             services.AddTransient<IUserManage, UserManage>();
             services.AddTransient<ICategoryManage, CategoryManage>();
             services.AddTransient<IExamManage, ExamManage>();
+            services.AddTransient<IQuestionManage, QuestionManage>();
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;

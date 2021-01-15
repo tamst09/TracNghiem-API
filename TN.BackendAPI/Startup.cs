@@ -46,6 +46,7 @@ namespace TN.BackendAPI
             services.AddTransient<ICategoryService, CategoryService>();
             services.AddTransient<IUserExamService, UserExamService>();
             services.AddTransient<IExamService, ExamService>();
+            services.AddTransient<IQuestionService, QuestionService>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IFacebookAuth, FacebookAuthService>();
             services.AddTransient<IEmailSender, EmailSender>(i =>

@@ -23,10 +23,9 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             _userManage = userManage;
         }
 
-        // GET: UsersController
+        // GET: Users
         public async Task<ActionResult> Index(string keyword, int pageIndex = 1, int pageSize = 10)
         {
-            
             try
             {
                 //List<UserViewModel> lstAllUser = new List<UserViewModel>();
@@ -46,7 +45,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             }
         }
 
-        // GET: UsersController/Details/5
+        // GET: Users/Details/5
         public async Task<ActionResult> Details(int id)
         {
             
@@ -62,14 +61,14 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             }
         }
 
-        // GET: UsersController/Create
+        // GET: Users/Create
         public ActionResult Create()
         {
             
             return View();
         }
 
-        // POST: UsersController/Create
+        // POST: Users/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(UserViewModel model)
@@ -98,7 +97,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             }
         }
 
-        // GET: UsersController/Edit/5
+        // GET: Users/Edit/5
         public async Task<ActionResult> Edit(int id)
         {
            
@@ -117,7 +116,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             }
         }
 
-        // POST: UsersController/Edit/5
+        // POST: Users/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(int id, UserViewModel model)
@@ -164,7 +163,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                 });
             }
         }
-
+        // POST: Users/RestoreUser/5
         [HttpPost]
         public async Task<ActionResult> RestoreUser(int id)
         {

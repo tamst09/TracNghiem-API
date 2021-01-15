@@ -96,6 +96,13 @@ namespace TN.BackendAPI.Services.Service
         {
             var exam = await _db.Exams.FindAsync(examID);
             if (exam == null) return false;
+            if (exam.Questions != null)
+            {
+                foreach (var q in exam.Questions)
+                {
+                    q.isActive = false;
+                }
+            }
             exam.isActive = false;
             await _db.SaveChangesAsync();
             return true;
@@ -107,7 +114,7 @@ namespace TN.BackendAPI.Services.Service
                 IEnumerable<Exam> lstExam = new List<Exam>();
                 foreach (var item in lstExamId.ListItem)
                 {
-                    var e = await _db.Exams.FindAsync(item);
+                    var e = await _db.Exams.Where(e => e.ID == item).Include(e => e.Questions).FirstOrDefaultAsync();
                     if (e.Questions != null)
                     {
                         foreach (var q in e.Questions)
@@ -213,6 +220,13 @@ namespace TN.BackendAPI.Services.Service
             if (exam.OwnerID != userID)
             {
                 return false;
+            }
+            if (exam.Questions != null)
+            {
+                foreach (var q in exam.Questions)
+                {
+                    q.isActive = false;
+                }
             }
             exam.isActive = false;
             await _db.SaveChangesAsync();

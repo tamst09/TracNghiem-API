@@ -72,8 +72,7 @@
                         <a class="collapse-item" asp-action="Index" asp-controller="Users" asp-area="Admin">Người dùng</a>
                         <a class="collapse-item" asp-action="Index" asp-controller="Categories" asp-area="Admin">Chủ đề</a>
                         <a class="collapse-item" asp-action="Index" asp-controller="Exams" asp-area="Admin">Đề thi</a>
-                        <a class="collapse-item" href="register.html">Câu hỏi</a>
-                        <a class="collapse-item" href="forgot-password.html">Danh sách ưa thích</a>
+                        <a class="collapse-item" asp-action="Index" asp-controller="Questions" asp-area="Admin">Câu hỏi</a>
                     </div>
                 </div>
             </li>
@@ -94,7 +93,6 @@
                 </a>
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Phân loại theo chủ đề</h6>
                         @foreach (var item in _categoryManager.GetAll().Result.data)
                         {
                             <a class="collapse-item" asp-area="Admin" asp-action="ViewAllExams" asp-controller="Categories" asp-route-categoryID="@item.ID">@item.CategoryName</a>
