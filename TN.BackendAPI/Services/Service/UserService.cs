@@ -35,7 +35,7 @@ namespace TN.BackendAPI.Services.Service
             TNDbContext context,
             UserManager<AppUser> userManager,
             IConfiguration config, IFacebookAuth facebookAuth, IEmailSender emailSender)
-        { 
+        {
             _dbContext = context;
             _userManager = userManager;
             _config = config;
@@ -65,7 +65,7 @@ namespace TN.BackendAPI.Services.Service
                 allUser = allUser.Where(u => u.UserName.Contains(model.keyword) ||
                 u.Email.Contains(model.keyword) ||
                 u.PhoneNumber.Contains(model.keyword) ||
-                u.FirstName.Contains(model.keyword)
+                u.Name.Contains(model.keyword)
                 ).ToList();
             }
             // get total row from query
@@ -78,8 +78,7 @@ namespace TN.BackendAPI.Services.Service
                 .Select(u => new UserViewModel()
                 {
                     Id = u.Id,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
+                    Name = u.Name,
                     Email = u.Email,
                     DoB = u.DoB,
                     PhoneNumber = u.PhoneNumber,
@@ -98,12 +97,11 @@ namespace TN.BackendAPI.Services.Service
                 return null;
             }
             var user = await _dbContext.Users.FindAsync(id);
-            if (!string.IsNullOrEmpty(model.FirstName)&&!string.IsNullOrEmpty(model.LastName))
+            if (!string.IsNullOrEmpty(model.Name) && !string.IsNullOrEmpty(model.Name))
             {
-                user.FirstName = model.FirstName;
-                user.LastName = model.LastName;
+                user.Name = model.Name;
             }
-            if(model.DoB != null)
+            if (model.DoB != null)
             {
                 user.DoB = model.DoB;
             }
@@ -221,15 +219,14 @@ namespace TN.BackendAPI.Services.Service
                 isNewUser = true;
                 user = new AppUser()
                 {
-                    FirstName = FbUserInfo.FirstName,
-                    LastName = FbUserInfo.LastName,
+                    Name = FbUserInfo.FirstName +" "+ FbUserInfo.LastName,
                     Email = FbUserInfo.Email,
                     UserName = FbUserInfo.Email,
                     isActive = true,
                     Avatar = "/images/cover/user/default_avatar.png"
                 };
                 var createdResult = await _userManager.CreateAsync(user);
-                if(createdResult.Succeeded)
+                if (createdResult.Succeeded)
                 {
                     await _userManager.AddLoginAsync(user, new UserLoginInfo("Facebook", user.Email, "Facebook"));
                     await _userManager.AddToRoleAsync(user, "user");
@@ -251,7 +248,7 @@ namespace TN.BackendAPI.Services.Service
                     var addloginTask = await _userManager.AddLoginAsync(user, new UserLoginInfo("Facebook", user.Email, "Facebook"));
 
                     var checkAuthTokenTask = await _userManager.GetAuthenticationTokenAsync(user, "Facebook", "fbID");
-                    if(checkAuthTokenTask == null)
+                    if (checkAuthTokenTask == null)
                     {
                         await _userManager.SetAuthenticationTokenAsync(user, "Facebook", "fbID", FbUserInfo.Id);
                     }
@@ -277,6 +274,81 @@ namespace TN.BackendAPI.Services.Service
                 return new JwtResponse() { Access_Token = access_token, Refresh_Token = refreshToken.Token, isNewLogin = isNewUser };
             }
         }
+        public async Task<JwtResponse> LoginWithGoogleToken(string token, string email, string name, string avatar, string ggID)
+        {
+            bool isNewUser = true;
+            var user = await _dbContext.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+            {
+                var userGetByGoogleID = await _dbContext.UserTokens.FirstOrDefaultAsync(p => p.LoginProvider == "Google" && p.Name == "ggID" && p.Value == ggID);
+                if (userGetByGoogleID != null)
+                {
+                    user = await _userManager.FindByIdAsync(userGetByGoogleID.UserId.ToString());
+                }
+            }
+
+            // chua co tai khoan
+            if (user == null)
+            {
+                user = new AppUser()
+                {
+                    Name = name,
+                    Email = email,
+                    UserName = email,
+                    isActive = true,
+                    Avatar = avatar
+                };
+                var createdResult = await _userManager.CreateAsync(user);
+                if (createdResult.Succeeded)
+                {
+                    await _userManager.AddLoginAsync(user, new UserLoginInfo("Google", user.Email, "Google"));
+                    await _userManager.AddToRoleAsync(user, "user");
+                    await _userManager.SetAuthenticationTokenAsync(user, "Google", "ggID", ggID);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            // da co tai khoan
+            else
+            {
+                isNewUser = false;
+                var checkProdiverResult = await _userManager.FindByLoginAsync("Google", email);
+                // ko phai tk facebook
+                if (checkProdiverResult == null)
+                {
+                    var addloginTask = await _userManager.AddLoginAsync(user, new UserLoginInfo("Google", email, "Google"));
+
+                    var checkAuthTokenTask = await _userManager.GetAuthenticationTokenAsync(user, "Google", "ggID");
+                    if (checkAuthTokenTask == null)
+                    {
+                        await _userManager.SetAuthenticationTokenAsync(user, "Google", "ggID", ggID);
+                    }
+                }
+            }
+            // generate new access_token
+            string access_token = GenerateAccessToken(user);
+            // access_token is available
+            if (user.RefreshTokenValue != null)
+            {
+                user.RefreshToken.ExpiryDate = DateTime.UtcNow.AddDays(7);
+                await _dbContext.SaveChangesAsync();
+                return new JwtResponse() { Access_Token = access_token, Refresh_Token = user.RefreshToken.Token, isNewLogin = isNewUser };
+            }
+            // new login info
+            else
+            {
+                RefreshToken refreshToken = new RefreshToken();
+                refreshToken = GenerateRefreshToken();
+                user.RefreshToken = refreshToken;
+                _dbContext.RefreshTokens.Add(refreshToken);
+                await _dbContext.SaveChangesAsync();
+                return new JwtResponse() { Access_Token = access_token, Refresh_Token = refreshToken.Token, isNewLogin = isNewUser };
+
+            }
+        }
         public async Task<JwtResponse> Register(RegisterModel model)
         {
             if (string.IsNullOrEmpty(model.AvatarPhotoURL))
@@ -286,8 +358,7 @@ namespace TN.BackendAPI.Services.Service
             var user = new AppUser()
             {
                 UserName = model.UserName,
-                FirstName = model.FirstName,
-                LastName = model.LastName,
+                Name = model.Name,
                 Email = model.Email,
                 DoB = model.DoB,
                 PhoneNumber = model.PhoneNumber,
@@ -321,7 +392,7 @@ namespace TN.BackendAPI.Services.Service
                     new Claim("UserID", user.Id.ToString()),
                     new Claim(ClaimTypes.Name, user.UserName),
                     new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.GivenName, user.FirstName+" "+user.LastName),
+                    new Claim(ClaimTypes.GivenName, user.Name),
                     new Claim(ClaimTypes.Role, roles)
                 }),
                 Expires = DateTime.UtcNow.AddDays(3),
@@ -407,13 +478,13 @@ namespace TN.BackendAPI.Services.Service
         public async Task<RefreshToken> GetRefreshTokenByAccessToken(string accessToken)
         {
             var user = await GetUserByAccessToken(accessToken);
-            if(user == null)
+            if (user == null)
             {
                 return null;
             }
             else
             {
-                if(user.RefreshToken.ExpiryDate < DateTime.UtcNow)
+                if (user.RefreshToken.ExpiryDate < DateTime.UtcNow)
                 {
                     user.RefreshToken = GenerateRefreshToken();
                 }
@@ -432,7 +503,7 @@ namespace TN.BackendAPI.Services.Service
             {
                 var resetCode = await _userManager.GeneratePasswordResetTokenAsync(user);
                 resetCode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetCode));
-                var callbackUrl = ConstStrings.BASE_URL_WEB_CLIENT+"/Account/ForgotPasswordConfirm/?ResetCode=" + resetCode + "&Email=" + model.Email;
+                var callbackUrl = ConstStrings.BASE_URL_WEB_CLIENT + "/Account/ForgotPasswordConfirm/?ResetCode=" + resetCode + "&Email=" + model.Email;
                 await _emailSender.SendEmailAsync(model.Email, "Reset password confirmation", $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
                 return resetCode;
             }
@@ -463,11 +534,11 @@ namespace TN.BackendAPI.Services.Service
         public async Task<string> ChangePassword(int userID, ChangePasswordModel model)
         {
             var user = await _dbContext.Users.FindAsync(userID);
-            if (user == null )
+            if (user == null)
             {
                 return "Tài khoản này không tồn tại";
             }
-            if(user.isActive == false)
+            if (user.isActive == false)
             {
                 return "Tài khoản này đã bị khoá";
             }

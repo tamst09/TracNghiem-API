@@ -247,6 +247,42 @@ namespace FrontEndWebApp.Controllers
                     }
                 }
             }
+            else if(provider == "Google")
+            {
+                if (string.IsNullOrEmpty(token))
+                {
+                    return RedirectToAction(nameof(Login));
+                }
+                else
+                {
+                    // get jwt from api
+                    var jwttokenResponse = await _accountService.LoginGoogle(token);
+                    if (jwttokenResponse != null && jwttokenResponse.data!=null)
+                    {
+                        var userPrincipal = _accountService.ValidateToken(jwttokenResponse.data.Access_Token);
+                        var authProperties = new AuthenticationProperties
+                        {
+                            // set false -> tạo ra cookie phiên -> thoát trình duyệt cookie bị xoá
+                            // set true -> cookie có thời hạn đc set trong Startup.cs và ko bị mất khi thoát
+                            IsPersistent = true
+                        };
+                        await HttpContext.SignInAsync(userPrincipal, authProperties);
+                        HttpContext.Session.SetInt32("IsPersistent", 1);
+                        HttpContext.Response.Cookies.Append("access_token_cookie", CookieEncoder.EncodeToken(jwttokenResponse.data.Access_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(4), HttpOnly = true, Secure = true });
+                        HttpContext.Response.Cookies.Append("refresh_token_cookie", CookieEncoder.EncodeToken(jwttokenResponse.data.Refresh_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(8), HttpOnly = true, Secure = true });
+                        if (jwttokenResponse.data.isNewLogin)
+                        {
+                            int uid = Convert.ToInt32(userPrincipal.FindFirst("UserID").Value);
+                            return RedirectToAction(nameof(UpdateProfile), new { id = uid });
+                        }
+                        return RedirectToAction(nameof(HomeController.Index), "Home");
+                    }
+                    else
+                    {
+                        return RedirectToAction(nameof(Login));
+                    }
+                }
+            }
             else
             {
                 return RedirectToAction(nameof(Login));

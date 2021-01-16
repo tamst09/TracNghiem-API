@@ -7,6 +7,7 @@ using TN.ViewModels.Catalog.User;
 using System;
 using TN.BackendAPI.Services.IServices;
 using TN.ViewModels.Common;
+using static Google.Apis.Auth.GoogleJsonWebSignature;
 
 namespace TN.BackendAPI.Controllers
 {
@@ -225,10 +226,37 @@ namespace TN.BackendAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> LoginFacebook([FromBody]string accesstoken)
         {
-            var loginUser = await _userService.LoginWithFacebookToken(accesstoken);
-            if (loginUser == null)
-                return Ok(new ResponseBase<JwtResponse>() { msg = "Invalid facebook token" });
-            return Ok(new ResponseBase<JwtResponse>() { data = loginUser });
+            var jwt = await _userService.LoginWithFacebookToken(accesstoken);
+            if (jwt == null)
+                return Ok(new ResponseBase<JwtResponse>() { msg = "Invalid token" });
+            return Ok(new ResponseBase<JwtResponse>() { data = jwt });
+        }
+
+        [HttpPost("LoginGG")]
+        [AllowAnonymous]
+        public async Task<IActionResult> LoginGoogle([FromBody]string token)
+        {
+            Payload payload;
+            try
+            {
+                payload = await ValidateAsync(token, new ValidationSettings
+                {
+                    Audience = new[] { "104872694801-4vdhqd2c8e32j65oqd50idd43dh08teo.apps.googleusercontent.com" }
+                });
+                var ggID = payload.Subject;
+                var email = payload.Email;
+                var name = payload.Name;
+                var avatar = payload.Picture;
+
+                var jwt = await _userService.LoginWithGoogleToken(token ,email, name, avatar, ggID);
+                if (jwt == null)
+                    return Ok(new ResponseBase<JwtResponse>() { msg = "Error" });
+                return Ok(new ResponseBase<JwtResponse>() { data = jwt });
+            }
+            catch (Exception e)
+            {
+                return Ok(new ResponseBase<JwtResponse>() { msg = e.Message });
+            }
         }
 
         [HttpPut("AddPassword")]

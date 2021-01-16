@@ -47,14 +47,6 @@
                     document.getElementById("TokenValue").value = response.authResponse.accessToken;
                     document.getElementById("ProviderValue").value = "Facebook";
                     document.getElementById("external-account").submit();
-
-
-
-                    FB.api('/me', function (response) {
-                        user_email = response.email; //get user email
-                        // you can store this data into your database
-                    });
-
                 } else {
                     //user hit cancel button
                     console.log('User cancelled login or did not fully authorize.');
@@ -80,26 +72,19 @@
 
                 auth2.attachClickHandler(element, {},
                     function (googleUser) {
+                        document.getElementById("TokenValue").value = googleUser.getAuthResponse().id_token;
                         console.log(googleUser.getAuthResponse().id_token);
+                        document.getElementById("ProviderValue").value = "Google";
+                        document.getElementById("external-account").submit();
                     }, function (error) {
                         console.log('Sign-in error', error);
+                        var msgTxt = document.getElementById("msg");
+                        msgTxt.textContent = "Sign-in error";
                     }
                 );
             });
             element = document.getElementById('googleSignIn');
         }
-
-        //function onSignIn(googleUser) {
-        //    var p = gapi.auth2.BasicProfile;
-        //    console.log(p);
-        //    var profile = googleUser.getBasicProfile();
-        //    var id_token = googleUser.getAuthResponse().id_token;
-        //    console.log(id_token);
-        //    console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
-        //    console.log('Name: ' + profile.getName());
-        //    console.log('Image URL: ' + profile.getImageUrl());
-        //    console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
-        //}
     </script>
 </head>
 
@@ -132,7 +117,7 @@
                                         <div class="form-group">
                                             <input type="password" asp-for="@Model.Password" class="form-control form-control-user" placeholder="Password">
                                             <span asp-validation-for="@Model.Password" class="text-danger"></span>
-                                            <span class="text-danger">@ViewData["msg"]</span>
+                                            <span id="msg" class="text-danger">@ViewData["msg"]</span>
                                         </div>
                                         <div class="form-group">
                                             <div class="custom-control custom-checkbox small">

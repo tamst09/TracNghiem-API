@@ -74,8 +74,23 @@ namespace FrontEndWebApp.Services
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsStringAsync();
-                ResponseBase<JwtResponse> userResult = JsonConvert.DeserializeObject<ResponseBase<JwtResponse>>(result);
-                return userResult;
+                ResponseBase<JwtResponse> jwt = JsonConvert.DeserializeObject<ResponseBase<JwtResponse>>(result);
+                return jwt;
+            }
+            return null;
+        }
+
+        public async Task<ResponseBase<JwtResponse>> LoginGoogle(string accesstoken)
+        {
+            var json = JsonConvert.SerializeObject(accesstoken);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _client.PostAsync("/api/users/logingg", httpContent);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                ResponseBase<JwtResponse> jwt = JsonConvert.DeserializeObject<ResponseBase<JwtResponse>>(result);
+                return jwt;
             }
             return null;
         }
