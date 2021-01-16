@@ -23,13 +23,13 @@ namespace TN.BackendAPI.Services.Service
         //======================================== ADMIN REGION =============================================
         public async Task<List<Exam>> GetAll()
         {
-            var list = await _db.Exams.Where(e => e.isActive == true).Include(e => e.Owner).Include(e => e.Questions).Include(e => e.Category).ToListAsync();
+            var list = await _db.Exams.Where(e => e.isActive == true && e.Owner.isActive == true).Include(e => e.Owner).Include(e => e.Questions).Include(e => e.Category).ToListAsync();
             list.OrderBy(e => e.ExamName).ToList();
             return list;
         }
         public async Task<PagedResult<Exam>> GetAllPaging(ExamPagingRequest model)
         {
-            var allExam = await _db.Exams.Where(e => e.isActive == true).Include(e => e.Category).Include(e => e.Owner).Include(e => e.Questions).ToListAsync();
+            var allExam = await _db.Exams.Where(e => e.isActive == true && e.Owner.isActive == true).Include(e => e.Category).Include(e => e.Owner).Include(e => e.Questions).ToListAsync();
             // check keyword de xem co dang tim kiem hay phan loai ko
             // sau do gan vao Query o tren
             if (!string.IsNullOrEmpty(model.keyword))

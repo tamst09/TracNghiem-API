@@ -1,7 +1,7 @@
 ﻿@model TN.ViewModels.Catalog.Exams.ExamModel
 @inject FrontEndWebApp.Areas.Admin.AdminServices.ICategoryManage categoryManager
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Thêm đề thi";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
     List<TN.Data.Entities.Category> categories = new List<TN.Data.Entities.Category>();
     categories = categoryManager.GetAll().Result.data;
@@ -30,7 +30,7 @@
                 <span class="text-danger">*Để nguyên nếu bạn không muốn thiết lập</span>
             </div>
             <div class="form-group">
-                <label asp-for="CategoryID" class="control-label"></label>
+                <label asp-for="CategoryID" class="control-label">Chủ đề</label>
                 <select asp-for="CategoryID" class="form-control">
                     @foreach (var category in categories)
                     {
@@ -40,12 +40,10 @@
             </div>
             <div class="form-group">
                 <input type="submit" value="Tạo" class="btn btn-primary" />
+                <a class="btn btn-link" asp-action="Index">Về danh sách</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
 

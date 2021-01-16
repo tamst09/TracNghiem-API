@@ -12,6 +12,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
     public interface IQuestionManage
     {
         // ADMIN
+        Task<ResponseBase<string>> GetNumberQuestion(string accessToken);
         Task<ResponseBase<List<Question>>> GetAll(string accessToken);
         Task<ResponseBase<PagedResult<Question>>> GetAllPaging(QuestionPagingRequest model, string accessToken);
         Task<ResponseBase<Question>> GetByID(int id, string accessToken);

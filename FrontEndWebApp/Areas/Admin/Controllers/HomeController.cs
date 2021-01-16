@@ -18,29 +18,39 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
     {
         private readonly IUserManage _userManage;
         private readonly ICategoryManage _cateManage;
+        private readonly IQuestionManage _quesManage;
 
-        public HomeController(IUserManage userManage, ICategoryManage cateManage)
+        public HomeController(IUserManage userManage, ICategoryManage cateManage, IQuestionManage quesManage)
         {
             _userManage = userManage;
             _cateManage = cateManage;
+            _quesManage = quesManage;
         }
 
         public async Task<IActionResult> Index()
         {
             var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var numberUser = await _userManage.GetNumberOfUsers(access_token);
-            var numberCategory = await _cateManage.GetAll();
+            var totalUser = await _userManage.GetNumberOfUsers(access_token);
+            var totalCategory = await _cateManage.GetAll();
+            var totalExam = 0;
+            foreach(var category in totalCategory.data)
+            {
+                totalExam += category.Exams.Where(e => e.isActive == true).ToList().Count;
+            }
+            var totalQuestion = await _quesManage.GetNumberQuestion(access_token);
             ViewData["Error"] = "";
             ViewData["TotalUser"] = null;
-            ViewData["TotalCategory"] = null ;
-            if (numberUser != null && numberCategory !=null)
+            ViewData["TotalCategory"] = null;
+            ViewData["TotalExam"] = totalExam;
+            ViewData["TotalQuestion"] = totalQuestion.data;
+            if (totalUser != null && totalCategory !=null)
             {
-                if (numberUser.msg!=null)
+                if (totalUser.msg!=null)
                 {
-                    ViewData["Error"] = numberUser.msg;
+                    ViewData["Error"] = totalUser.msg;
                 }
-                ViewData["TotalUser"] = numberUser.data;
-                ViewData["TotalCategory"] = numberCategory.data.Count;
+                ViewData["TotalUser"] = totalUser.data;
+                ViewData["TotalCategory"] = totalCategory.data.Count;
             }
             return View();
         }

@@ -1,21 +1,31 @@
-﻿@model List<TN.Data.Entities.Exam>
+﻿@model TN.ViewModels.Common.PagedResult<TN.Data.Entities.Exam>
 @{
     ViewData["Title"] = "Đề thi";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 
 <h3>@ViewData["msg"]</h3>
-
+<h3>Danh sách bài thi</h3>
 @if (Model != null)
 {
+    <div class="col-lg-12 d-sm-flex mb-2">
+        <!-- Topbar Search -->
+        <p>
+            <a class="btn btn-link" asp-controller="Exams" asp-action="Create">Tạo mới</a>
+        </p>
+        <form asp-action="Index" method="get" class="ml-sm-auto d-none d-sm-inline-block form-inline my-2 my-md-0 mw-100 navbar-search">
+            <div class="input-group">
+                <input name="keyword" type="text" class="form-control bg-light border-info small" placeholder="Tìm kiếm người dùng..." aria-label="Search" aria-describedby="basic-addon2">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search fa-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
     <div class="col-lg-12">
         <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">Danh sách bài thi</h3>
-            </div>
-            <p>
-                <a asp-controller="Exams" asp-action="Create">Tạo mới</a>
-            </p>
             <div class="panel-body">
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover table-striped">
@@ -33,7 +43,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var item in Model)
+                            @foreach (var item in Model.Items)
                             {
                                 <tr>
                                     <td><input onclick="addToSelected(@item.ID, this)" type="checkbox" value="" /></td>
@@ -48,17 +58,24 @@
                                     {
                                         <td>Không giới hạn</td>
                                     }
-                                    <td>@item.Questions.Count</td>
+                                    <td>@item.Questions.Where(q => q.isActive == true).ToList().Count</td>
                                     <td>@item.Owner.UserName</td>
                                     <td>@item.Category.CategoryName</td>
                                     <td>
-                                        <a asp-action="ShowQuestions" asp-route-id="@item.ID">Xem toàn bộ câu hỏi <i class="fa fa-arrow-circle-right"></i></a>
+                                        <a asp-action="ShowQuestions" asp-route-id="@item.ID">Xem câu hỏi <i class="fa fa-arrow-circle-right"></i></a>
                                     </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
-                    <button class="btn btn-danger" data-toggle="modal" data-target="#deleteManyModal">Xoá các mục đã chọn</button>
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <button class="btn btn-danger mb-5" data-toggle="modal" data-target="#deleteManyModal">Xoá các mục đã chọn</button>
+                        </div>
+                        <div class="col-auto">
+                            @await Component.InvokeAsync("Pager", Model)
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -75,7 +92,7 @@
                 <div class="modal-body">Bạn muốn xoá các bài thi đã chọn?<p class="text-danger" id="warning"></p></div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Đóng</button>
-                    <form class="form-inline" asp-controller="Categories" asp-action="DeleteRange" method="post">
+                    <form class="form-inline">
                         <button type="button" onclick="postToDelete()" class="btn btn-primary">Xoá</button>
                     </form>
                 </div>

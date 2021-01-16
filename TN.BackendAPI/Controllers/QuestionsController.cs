@@ -34,6 +34,15 @@ namespace TN.BackendAPI.Controllers
                 return Ok(new ResponseBase<List<Question>>() { data = allQuestions });
             return Ok(new ResponseBase<List<Question>>() { msg = "Lỗi hệ thống" });
         }
+        // GET: api/Questions/GetNumber
+        [HttpGet("GetNumber")]
+        public async Task<IActionResult> GetNumberQuestion()
+        {
+            var allQuestions = await _questionService.GetAll();
+            if (allQuestions != null)
+                return Ok(new ResponseBase<string>() { data = allQuestions.Count.ToString() });
+            return Ok(new ResponseBase<string>() { msg = "Lỗi hệ thống" });
+        }
         // POST: api/Questions
         [HttpPost]
         public async Task<IActionResult> Create(QuestionModel model)

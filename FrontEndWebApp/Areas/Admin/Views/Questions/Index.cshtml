@@ -27,7 +27,7 @@
         <thead>
             <tr>
                 <th>
-                    ID
+                    #
                 </th>
                 <th>
                     Nội dung câu hỏi
@@ -39,9 +39,6 @@
                     Số thứ tự trong bài thi
                 </th>
                 <th>
-                    Trạng thái
-                </th>
-                <th>
                     Hành động
                 </th>
             </tr>
@@ -51,7 +48,7 @@
             {
                 <tr>
                     <td class="align-middle">
-                        @Html.DisplayFor(modelItem => item.ID)
+                        <input onclick="addToSelected(@item.ID, this)" type="checkbox" value="" />
                     </td>
                     <td class="align-middle">
                         @Html.DisplayFor(modelItem => item.QuesContent)
@@ -63,16 +60,6 @@
                         @Html.DisplayFor(modelItem => item.STT)
                     </td>
                     <td class="align-middle">
-                        @if (item.isActive)
-                        {
-                            <button id="status-@item.ID" type="button" class="btn btn-block btn-success">Hiện có</button>
-                        }
-                        else
-                        {
-                            <button id="status-@item.ID" type="button" class="btn btn-block btn-danger">Đã xoá</button>
-                        }
-                    </td>
-                    <td class="align-middle">
                         @Html.ActionLink("Sửa", "Edit", new { id = item.ID }) |
                         @Html.ActionLink("Chi tiết", "Details", new { id = item.ID })
 
@@ -81,7 +68,35 @@
             }
         </tbody>
     </table>
-    @await Component.InvokeAsync("Pager", Model)
+    <div class="row">
+        <div class="col-lg-4">
+            <button class="btn btn-danger mb-5" data-toggle="modal" data-target="#deleteManyModal">Xoá các mục đã chọn</button>
+        </div>
+        <div class="col-auto">
+            @await Component.InvokeAsync("Pager", Model)
+        </div>
+    </div>
+    
+    <div class="modal fade" id="deleteManyModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xác nhận</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Bạn muốn xoá các mục đã chọn?<p class="text-danger" id="warning"></p></div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Đóng</button>
+                    <form class="form-inline">
+                        <button type="button" onclick="postToDelete()" class="btn btn-primary">Xoá</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
 }
 else
 {
@@ -90,34 +105,45 @@ else
 @section Scripts
 {
     <script>
-        function LockAccount(id) {
-            $.ajax({
-                type: "POST",
-                url: "users/LockUser/" + id,
-                success: function (res) {
-                    if (res.statusChanged) {
-                        location.reload();
-                    }
-                    else {
-                        console.log("Lock failed");
-                    }
+        let s = []
+        var msgTxt = document.getElementById("warning");
+        function addToSelected(id, checkbox) {
+            if (!checkbox.checked) {
+                removeFromSelected(id);
+            }
+            else {
+                s.push(id)
+                msgTxt.textContent = "";
+            }
+        }
+        function removeFromSelected(uid) {
+            s.forEach(function (value, index) {
+                console.log(index + "" + value);
+                if (value == uid) {
+                    s.splice(index, 1);
                 }
-            });
-        };
-        function RestoreAccount(id) {
-            $.ajax({
-                type: "POST",
-                url: "users/RestoreUser/" + id,
-                success: function (res) {
-                    if (res.statusChanged) {
-                        location.reload();
+            })
+        }
+        function postToDelete() {
+            if (s != null && s.length < 1) {
+                msgTxt.textContent = "Chưa chọn mục nào";
+            }
+            else {
+                $.ajax({
+                    type: "POST",
+                    url: "Questions/DeleteMany/",
+                    contentType: 'application/json',
+                    data: JSON.stringify(s),
+                    success: function (res) {
+                        if (res.deleteResult == true)
+                            console.log('Deleted');
+                        else
+                            console.log('None');
+                        window.location.reload();
                     }
-                    else {
-                        console.log("Unlock failed");
-                    }
-                }
-            });
-        };
+                });
+            }
+        }
     </script>
 }
 

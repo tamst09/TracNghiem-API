@@ -25,9 +25,23 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             _httpClient.BaseAddress = new Uri(ConstStrings.BASE_URL_API);
         }
 
-        public Task<ResponseBase<Question>> Create(QuestionModel model, string accessToken)
+        public async Task<ResponseBase<Question>> Create(QuestionModel model, string accessToken)
         {
-            throw new NotImplementedException();
+            if (accessToken != null)
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var json = JsonConvert.SerializeObject(model);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("api/Questions/", httpContent);
+            if (response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                ResponseBase<Question> createResult = JsonConvert.DeserializeObject<ResponseBase<Question>>(body);
+                return createResult;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public Task<ResponseBase<string>> Delete(int id, string accessToken)
@@ -35,9 +49,23 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             throw new NotImplementedException();
         }
 
-        public Task<ResponseBase<string>> DeleteMany(DeleteRangeModel<int> lstId, string accessToken)
+        public async Task<ResponseBase<string>> DeleteMany(DeleteRangeModel<int> lstId, string accessToken)
         {
-            throw new NotImplementedException();
+            if (accessToken != null)
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var json = JsonConvert.SerializeObject(lstId);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("api/Questions/DeleteMany", httpContent);
+            if (response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                ResponseBase<string> deleteResult = JsonConvert.DeserializeObject<ResponseBase<string>>(body);
+                return deleteResult;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public Task<ResponseBase<List<Question>>> GetAll(string accessToken)
@@ -69,14 +97,57 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             }
         }
 
-        public Task<ResponseBase<Question>> GetByID(int id, string accessToken)
+        public async Task<ResponseBase<Question>> GetByID(int id, string accessToken)
         {
-            throw new NotImplementedException();
+            if (accessToken != null)
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var response = await _httpClient.GetAsync("api/Questions/"+id.ToString());
+            if (response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                ResponseBase<Question> question = JsonConvert.DeserializeObject<ResponseBase<Question>>(body);
+                return question;
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        public Task<ResponseBase<string>> Update(QuestionModel model, string accessToken)
+        public async Task<ResponseBase<string>> GetNumberQuestion(string accessToken)
         {
-            throw new NotImplementedException();
+            if (accessToken != null)
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var response = await _httpClient.GetAsync("api/Questions/GetNumber");
+            if (response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                ResponseBase<string> updateResult = JsonConvert.DeserializeObject<ResponseBase<string>>(body);
+                return updateResult;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public async Task<ResponseBase<string>> Update(QuestionModel model, string accessToken)
+        {
+            if (accessToken != null)
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var json = JsonConvert.SerializeObject(model);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PutAsync("api/Questions/"+model.ID, httpContent);
+            if (response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                ResponseBase<string> updateResult = JsonConvert.DeserializeObject<ResponseBase<string>>(body);
+                return updateResult;
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

@@ -45,9 +45,25 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             }
         }
 
-        public Task<PagedResult<Exam>> GetAllPaging(ExamPagingRequest model, string accessToken)
+        public async Task<ResponseBase<PagedResult<Exam>>> GetAllPaging(ExamPagingRequest model, string accessToken)
         {
-            throw new NotImplementedException();
+            if (accessToken != null)
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            }
+            var json = JsonConvert.SerializeObject(model);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("api/Exams/Admin/Paged", httpContent);
+            if (response.IsSuccessStatusCode)
+            {
+                var resultContent = await response.Content.ReadAsStringAsync();
+                ResponseBase<PagedResult<Exam>> exams = JsonConvert.DeserializeObject<ResponseBase<PagedResult<Exam>>>(resultContent);
+                return exams;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public async Task<ResponseBase<Exam>> GetByID(int id, string accessToken)

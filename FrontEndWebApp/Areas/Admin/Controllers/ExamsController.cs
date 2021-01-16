@@ -30,16 +30,30 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             _questionManage = questionManage;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string keyword, int pageIndex = 1, int pageSize = 10)
         {
             string accessToken = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var allExam = await  _examService.GetAll(accessToken);
-            if (allExam.msg != null)
+            try
             {
-                ViewData["msg"] = allExam.msg;
-                return View();
+                var model = new ExamPagingRequest()
+                {
+                    keyword = keyword,
+                    PageIndex = pageIndex,
+                    PageSize = pageSize
+                };
+                var allExam = await _examService.GetAllPaging(model, accessToken);
+                if (allExam.msg != null)
+                {
+                    ViewData["msg"] = allExam.msg;
+                    return View();
+                }
+                allExam.data.Items = allExam.data.Items.OrderByDescending(e => e.TimeCreated).ToList();
+                return View(allExam.data);
             }
-            return View(allExam.data);   
+            catch (Exception)
+            {
+                return View();
+            }   
         }
 
         public IActionResult Create()
@@ -169,6 +183,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             ViewData["SubTitle"] = "";
             ViewData["msg"] = "";
+            ViewData["examID"] = id;
             try
             {
                 var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);

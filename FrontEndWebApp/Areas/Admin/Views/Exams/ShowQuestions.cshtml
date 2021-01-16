@@ -23,20 +23,20 @@
             </div>
         </form>
     </div>
+    <p>
+        <a id="btnADD" class="btn btn-success" data-toggle="modal" data-target="#createModal" data-exam-id="@ViewData["examID"]">Thêm mới</a>
+    </p>
     <table class="table">
         <thead>
             <tr>
                 <th>
-                    ID
+                    #
                 </th>
                 <th>
                     Nội dung câu hỏi
                 </th>
                 <th>
                     Số thứ tự
-                </th>
-                <th>
-                    Trạng thái
                 </th>
                 <th>
                     Hành động
@@ -48,7 +48,7 @@
             {
                 <tr>
                     <td class="align-middle">
-                        @Html.DisplayFor(modelItem => item.ID)
+                        <input onclick="addToSelected(@item.ID, this)" type="checkbox" value="" />
                     </td>
                     <td class="align-middle">
                         @Html.DisplayFor(modelItem => item.QuesContent)
@@ -57,25 +57,72 @@
                         @Html.DisplayFor(modelItem => item.STT)
                     </td>
                     <td class="align-middle">
-                        @if (item.isActive)
-                        {
-                            <button id="status-@item.ID" type="button" class="btn btn-block btn-success">Hiện có</button>
-                        }
-                        else
-                        {
-                            <button id="status-@item.ID" type="button" class="btn btn-block btn-danger">Đã xoá</button>
-                        }
-                    </td>
-                    <td class="align-middle">
-                        @Html.ActionLink("Sửa", "Edit", new { id = item.ID }) |
+                        <a class="btn btn-success" onclick="openEditForm(@item.ID)" data-toggle="modal" data-target="#updateQuesModal">Sửa</a>
                         @Html.ActionLink("Chi tiết", "Details", new { id = item.ID })
-
                     </td>
                 </tr>
             }
         </tbody>
     </table>
-    @await Component.InvokeAsync("Pager", Model)
+    <div class="row">
+        <div class="col-lg-4">
+            <button class="btn btn-danger mb-5" data-toggle="modal" data-target="#deleteManyModal">Xoá các mục đã chọn</button>
+        </div>
+        <div class="col-auto">
+            @await Component.InvokeAsync("Pager", Model)
+        </div>
+    </div>
+
+    <div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm câu hỏi</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="partial"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="updateQuesModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chỉnh sửa câu hỏi</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="partial2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteManyModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xác nhận</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Bạn muốn xoá các mục đã chọn?<p class="text-danger" id="warning"></p></div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Đóng</button>
+                    <form class="form-inline">
+                        <button type="button" onclick="postToDelete()" class="btn btn-primary">Xoá</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 else
 {
@@ -84,34 +131,102 @@ else
 @section Scripts
 {
     <script>
-        function LockAccount(id) {
-            $.ajax({
-                type: "POST",
-                url: "users/LockUser/" + id,
-                success: function (res) {
-                    if (res.statusChanged) {
-                        location.reload();
-                    }
-                    else {
-                        console.log("Lock failed");
-                    }
-                }
+        function openEditForm(id) {
+                console.log(id);
+                var route2 = '@Url.Action("Update", "Questions")?ID=' + id;
+                $('#partial2').load(route2);
+            };
+        $(function () {
+            $('#btnADD').click(function () {
+                var id = $(this).data('exam-id');
+                console.log(id);
+                var route = '@Url.Action("Create", "Questions")?examID=' + id;
+                $('#partial').load(route);
             });
-        };
-        function RestoreAccount(id) {
-            $.ajax({
-                type: "POST",
-                url: "users/RestoreUser/" + id,
-                success: function (res) {
-                    if (res.statusChanged) {
-                        location.reload();
+        });
+        $(document).ready(function () {
+            // This WILL work because we are listening on the 'document',
+            // for a click on an element with an ID of #test-element
+            $(document).on("click", "#btnSave", function () {
+                var form = $(this).parents('.modal').find('form');
+                var actionUrl = form.attr('action');
+                var d = form.serialize();
+                var jsond = JSON.stringify(d)
+                console.log(actionUrl);
+                console.log(jsond);
+                $.ajax({
+                    type: "POST",
+                    url: "https://localhost:44363/Admin/Questions/Create/?" + d,
+                    contentType: 'application/json',
+                    data: JSON.stringify(d),
+                    success: function (res) {
+                        if (res.msg)
+                            console.log(res.msg);
+                        else
+                            console.log('None');
+                        window.location.reload();
                     }
-                    else {
-                        console.log("Unlock failed");
-                    }
-                }
+                });
             });
-        };
+            $(document).on("click", "#btnUpdate", function () {
+                var form = $(this).parents('.modal').find('form');
+                var actionUrl = form.attr('action');
+                var d = form.serialize();
+                var jsond = JSON.stringify(d)
+                console.log(actionUrl);
+                console.log(jsond);
+                $.ajax({
+                    type: "POST",
+                    url: "https://localhost:44363/Admin/Questions/Update/?" + d,
+                    contentType: 'application/json',
+                    data: JSON.stringify(d),
+                    success: function (res) {
+                        if (res.msg)
+                            console.log(res.msg);
+                        else
+                            console.log('None');
+                        window.location.reload();
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        let s = []
+        var msgTxt = document.getElementById("warning");
+        function addToSelected(id, checkbox) {
+            if (!checkbox.checked) {
+                removeFromSelected(id);
+            }
+            else {
+                s.push(id)
+                msgTxt.textContent = "";
+            }
+        }
+        function removeFromSelected(uid) {
+            s.forEach(function (value, index) {
+                console.log(index + "" + value);
+                if (value == uid) {
+                    s.splice(index, 1);
+                }
+            })
+        }
+        function postToDelete() {
+            if (s != null && s.length < 1) {
+                msgTxt.textContent = "Chưa chọn mục nào";
+            }
+            else {
+                $.ajax({
+                    type: "POST",
+                    url: "https://localhost:44363/Admin/Questions/DeleteMany/",
+                    contentType: 'application/json',
+                    data: JSON.stringify(s),
+                    success: function (res) {
+                        window.location.reload();
+                    }
+                });
+            }
+        }
     </script>
 }
 

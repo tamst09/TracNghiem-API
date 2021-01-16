@@ -8,52 +8,49 @@
 
 <h1>Tạo người dùng mới</h1>
 <hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-area="Admin" asp-controller="Users" asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger">
-                <span class="text-danger">@ViewData["Error"]</span>
-            </div>
+<form asp-action="Create" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-md-4">
             <div class="form-group">
-                <label asp-for="UserName" class="control-label">Tên tài khoản*</label>
-                <input asp-for="UserName" class="form-control"/>
+                <label asp-for="UserName" class="control-label">Tên tài khoản</label>
+                <input asp-for="UserName" class="form-control" />
                 <span asp-validation-for="UserName" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Name" class="control-label">Họ tên*</label>
+                <label asp-for="Name" class="control-label">Họ tên</label>
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Email" class="control-label">Email*</label>
-                <input asp-for="Email" class="form-control"/>
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PhoneNumber" class="control-label">Số điện thoại</label>
-                <input asp-for="PhoneNumber" class="form-control"/>
-                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DoB" class="control-label">Ngày sinh*</label>
+                <label asp-for="DoB" class="control-label">Ngày sinh</label>
                 <input asp-for="DoB" class="form-control" />
                 <span asp-validation-for="DoB" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Password" class="control-label">Mật khẩu*</label>
-                <input asp-for="Password" class="form-control"/>
-                <span asp-validation-for="Password" class="text-danger"></span>
+                <input type="submit" value="Lưu" class="btn btn-primary" />
+                <a class="btn btn-link" asp-action="Index">Trở về</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label asp-for="PhoneNumber" class="control-label">Số điện thoại</label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="ConfirmPassword" class="control-label">Xác nhận mật khẩu*</label>
-                <input asp-for="ConfirmPassword" class="form-control"/>
-                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                <label asp-for="Email" class="control-label">Địa chỉ email</label>
+                <input readonly asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Tạo" class="btn btn-primary" />
-                <button type="button" class="btn btn-link" onclick="window.history.back()">Trở về</button>
+            <label class="control-label">Ảnh đại diện</label>
+            <div class="form-group custom-file">
+                <input asp-for="AvatarPhoto" type="file" class="custom-file-input" id="customFile">
+                <label for="customFile" class="custom-file-label">Tải lên</label>
             </div>
-        </form>
+        </div>
     </div>
-</div>
+    <div class="row">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    </div>
 
+</form>

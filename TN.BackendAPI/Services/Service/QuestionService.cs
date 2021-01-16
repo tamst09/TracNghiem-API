@@ -24,7 +24,7 @@ namespace TN.BackendAPI.Services.Service
 
         public async Task<Question> Create(QuestionModel model)
         {
-            var exam = await _db.Exams.Where(e => e.isActive == true && e.ID == model.ExamID).FirstAsync();
+            var exam = await _db.Exams.Where(e => e.isActive == true && e.ID == model.ExamID).Include(e=>e.Questions).FirstAsync();
             if (exam == null)
             {
                 return null;
@@ -93,7 +93,7 @@ namespace TN.BackendAPI.Services.Service
 
         public async Task<List<Question>> GetAll()
         {
-            var lstQuestion = await _db.Questions.Where(q => q.isActive == true).ToListAsync();
+            var lstQuestion = await _db.Questions.Where(q => q.isActive == true && q.Exam.isActive == true).ToListAsync();
             return lstQuestion;
         }
 
@@ -155,7 +155,7 @@ namespace TN.BackendAPI.Services.Service
 
         public async Task<Question> GetByID(int id)
         {
-            var question = await _db.Questions.Where(q => q.isActive == true).Include(q => q.Exam).Include(q => q.Results).FirstOrDefaultAsync();
+            var question = await _db.Questions.Where(q => q.isActive == true && q.ID == id && q.Exam.isActive == true).Include(q => q.Exam).Include(q => q.Results).FirstOrDefaultAsync();
             return question;
         }
 

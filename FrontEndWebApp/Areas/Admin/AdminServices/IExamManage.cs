@@ -12,7 +12,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
     public interface IExamManage
     {
         Task<ResponseBase<List<Exam>>> GetAll(string accessToken);
-        Task<PagedResult<Exam>> GetAllPaging(ExamPagingRequest model, string accessToken);
+        Task<ResponseBase<PagedResult<Exam>>> GetAllPaging(ExamPagingRequest model, string accessToken);
         Task<ResponseBase<Exam>> GetByID(int id, string accessToken);
         Task<ResponseBase<Exam>> Update(int id, ExamModel model, string accessToken);
         Task<ResponseBase<Exam>> Delete(int id, string accessToken);

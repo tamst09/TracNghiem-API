@@ -8,7 +8,7 @@
 <h3>Người dùng</h3>
 
 
-<div class="d-sm-flex mb-4">
+<div class="d-sm-flex mb-2">
     <!-- Topbar Search -->
     <p>
         <a asp-action="Create">Tạo mới</a>
@@ -31,9 +31,6 @@
 
             </th>
             <th>
-                ID
-            </th>
-            <th>
                 Tên tài khoản
             </th>
             <th>
@@ -52,11 +49,8 @@
         @foreach (var item in Model.Items)
         {
             <tr>
-                <td>
-                    <img class="img-profile rounded-circle" style="width: 50px; height: 50px; object-fit: cover" loading="lazy" src="@item.Avatar"/>
-                </td>
                 <td class="align-middle">
-                    @Html.DisplayFor(modelItem => item.Id)
+                    <img class="img-profile rounded-circle" style="width: 50px; height: 50px; object-fit: cover" loading="lazy" src="@item.Avatar"/>
                 </td>
                 <td class="align-middle">
                     @Html.DisplayFor(modelItem => item.UserName)
@@ -70,11 +64,25 @@
                 <td class="align-middle">
                     @if (item.isActive)
                     {
-                        <button id="status-@item.Id" onclick="LockAccount(@item.Id)" type="button" class="btn btn-block btn-success">Hoạt động</button>
+                        @if (item.Id.ToString() == User.FindFirst("UserID").Value)
+                        {
+                            <button disabled id="status-@item.Id" type="button" class="btn btn-block btn-success">Hoạt động</button>
+                        }
+                        else
+                        {
+                            <button id="status-@item.Id" onclick="LockAccount(@item.Id)" type="button" class="btn btn-block btn-success">Hoạt động</button>
+                        }
                     }
-                    else
+                    @if (item.isActive == false && item.Id.ToString() != User.FindFirst("UserID").Value)
                     {
-                        <button id="status-@item.Id" onclick="RestoreAccount(@item.Id)" type="button" class="btn btn-block btn-danger">Đã khoá</button>
+                        @if (item.Id.ToString() == User.FindFirst("UserID").Value)
+                        {
+                            <button disabled id="status-@item.Id" type="button" class="btn btn-block btn-danger">Đã khoá</button>
+                        }
+                        else
+                        {
+                            <button id="status-@item.Id" onclick="RestoreAccount(@item.Id)" type="button" class="btn btn-block btn-danger">Đã khoá</button>
+                        }
                     }
                 </td>
                 <td class="align-middle">
