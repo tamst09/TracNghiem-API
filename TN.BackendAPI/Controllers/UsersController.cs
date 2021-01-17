@@ -184,11 +184,25 @@ namespace TN.BackendAPI.Controllers
         }
 
 
-        // PUT: api/Users/UpdateUser/5
-        [HttpPut("UpdateUser/{userID}")]
-        public async Task<IActionResult> PutUser(int userID, [FromBody] UserViewModel user)
+        // PUT: api/Users/EditUser
+        [HttpPost("EditUser")]
+        [Authorize("admin")]
+        public async Task<IActionResult> UpdateUser([FromBody] UserViewModel model)
         {
-            var u = await _userService.EditUserInfo(userID, user);
+            var u = await _userService.EditUserInfo(model.Id, model);
+            if (u == null)
+            {
+                return Ok(new ResponseBase<AppUser>() { msg = "Invalid user info" });
+            }
+            return Ok(new ResponseBase<AppUser>() { data = u });
+        }
+
+        // PUT: api/Users/UpdateProfile/5
+        [HttpPut("UpdateProfile/{userID}")]
+        [Authorize("admin")]
+        public async Task<IActionResult> EditProfile(int userID, [FromBody] UserViewModel user)
+        {
+            var u = await _userService.EditProfile(userID, user);
             if (u == null)
             {
                 return Ok(new ResponseBase<AppUser>() { msg = "Invalid user info" });

@@ -13,6 +13,7 @@ namespace TN.BackendAPI.Services.IServices
         Task<List<AppUser>> GetAll();
         Task<AppUser> GetByID(int id);
         Task<JwtResponse> Login(LoginModel model);
+        Task<AppUser> EditProfile(int id, UserViewModel user);
         Task<AppUser> EditUserInfo(int id, UserViewModel user);
         Task<bool> DeleteUser(int id);
         Task<bool> RestoreUser(int id);

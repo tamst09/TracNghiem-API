@@ -5,7 +5,7 @@
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Thay đổi thông tin</h1>
+<h3>Thay đổi thông tin</h3>
 <hr />
 
 
@@ -54,10 +54,20 @@
         </div>
     </div>
     <div class="row">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="text-danger">@(ViewData["msg"]==null?"":ViewData["msg"])</div>
         <input type="hidden" asp-for="Id" class="form-control" value="@Model.Id" />
         <input type="hidden" asp-for="isActive" class="form-control" value="@Model.isActive" />
     </div>
 
 </form>
+
+@section Scripts{ 
+    <script>
+    // Add the following code if you want the name of the file appear on select
+    $(".custom-file-input").on("change", function () {
+        var fileName = $(this).val().split("\\").pop();
+        $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+    });
+    </script>
+}
 

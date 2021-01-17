@@ -122,7 +122,7 @@ namespace FrontEndWebApp.Services
             {
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
             }
-            var response = await _client.PutAsync("/api/users/UpdateUser/"+uid.ToString(), httpContent);
+            var response = await _client.PutAsync("/api/users/UpdateProfile/"+uid.ToString(), httpContent);
 
             if (response.IsSuccessStatusCode)
             {

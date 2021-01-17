@@ -15,5 +15,6 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
         Task<ResponseBase<JwtResponse>> CreateUser(UserViewModel model, string accessToken);
         Task<ResponseBase<string>> LockUser(int id, string accessToken);
         Task<ResponseBase<string>> RestoreUser(int id, string accessToken);
+        Task<ResponseBase<UserViewModel>> UpdateUserInfo(int uid, UserViewModel model, string access_token);
     }
 }

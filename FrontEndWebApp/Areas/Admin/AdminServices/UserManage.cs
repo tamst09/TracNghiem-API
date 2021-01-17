@@ -43,6 +43,29 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             }
         }
 
+        public async Task<ResponseBase<UserViewModel>> UpdateUserInfo(int uid, UserViewModel model, string access_token)
+        {
+            if (!string.IsNullOrEmpty(access_token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
+            }
+            model.Id = uid;
+            var json = JsonConvert.SerializeObject(model);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("api/Users/EditUser", httpContent);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var user = await response.Content.ReadAsStringAsync();
+                ResponseBase<UserViewModel> uservm = JsonConvert.DeserializeObject<ResponseBase<UserViewModel>>(user);
+                return uservm;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public async Task<ResponseBase<NumberUserInfo>> GetNumberOfUsers(string access_token)
         {
             if (access_token != null)

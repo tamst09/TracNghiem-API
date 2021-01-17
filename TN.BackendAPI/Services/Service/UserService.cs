@@ -90,7 +90,7 @@ namespace TN.BackendAPI.Services.Service
             // return
             return new PagedResult<UserViewModel>() { Items = data, TotalRecords = totalrecord, TotalPages = soTrang, PageIndex = model.PageIndex, PageSize = model.PageSize };
         }
-        public async Task<AppUser> EditUserInfo(int id, UserViewModel model)
+        public async Task<AppUser> EditProfile(int id, UserViewModel model)
         {
             if (id != model.Id)
             {
@@ -113,7 +113,40 @@ namespace TN.BackendAPI.Services.Service
             {
                 user.PhoneNumber = model.PhoneNumber;
             }
-            user.isActive = model.isActive;
+            if (model.Avatar != null)
+            {
+                user.Avatar = model.Avatar;
+            }
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return null;
+            }
+            var user2 = await _dbContext.Users.FindAsync(id);
+            return user2;
+        }
+        public async Task<AppUser> EditUserInfo(int id, UserViewModel model)
+        {
+            var user = await _dbContext.Users.FindAsync(id);
+            if (!string.IsNullOrEmpty(model.Name) && !string.IsNullOrEmpty(model.Name))
+            {
+                user.Name = model.Name;
+            }
+            if (model.DoB != null)
+            {
+                user.DoB = model.DoB;
+            }
+            if (model.Email != null)
+            {
+                user.Email = model.Email;
+            }
+            if (model.PhoneNumber != null)
+            {
+                user.PhoneNumber = model.PhoneNumber;
+            }
             if (model.Avatar != null)
             {
                 user.Avatar = model.Avatar;

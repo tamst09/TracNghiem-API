@@ -1,9 +1,11 @@
 ﻿using FrontEndWebApp.Areas.Admin.AdminServices;
 using FrontEndWebApp.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using TN.ViewModels.Catalog.User;
 using TN.ViewModels.Common;
@@ -16,11 +18,13 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
     {
         private readonly IAccountService _accountService;   // thao tac voi tai khoan
         private readonly IUserManage _userManage;           // quan ly user cua admin
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public UsersController(IAccountService accountService, IUserManage userManage)
+        public UsersController(IAccountService accountService, IUserManage userManage, IWebHostEnvironment webHostEnvironment)
         {
             _accountService = accountService;
             _userManage = userManage;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: Users
@@ -79,6 +83,17 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             }
             try
             {
+                if (model.AvatarPhoto != null)
+                {
+                    string folder = "images/cover/user/";
+                    var extensions = model.AvatarPhoto.FileName.Split('.');
+                    var extension = extensions[extensions.Length - 1];
+                    folder += model.Id.ToString() + "." + extension;
+                    model.Avatar = "/" + folder;
+                    string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
+                    await model.AvatarPhoto.CopyToAsync(new FileStream(serverFolder, FileMode.Create));
+                }
+                model.AvatarPhoto = null;
                 var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var createUserResult = await _userManage.CreateUser(model, token);
                 //error
@@ -118,18 +133,29 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
 
         // POST: Users/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(int id, UserViewModel model)
         {
             try
             {
                 var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                var userUpdated = await _accountService.UpdateProfile(id, model, access_token);
+                if (model.AvatarPhoto != null)
+                {
+                    string folder = "images/cover/user/";
+                    var extensions = model.AvatarPhoto.FileName.Split('.');
+                    var extension = extensions[extensions.Length - 1];
+                    folder += model.Id.ToString()+"."+extension;
+                    model.Avatar = "/" + folder;
+                    string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
+                    await model.AvatarPhoto.CopyToAsync(new FileStream(serverFolder, FileMode.Create));
+                }
+                model.AvatarPhoto = null;
+                var userUpdated = await _userManage.UpdateUserInfo(id, model, access_token);
                 return RedirectToAction("Details", "Users", new { id = userUpdated.data.Id });
             }
             catch
             {
-                return View();
+                ViewData["msg"] = "Cập nhật thất bại";
+                return View(model);
             }
         }
         // POST: Users/LockUser/5

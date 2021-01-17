@@ -178,10 +178,12 @@ namespace FrontEndWebApp.Controllers
             {
                 return View(model);
             }
-            if (model.AvatarPhotoURL != null)
+            if (model.AvatarFile != null)
             {
                 string folder = "images/cover/user/";
-                folder += Guid.NewGuid().ToString() + "_" + model.AvatarFile.FileName;
+                var extensions = model.AvatarFile.FileName.Split('.');
+                var extension = extensions[extensions.Length - 1];
+                folder += model.Id.ToString() + "." + extension;
                 model.AvatarPhotoURL = "/" + folder;
                 string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
                 await model.AvatarFile.CopyToAsync(new FileStream(serverFolder, FileMode.Create));
@@ -333,13 +335,15 @@ namespace FrontEndWebApp.Controllers
             if (model.AvatarPhoto != null)
             {
                 string folder = "images/cover/user/";
-                folder += Guid.NewGuid().ToString() + "_" + model.AvatarPhoto.FileName;
+                string[] extensions = null;
+                extensions = model.AvatarPhoto.FileName.Split('.');
+                var extension = extensions[extensions.Length - 1];
+                folder += model.Id.ToString() + "." + extension;
                 model.Avatar = "/"+folder;
                 string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
                 await model.AvatarPhoto.CopyToAsync(new FileStream(serverFolder, FileMode.Create));
             }
             model.AvatarPhoto = null;
-            string url = model.Avatar;
             var userID = Int32.Parse(User.FindFirst("UserID").Value);
             if(id != userID)
             {
