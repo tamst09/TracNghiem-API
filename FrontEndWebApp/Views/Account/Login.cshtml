@@ -14,6 +14,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
+    <meta name="google-signin-client_id" content="104872694801-4vdhqd2c8e32j65oqd50idd43dh08teo.apps.googleusercontent.com">
 
     <title>Sign in</title>
 
@@ -23,6 +24,9 @@
 
     <!-- Custom styles for this template-->
     <link href="~/css/sb-admin-2.min.css" rel="stylesheet">
+    <!-- Google api script -->
+    <script src="https://apis.google.com/js/platform.js?onload=onLoadGoogleCallback" async defer></script>
+    <!-- Facebook api script -->
     <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v9.0&appId=2364928580469501&autoLogAppEvents=1" nonce="ppQqlDkd"></script>
     <script>
         window.fbAsyncInit = function () {
@@ -40,36 +44,9 @@
         function fb_login() {
             FB.login(function (response) {
                 if (response.authResponse != null) {
-                    document.getElementById("fbTokenValue").value = response.authResponse.accessToken;
-                    document.getElementById("fbProviderValue").value = "Facebook";
+                    document.getElementById("TokenValue").value = response.authResponse.accessToken;
+                    document.getElementById("ProviderValue").value = "Facebook";
                     document.getElementById("external-account").submit();
-
-
-
-                    FB.api('/me', function (response) {
-                        user_email = response.email; //get user email
-                        // you can store this data into your database
-                    });
-                    //$.ajax({
-                    //    type: "POST",
-                    //    url: "/Auth/LoginFacebook",
-                    //    data: JSON.stringify(response)
-                    //    contentType: "application/json; charset=utf-8",
-                    //    dataType: "json",
-                    //    success: function (result) {
-                    //        console.log("post ok");
-                    //        if (result.redirectUrl !== undefined) {
-                    //            window.location.replace(result.redirectUrl);
-                    //        }
-                    //    },
-                    //    failure: function (response) {
-                    //        console.log("post failure");
-                    //    },
-                    //    error: function (response) {
-                    //        console.log("post error");
-                    //    }
-                    //})
-
                 } else {
                     //user hit cancel button
                     console.log('User cancelled login or did not fully authorize.');
@@ -84,6 +61,30 @@
             e.async = true;
             document.getElementById('fb-root').appendChild(e);
         }());
+
+        function onLoadGoogleCallback() {
+            gapi.load('auth2', function () {
+                auth2 = gapi.auth2.init({
+                    client_id: '104872694801-4vdhqd2c8e32j65oqd50idd43dh08teo.apps.googleusercontent.com',
+                    cookiepolicy: 'single_host_origin',
+                    scope: 'profile'
+                });
+
+                auth2.attachClickHandler(element, {},
+                    function (googleUser) {
+                        document.getElementById("TokenValue").value = googleUser.getAuthResponse().id_token;
+                        console.log(googleUser.getAuthResponse().id_token);
+                        document.getElementById("ProviderValue").value = "Google";
+                        document.getElementById("external-account").submit();
+                    }, function (error) {
+                        console.log('Sign-in error', error);
+                        var msgTxt = document.getElementById("msg");
+                        msgTxt.textContent = "Sign-in error";
+                    }
+                );
+            });
+            element = document.getElementById('googleSignIn');
+        }
     </script>
 </head>
 
@@ -100,7 +101,9 @@
                     <div class="card-body p-0">
                         <!-- Nested Row within Card Body -->
                         <div class="row">
-                            <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
+                            <div class="col-lg-6">
+                                <img style="max-width: 100%; max-height: 100%; background-size: cover;" src="~/images/common/loginbg.jpg"/>
+                            </div>
                             <div class="col-lg-6">
                                 <div class="p-5">
                                     <div class="text-center">
@@ -114,7 +117,7 @@
                                         <div class="form-group">
                                             <input type="password" asp-for="@Model.Password" class="form-control form-control-user" placeholder="Password">
                                             <span asp-validation-for="@Model.Password" class="text-danger"></span>
-                                            <span class="text-danger">@ViewData["msg"]</span>
+                                            <span id="msg" class="text-danger">@ViewData["msg"]</span>
                                         </div>
                                         <div class="form-group">
                                             <div class="custom-control custom-checkbox small">
@@ -128,12 +131,12 @@
                                     </form>
                                     <form id="external-account" asp-action="ExternalLogin" asp-controller="Account" method="post" class="user">
                                         <div>
-                                            <input type="hidden" name="token" id="fbTokenValue" />
-                                            <input type="hidden" name="provider" id="fbProviderValue" />
+                                            <input type="hidden" name="token" id="TokenValue" />
+                                            <input type="hidden" name="provider" id="ProviderValue" />
                                             <button type="button" onclick="fb_login()" class="btn btn-facebook btn-user btn-block">
                                                 <i class="fab fa-facebook-f fa-fw"></i> Login with Facebook
                                             </button>
-                                            <button type="submit" name="provider" value="Google" class="btn btn-google btn-user btn-block">
+                                            <button id="googleSignIn" type="button" class="btn btn-google btn-user btn-block" data-onsuccess="onSignIn">
                                                 <i class="fab fa-google fa-fw"></i> Login with Google
                                             </button>
                                         </div>

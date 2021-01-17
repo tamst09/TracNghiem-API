@@ -17,10 +17,10 @@ namespace TN.Data.Config
             builder.HasOne(e => e.Owner).WithMany().HasForeignKey(e => e.OwnerID).OnDelete(DeleteBehavior.Cascade);
             builder.HasMany(e => e.Questions).WithOne(q => q.Exam);
             builder.Property(e => e.ExamName).HasMaxLength(50).IsRequired();
-            builder.Property(e => e.Time).IsRequired(false);
+            builder.Property(e => e.Time).IsRequired();
             builder.Property(e => e.OwnerID).IsRequired();
             builder.Property(e => e.NumOfAttemps).HasDefaultValue(0);
-            builder.Property(e => e.CategoryID).IsRequired(false);
+            builder.Property(e => e.CategoryID).IsRequired();
             builder.Property(e => e.TimeCreated).IsRequired();
             builder.Property(c => c.isActive).HasDefaultValue(true);
         }

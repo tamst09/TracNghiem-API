@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Common;
 
 namespace TN.BackendAPI.Services.IServices

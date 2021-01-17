@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Category;
+using TN.ViewModels.Catalog.Question;
 using TN.ViewModels.Common;
 
 namespace TN.BackendAPI.Services.Service
@@ -20,80 +22,170 @@ namespace TN.BackendAPI.Services.Service
             _db = db;
         }
 
-        public Task<PagedResult<Question>> GetAllQuestionPaging(GetQuestionPagingRequest request)
+        public async Task<Question> Create(QuestionModel model)
         {
-            throw new NotImplementedException();
-        }
-
-
-        public async Task<List<Question>> GetListQuestionByExam(int examID)
-        {
-            var k = await _db.Exams.Include(e => e.Questions).FirstOrDefaultAsync(e => e.ID == examID);
-            if (k == null)
+            var exam = await _db.Exams.Where(e => e.isActive == true && e.ID == model.ExamID).Include(e=>e.Questions).FirstAsync();
+            if (exam == null)
             {
                 return null;
             }
-            var result = k.Questions.ToList();
-            return result;
-        }
-
-        public async Task<Question> Create(Question request, int examID)
-        {
-            var question = new Question()
+            var newQuestion = new Question()
             {
-                QuesContent = request.QuesContent,
-                Option1 = request.Option1,
-                Option2 = request.Option2,
-                Option3 = request.Option3,
-                Option4 = request.Option4,
-                Answer = request.Answer,
-                ImgURL = request.ImgURL,
-                ExamID = examID,
-                STT = request.STT,
-                isActive = true
+                QuesContent = model.QuesContent,
+                Option1 = model.Option1,
+                Option2 = model.Option2,
+                Option3 = model.Option3,
+                Option4 = model.Option4,
+                Answer = model.Answer,
+                isActive = true,
+                ExamID = model.ExamID,
+                ImgURL = model.ImgURL,
+                Exam = exam
             };
-            //if (request.Image!=null)
-            //    exam.ImageURL = await this.SaveFile(request.Image);
-            _db.Questions.Add(question);
+            if(exam.Questions == null)
+            {
+                newQuestion.STT = 1;
+            }
+            else
+            {
+                newQuestion.STT = exam.Questions.Count + 1;
+            }
+            _db.Questions.Add(newQuestion);
             await _db.SaveChangesAsync();
-            return request;
+            return newQuestion;
         }
 
-        public async Task<Question> Update(Question request)
+        public async Task<bool> Delete(int id)
         {
-            var question = await _db.Questions.FindAsync(request.ID);
-
-            if (question == null) return null;
-            question.QuesContent = request.QuesContent;
-            question.Option1 = request.Option1;
-            question.Option2 = request.Option2;
-            question.Option3 = request.Option3;
-            question.Option4 = request.Option4;
-            question.Answer = request.Answer;
-            question.ImgURL = request.ImgURL;
-            question.STT = request.STT;
-            //if(request.Image!=null)
-            //    exam.ImageURL = await this.SaveFile(request.Image);
-            await _db.SaveChangesAsync();
-            return request;
-        }
-
-        public async Task<bool> Delete(int questionID)
-        {
-            var question = await _db.Questions.FindAsync(questionID);
-            if (question == null) return false;
-            if (question.isActive == true)
+            var question = await _db.Questions.Where(q => q.isActive == true).FirstOrDefaultAsync();
+            if (question != null)
+            {
+                question.Results = null;
                 question.isActive = false;
-            await _db.SaveChangesAsync();
-            return true;
+                await _db.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> DeleteMany(DeleteRangeModel<int> lstId)
+        {
+            try
+            {
+                IEnumerable<Question> lstExam = new List<Question>();
+                foreach (var id in lstId.ListItem)
+                {
+                    var q = await _db.Questions.FindAsync(id);
+                    if (q.Results != null)
+                    {
+                        q.Results = null;
+                    }
+                    q.isActive = false;
+                }
+                await _db.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public async Task<List<Question>> GetAll()
+        {
+            var lstQuestion = await _db.Questions.Where(q => q.isActive == true && q.Exam.isActive == true).ToListAsync();
+            return lstQuestion;
+        }
+
+        public async Task<List<Question>> GetAllByExamID(int examID)
+        {
+            var exam = await _db.Exams.Where(e => e.ID == examID && e.isActive == true).FirstOrDefaultAsync();
+            if (exam == null)
+            {
+                return null;
+            }
+            return exam.Questions;
+        }
+
+        public async Task<PagedResult<Question>> GetAllPaging(QuestionPagingRequest model)
+        {
+            var allQuestions = await _db.Questions.Where(q => q.isActive == true && q.Exam.isActive == true).Include(q => q.Results).Include(q => q.Exam).ToListAsync();
+            // check keyword de xem co dang tim kiem hay phan loai ko
+            // sau do gan vao Query o tren
+            if (!string.IsNullOrEmpty(model.keyword))
+            {
+                allQuestions = allQuestions.Where(q => q.QuesContent.Contains(model.keyword) ||
+                q.Exam.ExamName.Contains(model.keyword)
+                ).ToList();
+            }
+            // get total row from query
+            int totalrecord = allQuestions.Count;
+            // get so trang
+            int soTrang = (totalrecord % model.PageSize == 0) ? (totalrecord / model.PageSize) : (totalrecord / model.PageSize + 1);
+            // get data and paging
+            var data = allQuestions.Skip((model.PageIndex - 1) * model.PageSize)
+                .Take(model.PageSize)
+                .Select(q => new Question()
+                {
+                    ID = q.ID,
+                    QuesContent = q.QuesContent,
+                    Answer = q.Answer,
+                    ExamID = q.ExamID,
+                    ImgURL = q.ImgURL,
+                    isActive = q.isActive,
+                    Option1 = q.Option1,
+                    Option2 = q.Option2,
+                    Option3 = q.Option3,
+                    Option4 = q.Option4,
+                    STT = q.STT,
+                    Exam = q.Exam,
+                    Results = q.Results
+                })
+                .ToList();
+            // return
+            return new PagedResult<Question>()
+            {
+                Items = data,
+                TotalRecords = totalrecord,
+                TotalPages = soTrang,
+                PageIndex = model.PageIndex,
+                PageSize = model.PageSize
+            };
         }
 
         public async Task<Question> GetByID(int id)
         {
-            var question = await _db.Questions.Where(e => e.isActive == true).Include(e => e.Exam).FirstOrDefaultAsync(e => e.ID == id);
-            if (question == null)
-                return null;
+            var question = await _db.Questions.Where(q => q.isActive == true && q.ID == id && q.Exam.isActive == true).Include(q => q.Exam).Include(q => q.Results).FirstOrDefaultAsync();
             return question;
+        }
+
+        public async Task<bool> Update(QuestionModel model)
+        {
+            var question = await _db.Questions.Where(q => q.isActive == true && q.ID == model.ID).FirstOrDefaultAsync();
+            if(question != null)
+            {
+                if (string.IsNullOrEmpty(question.QuesContent))
+                {
+                    return false;
+                }
+                question.QuesContent = model.QuesContent;
+                question.Option1 = model.Option1;
+                question.Option2 = model.Option2;
+                question.Option3 = model.Option3;
+                question.Option4 = model.Option4;
+                question.Answer = model.Answer;
+                question.ImgURL = model.ImgURL;
+                try
+                {
+                    await _db.SaveChangesAsync();
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+                return true;
+            }
+            return false;
         }
     }
 }

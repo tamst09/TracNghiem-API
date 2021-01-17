@@ -1,8 +1,11 @@
 ﻿using FrontEndWebApp.Areas.Admin.AdminServices;
 using FrontEndWebApp.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using TN.ViewModels.Catalog.User;
 using TN.ViewModels.Common;
@@ -15,16 +18,18 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
     {
         private readonly IAccountService _accountService;   // thao tac voi tai khoan
         private readonly IUserManage _userManage;           // quan ly user cua admin
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public UsersController(IAccountService accountService, IUserManage userManage)
+        public UsersController(IAccountService accountService, IUserManage userManage, IWebHostEnvironment webHostEnvironment)
         {
             _accountService = accountService;
             _userManage = userManage;
+            _webHostEnvironment = webHostEnvironment;
         }
 
-        // GET: UsersController
+        // GET: Users
         public async Task<ActionResult> Index(string keyword, int pageIndex = 1, int pageSize = 10)
-        {        
+        {
             try
             {
                 //List<UserViewModel> lstAllUser = new List<UserViewModel>();
@@ -34,9 +39,9 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                     PageIndex = pageIndex,
                     PageSize = pageSize
                 };
-                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var listUserResult = await _userManage.GetListUserPaged(model, token);
-                return View(listUserResult);
+                return View(listUserResult.data);
             }
             catch (Exception)
             {
@@ -44,14 +49,15 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             }
         }
 
-        // GET: UsersController/Details/5
+        // GET: Users/Details/5
         public async Task<ActionResult> Details(int id)
         {
+            
             try
             {
-                var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var user = await _accountService.GetUserInfo(id, access_token);
-                return View(user);
+                return View(user.data);
             }
             catch (Exception)
             {
@@ -59,13 +65,14 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             }
         }
 
-        // GET: UsersController/Create
+        // GET: Users/Create
         public ActionResult Create()
         {
+            
             return View();
         }
 
-        // POST: UsersController/Create
+        // POST: Users/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(UserViewModel model)
@@ -76,12 +83,23 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             }
             try
             {
-                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                if (model.AvatarPhoto != null)
+                {
+                    string folder = "images/cover/user/";
+                    var extensions = model.AvatarPhoto.FileName.Split('.');
+                    var extension = extensions[extensions.Length - 1];
+                    folder += model.Id.ToString() + "." + extension;
+                    model.Avatar = "/" + folder;
+                    string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
+                    await model.AvatarPhoto.CopyToAsync(new FileStream(serverFolder, FileMode.Create));
+                }
+                model.AvatarPhoto = null;
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var createUserResult = await _userManage.CreateUser(model, token);
                 //error
-                if(createUserResult.Error!=null || createUserResult.Access_Token == null)
+                if(createUserResult.msg!=null || createUserResult.data == null)
                 {
-                    ViewData["Error"] = createUserResult.Error;
+                    ViewData["Error"] = createUserResult.msg;
                     return View(model);
                 }
                 //success
@@ -94,15 +112,16 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             }
         }
 
-        // GET: UsersController/Edit/5
+        // GET: Users/Edit/5
         public async Task<ActionResult> Edit(int id)
         {
+           
             try
             {
-                var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var user = await _accountService.GetUserInfo(id, access_token);
-                if(user!=null)
-                    return View(user);
+                if(user.data!=null)
+                    return View(user.data);
                 else
                     return RedirectToAction("Index", "Users");
             }
@@ -112,20 +131,31 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             }
         }
 
-        // POST: UsersController/Edit/5
+        // POST: Users/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(int id, UserViewModel model)
         {
             try
             {
-                var access_token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                var userUpdated = await _accountService.UpdateProfile(id, model, access_token);
-                return RedirectToAction("Details", "Users", new { id = userUpdated.Id });
+                var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                if (model.AvatarPhoto != null)
+                {
+                    string folder = "images/cover/user/";
+                    var extensions = model.AvatarPhoto.FileName.Split('.');
+                    var extension = extensions[extensions.Length - 1];
+                    folder += model.Id.ToString()+"."+extension;
+                    model.Avatar = "/" + folder;
+                    string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
+                    await model.AvatarPhoto.CopyToAsync(new FileStream(serverFolder, FileMode.Create));
+                }
+                model.AvatarPhoto = null;
+                var userUpdated = await _userManage.UpdateUserInfo(id, model, access_token);
+                return RedirectToAction("Details", "Users", new { id = userUpdated.data.Id });
             }
             catch
             {
-                return View();
+                ViewData["msg"] = "Cập nhật thất bại";
+                return View(model);
             }
         }
         // POST: Users/LockUser/5
@@ -134,9 +164,9 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var lockUserResult = await _userManage.LockUser(id, token);
-                if (lockUserResult)
+                if (lockUserResult.msg == null)
                 {
                     return Json(new
                     {
@@ -159,15 +189,15 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                 });
             }
         }
-
+        // POST: Users/RestoreUser/5
         [HttpPost]
         public async Task<ActionResult> RestoreUser(int id)
         {
             try
             {
-                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var lockUserResult = await _userManage.RestoreUser(id, token);
-                if (lockUserResult)
+                if (lockUserResult.msg == null)
                 {
                     return Json(new
                     {

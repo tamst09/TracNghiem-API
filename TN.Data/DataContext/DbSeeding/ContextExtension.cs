@@ -41,8 +41,7 @@ namespace TN.Data.DataContext.DbSeeding
                     EmailConfirmed = true,
                     PasswordHash = hasher.HashPassword(null, "Admin@123"),
                     SecurityStamp = string.Empty,
-                    FirstName = "Admin",
-                    LastName = "Default",
+                    Name = "Primary Admin",
                     DoB = new DateTime(1999, 4, 26),
                     PhoneNumber = "0336709707",
                     isActive = true
@@ -57,8 +56,7 @@ namespace TN.Data.DataContext.DbSeeding
                     EmailConfirmed = true,
                     PasswordHash = hasher.HashPassword(null, "User@123"),
                     SecurityStamp = string.Empty,
-                    FirstName = "User",
-                    LastName = "Default",
+                    Name = "User Default",
                     DoB = new DateTime(1999, 4, 26),
                     PhoneNumber = "0336709707",
                     isActive = true

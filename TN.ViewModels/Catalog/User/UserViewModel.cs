@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -16,9 +17,7 @@ namespace TN.ViewModels.Catalog.User
         public string UserName { get; set; }
 
         [Required]
-        public string FirstName { get; set; }
-        [Required]
-        public string LastName { get; set; }
+        public string Name { get; set; }
 
         [Required]
         [EmailAddress]
@@ -44,5 +43,8 @@ namespace TN.ViewModels.Catalog.User
         public string ConfirmPassword { get; set; }
 
         public bool isActive { get; set; }
+
+        public IFormFile AvatarPhoto { get; set; }
+        public string Avatar { get; set; }
     }
 }

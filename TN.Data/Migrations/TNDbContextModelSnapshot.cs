@@ -167,7 +167,7 @@ namespace TN.Data.Migrations
                         new
                         {
                             Id = 1,
-                            ConcurrencyStamp = "15db273c-8d6f-409b-9d3f-45482c14958e",
+                            ConcurrencyStamp = "4d3f2ab3-6257-4103-b9de-66b66825f6e5",
                             Description = "Administrator level",
                             Name = "admin",
                             NormalizedName = "ADMIN"
@@ -175,7 +175,7 @@ namespace TN.Data.Migrations
                         new
                         {
                             Id = 2,
-                            ConcurrencyStamp = "146e1f78-88ed-4e05-9cbd-2decc8f5c2f9",
+                            ConcurrencyStamp = "2bad986d-62e5-4030-b374-3db1bb47f4b9",
                             Description = "User level",
                             Name = "user",
                             NormalizedName = "USER"
@@ -210,21 +210,16 @@ namespace TN.Data.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(50)")
-                        .HasMaxLength(50);
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(50)")
-                        .HasMaxLength(50);
-
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
 
                     b.Property<string>("NormalizedEmail")
                         .HasColumnType("nvarchar(256)")
@@ -284,16 +279,15 @@ namespace TN.Data.Migrations
                         {
                             Id = 1,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "6f6a0a43-7e29-4e0d-b00d-e705a667fbcf",
+                            ConcurrencyStamp = "fbebe5ed-7830-4be2-a57a-11af97ad6bd6",
                             DoB = new DateTime(1999, 4, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "tamst09@gmail.com",
                             EmailConfirmed = true,
-                            FirstName = "Admin",
-                            LastName = "Default",
                             LockoutEnabled = false,
+                            Name = "Primary Admin",
                             NormalizedEmail = "TAMST09@GMAIL.COM",
                             NormalizedUserName = "admin1999",
-                            PasswordHash = "AQAAAAEAACcQAAAAEP5orOhGpPG3DmkeK/aCuYf+4dguYgc+BSXVMWPmqbf2oh3ev/98NxMVNHMMXuRjvg==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEEED9dTINbJ5JtvJSvxTx2bcxS6hip2Bb6p1WSiacbdw5AxXbf28K0Q+3j77a2Wynw==",
                             PhoneNumber = "0336709707",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "",
@@ -305,16 +299,15 @@ namespace TN.Data.Migrations
                         {
                             Id = 2,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "8ae0dfc1-aa3b-4255-a8c4-5c1b87ccb088",
+                            ConcurrencyStamp = "e0896ce9-ea73-4632-8676-6a422f2b4191",
                             DoB = new DateTime(1999, 4, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "thtt260499@gmail.com",
                             EmailConfirmed = true,
-                            FirstName = "User",
-                            LastName = "Default",
                             LockoutEnabled = false,
+                            Name = "User Default",
                             NormalizedEmail = "THTT260499@GMAIL.COM",
                             NormalizedUserName = "USER1999",
-                            PasswordHash = "AQAAAAEAACcQAAAAED9tRurcyflHfJeFtTxQsv2kC1tIkPG3/j/UOMK/Q6qZ4s+962m/QTzHkCfcjOupKQ==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEDSlCFsH/PWF0ZmtCNFmU0LuxOa+MrV5rNXcypItFNGJQhgdY3tWm17FVjUI9OCXqw==",
                             PhoneNumber = "0336709707",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "",
@@ -355,7 +348,7 @@ namespace TN.Data.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int?>("CategoryID")
+                    b.Property<int>("CategoryID")
                         .HasColumnType("int");
 
                     b.Property<string>("ExamName")
@@ -374,7 +367,7 @@ namespace TN.Data.Migrations
                     b.Property<int>("OwnerID")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Time")
+                    b.Property<int>("Time")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("TimeCreated")

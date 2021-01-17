@@ -1,112 +1,109 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using TN.Data.DataContext;
+using TN.BackendAPI.Services.IServices;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Category;
 using TN.ViewModels.Catalog.Question;
+using TN.ViewModels.Common;
 
 namespace TN.BackendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class QuestionsController : ControllerBase
     {
-        private readonly TNDbContext _context;
+        private readonly IQuestionService _questionService;
 
-        public QuestionsController(TNDbContext context)
+        public QuestionsController(IQuestionService questionService)
         {
-            _context = context;
+            _questionService = questionService;
         }
 
         // GET: api/Questions
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Question>>> GetQuestions()
+        public async Task<IActionResult> GetAll()
         {
-            return await _context.Questions.ToListAsync();
+            var allQuestions = await _questionService.GetAll();
+            if(allQuestions != null)
+                return Ok(new ResponseBase<List<Question>>() { data = allQuestions });
+            return Ok(new ResponseBase<List<Question>>() { msg = "Lỗi hệ thống" });
         }
-
-        // GET: api/Questions/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Question>> GetQuestion(int id)
+        // GET: api/Questions/GetNumber
+        [HttpGet("GetNumber")]
+        public async Task<IActionResult> GetNumberQuestion()
         {
-            var question = await _context.Questions.FindAsync(id);
-
-            if (question == null)
-            {
-                return NotFound();
-            }
-
-            return question;
+            var allQuestions = await _questionService.GetAll();
+            if (allQuestions != null)
+                return Ok(new ResponseBase<string>() { data = allQuestions.Count.ToString() });
+            return Ok(new ResponseBase<string>() { msg = "Lỗi hệ thống" });
         }
-
-        // PUT: api/Questions/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutQuestion(int id, Question question)
-        {
-            if (id != question.ID)
-            {
-                return BadRequest();
-            }
-            _context.Entry(question).State = EntityState.Modified;
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!QuestionExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return NoContent();
-        }
-
         // POST: api/Questions
         [HttpPost]
-        public async Task<ActionResult<Question>> PostQuestion(QuestionModel question)
+        public async Task<IActionResult> Create(QuestionModel model)
         {
-            _context.Questions.Add(new Question { 
-                ID = question.ID,
-                QuesContent = question.QuesContent,
-                Option1 = question.Option1,
-                Option2 = question.Option2,
-                Option3 = question.Option3,
-                Option4 = question.Option4,
-                Answer = question.Answer,
-                ExamID = question.ExamID,
-                STT = question.STT
-            });
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetQuestion", new { id = question.ID }, question);
+            var createOK = await _questionService.Create(model);
+            if (createOK != null)
+                return Ok(new ResponseBase<Question>() { data = createOK });
+            return Ok(new ResponseBase<Question>() { msg = "Lỗi hệ thống" });
         }
-
-        // DELETE: api/Questions/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<Question>> DeleteQuestion(int id)
+        // POST: api/Questions/Paged
+        [HttpPost("Paged")]
+        public async Task<IActionResult> GetAllPaging(QuestionPagingRequest model)
         {
-            var question = await _context.Questions.FindAsync(id);
-            if (question == null)
+            var allQuestions = await _questionService.GetAllPaging(model);
+            if (allQuestions != null)
+                return Ok(new ResponseBase<PagedResult<Question>>() { data = allQuestions });
+            return Ok(new ResponseBase<PagedResult<Question>>() { msg = "Lỗi hệ thống" });
+        }
+        // GET: api/Questions/1
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetOne(int id)
+        {
+            var question = await _questionService.GetByID(id);
+            if (question != null)
+                return Ok(new ResponseBase<Question>() { data = question });
+            return Ok(new ResponseBase<Question>() { msg = "Không tìm thấy" });
+        }
+        // PUT: api/Questions/1
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, QuestionModel model)
+        {
+            if (id != model.ID)
             {
-                return NotFound();
+                return Ok(new ResponseBase<Question>() { msg = "Không hợp lệ" });
             }
-
-            _context.Questions.Remove(question);
-            await _context.SaveChangesAsync();
-
-            return question;
+            var ok = await _questionService.Update(model);
+            if (ok)
+                return Ok(new ResponseBase<string>() { data = "Cập nhật thành công" });
+            return Ok(new ResponseBase<string>() { msg = "Không tìm thấy" });
         }
-
-        private bool QuestionExists(int id)
+        // DELETE: api/Questions/1
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteOne(int id)
         {
-            return _context.Questions.Any(e => e.ID == id);
+            var ok = await _questionService.Delete(id);
+            if (ok)
+            {
+                return Ok(new ResponseBase<string>() { data = "Xoá thành công" });
+            }
+            return Ok(new ResponseBase<string>() { msg = "Không tìm thấy" });
+        }
+        // POST: api/Questions/DeleteMany
+        [HttpPost("DeleteMany")]
+        public async Task<IActionResult> AdminDeleteMany(DeleteRangeModel<int> lstId)
+        {
+            var ok = await _questionService.DeleteMany(lstId);
+            if (ok)
+            {
+                return Ok(new ResponseBase<string>() { data = "Xoá thành công "});
+            }
+            return Ok(new ResponseBase<string>() { msg = "Xoá thất bại" });
         }
     }
 }

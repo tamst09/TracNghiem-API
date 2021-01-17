@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace FrontEndWebApp.Controllers
@@ -21,6 +23,39 @@ namespace FrontEndWebApp.Controllers
                     return RedirectToAction("Index", "Home", new { Area = "User" });
                 }
             }
+            return View();
+        }
+        public IActionResult Error()
+        {
+            var exception = HttpContext.Features.Get<IExceptionHandlerFeature>();
+
+            ViewData["statusCode"] = HttpContext.Response.StatusCode;
+            switch (HttpContext.Response.StatusCode)
+            {
+                case 500:
+                    ViewData["message"] = "Server not avaible";
+                    break;
+                case 401:
+                    ViewData["message"] = "Unauthorized";
+                    break;
+                case 403:
+                    ViewData["message"] = "Forbiden";
+                    break;
+                case 404:
+                    ViewData["message"] = "Page not found";
+                    break;
+                default:
+                    ViewData["message"] = "Something went wrong";
+                    break;
+            }
+            //if(HttpContext.Response.StatusCode == (int)HttpStatusCode.InternalServerError)
+            //{
+            //    ViewData["message"] = "Server not avaible";
+            //}
+            //else
+            //    ViewData["message"] = exception.Error.Message;
+            ViewData["stackTrace"] = exception.Error.StackTrace;
+
             return View();
         }
     }

@@ -1,0 +1,91 @@
+﻿@model List<TN.Data.Entities.Exam>
+
+@{
+    ViewData["Title"] = "Danh sách đề thi";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Danh sách đề thi</h1>
+<h5 class="font-weight-bold">Chủ đề: @ViewData["CategoryName"]</h5>
+
+<p>
+    <a asp-controller="Exams" asp-action="Create">Tạo mới</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Tên
+            </th>
+            <th>
+                Số câu hỏi
+            </th>
+            <th>
+                Thời gian làm
+            </th>
+            <th>
+                Thời gian tạo
+            </th>
+            <th>
+                Số lượt làm
+            </th>
+            <th>
+                Người đăng
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @item.ExamName
+                </td>
+                @if (item.Questions != null)
+                {
+                    <td>
+                        @item.Questions.Count
+                    </td>
+                }
+                else
+                {
+                    <td>
+                        0
+                    </td>
+                }
+                @if (item.Time != 0)
+                {
+                    <td>@(item.Time/60)m:@(item.Time%60)s</td>
+                }
+                else
+                {
+                    <td>Không giới hạn</td>
+                }
+                <td>
+                    @item.TimeCreated
+                </td>
+                <td>
+                    @item.NumOfAttemps
+                </td>
+                @if (item.Owner != null)
+                {
+                    <td>
+                        @item.Owner.UserName
+                    </td>
+                }
+                else
+                {
+                    <td>
+                        NULL
+                    </td>
+                }
+                <td>
+                    @Html.ActionLink("Sửa", "Edit", "Exams", new { id = item.ID }) |
+                    @Html.ActionLink("Chi tiết", "Details", new { id = item.ID }) |
+                    @Html.ActionLink("Xoá", "Delete", new { id = item.ID })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

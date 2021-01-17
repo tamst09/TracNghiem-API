@@ -5,29 +5,29 @@ using Newtonsoft.Json;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using TN.ViewModels.Catalog.User;
+using TN.ViewModels.Common;
 using TN.ViewModels.Settings;
 
 namespace FrontEndWebApp.Services
 {
     public class AccountService : IAccountService
     {
-        private readonly IHttpClientFactory _httpClientFactory;
         private IConfiguration _config;
         private HttpClient _client;
 
         public AccountService(IHttpClientFactory httpClientFactory, IConfiguration config)
         {
-            _httpClientFactory = httpClientFactory;
             this._client = httpClientFactory.CreateClient();
             this._client.BaseAddress = new Uri(ConstStrings.BASE_URL_API);
             _config = config;
         }
 
-        public async Task<JwtResponse> Authenticate(LoginModel model)
+        public async Task<ResponseBase<JwtResponse>> Authenticate(LoginModel model)
         {
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
@@ -36,29 +36,27 @@ namespace FrontEndWebApp.Services
             if (response.IsSuccessStatusCode)
             {
                 var token = await response.Content.ReadAsStringAsync();
-                JwtResponse access_token_obj = JsonConvert.DeserializeObject<JwtResponse>(token);
+                ResponseBase<JwtResponse> access_token_obj = JsonConvert.DeserializeObject<ResponseBase<JwtResponse>>(token);
                 return access_token_obj;
             }
             else
             {
-                var responseResult = await response.Content.ReadAsStringAsync();
-                JwtResponse obj = JsonConvert.DeserializeObject<JwtResponse>(responseResult);
-                return obj;
+                return null;
             }
         }
 
-        public async Task<UserViewModel> GetUserInfo(int userId, string access_token)
+        public async Task<ResponseBase<UserViewModel>> GetUserInfo(int userId, string access_token)
         {
             if (!string.IsNullOrEmpty(access_token))
             {
-                _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + access_token);
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
             }
             var response = await _client.GetAsync("/api/users/"+userId.ToString());
             
             if (response.IsSuccessStatusCode)
             {
                 var user = await response.Content.ReadAsStringAsync();
-                UserViewModel userCreated = JsonConvert.DeserializeObject<UserViewModel>(user);
+                ResponseBase<UserViewModel> userCreated = JsonConvert.DeserializeObject<ResponseBase<UserViewModel>>(user);
                 return userCreated;
             }
             else
@@ -67,7 +65,7 @@ namespace FrontEndWebApp.Services
             }
         }
 
-        public async Task<JwtResponse> LoginFacebook(string accesstoken)
+        public async Task<ResponseBase<JwtResponse>> LoginFacebook(string accesstoken)
         {
             var json = JsonConvert.SerializeObject(accesstoken);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
@@ -76,13 +74,28 @@ namespace FrontEndWebApp.Services
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsStringAsync();
-                JwtResponse userResult = JsonConvert.DeserializeObject<JwtResponse>(result);
-                return userResult;
+                ResponseBase<JwtResponse> jwt = JsonConvert.DeserializeObject<ResponseBase<JwtResponse>>(result);
+                return jwt;
             }
             return null;
         }
 
-        public async Task<JwtResponse> Register(RegisterModel model)
+        public async Task<ResponseBase<JwtResponse>> LoginGoogle(string accesstoken)
+        {
+            var json = JsonConvert.SerializeObject(accesstoken);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _client.PostAsync("/api/users/logingg", httpContent);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                ResponseBase<JwtResponse> jwt = JsonConvert.DeserializeObject<ResponseBase<JwtResponse>>(result);
+                return jwt;
+            }
+            return null;
+        }
+
+        public async Task<ResponseBase<JwtResponse>> Register(RegisterModel model)
         {
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
@@ -91,32 +104,30 @@ namespace FrontEndWebApp.Services
             if (response.IsSuccessStatusCode)
             {
                 var user = await response.Content.ReadAsStringAsync();
-                JwtResponse userCreated = JsonConvert.DeserializeObject<JwtResponse>(user);
+                ResponseBase<JwtResponse> userCreated = JsonConvert.DeserializeObject<ResponseBase<JwtResponse>>(user);
                 return userCreated;
             }
             else
             {
-                var errs = await response.Content.ReadAsStringAsync();
-                JwtResponse err = JsonConvert.DeserializeObject<JwtResponse>(errs);
-                return err;
+                return null;
             }
         }
 
-        public async Task<UserViewModel> UpdateProfile(int uid, UserViewModel model, string access_token)
+        public async Task<ResponseBase<UserViewModel>> UpdateProfile(int uid, UserViewModel model, string access_token)
         {
             model.Id = uid;
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
             if (!string.IsNullOrEmpty(access_token))
             {
-                _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + access_token);
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
             }
-            var response = await _client.PutAsync("/api/users/UpdateUser/"+uid.ToString(), httpContent);
+            var response = await _client.PutAsync("/api/users/UpdateProfile/"+uid.ToString(), httpContent);
 
             if (response.IsSuccessStatusCode)
             {
                 var user = await response.Content.ReadAsStringAsync();
-                UserViewModel uservm = JsonConvert.DeserializeObject<UserViewModel>(user);              
+                ResponseBase<UserViewModel> uservm = JsonConvert.DeserializeObject<ResponseBase<UserViewModel>>(user);              
                 return uservm;
             }
             else
@@ -125,7 +136,7 @@ namespace FrontEndWebApp.Services
             }
         }
 
-        public async Task<UserViewModel> AddPassword(ResetPasswordModel model)
+        public async Task<ResponseBase<UserViewModel>> AddPassword(ResetPasswordModel model)
         {
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
@@ -134,7 +145,7 @@ namespace FrontEndWebApp.Services
             if (response.IsSuccessStatusCode)
             {
                 var user = await response.Content.ReadAsStringAsync();
-                UserViewModel uservm = JsonConvert.DeserializeObject<UserViewModel>(user);
+                ResponseBase<UserViewModel> uservm = JsonConvert.DeserializeObject<ResponseBase<UserViewModel>>(user);
                 return uservm;
             }
             else
@@ -149,14 +160,40 @@ namespace FrontEndWebApp.Services
             SecurityToken validatedToken;
             TokenValidationParameters parameters = new TokenValidationParameters();
             parameters.ValidateLifetime = true;
+            parameters.RequireExpirationTime = true;
             parameters.ValidAudience = _config["Tokens:Issuer"];
             parameters.ValidIssuer = _config["Tokens:Issuer"];
             parameters.IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Tokens:SecretKey"]));
             ClaimsPrincipal principal = new JwtSecurityTokenHandler().ValidateToken(token, parameters, out validatedToken);
+            var tokenExpiresAt = validatedToken.ValidTo;
+            if(DateTime.UtcNow > tokenExpiresAt)
+            {
+                return null;
+            }
             return principal;
         }
 
-        public async Task<string> GetResetPasswordCode(ForgotPasswordModel model)
+        public bool ValidateLifeTimeToken(string token)
+        {
+            //IdentityModelEventSource.ShowPII = true;
+            SecurityToken validatedToken;
+            TokenValidationParameters parameters = new TokenValidationParameters();
+            parameters.ValidateLifetime = true;
+            parameters.RequireExpirationTime = true;
+            parameters.ValidAudience = _config["Tokens:Issuer"];
+            parameters.ValidIssuer = _config["Tokens:Issuer"];
+            parameters.IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Tokens:SecretKey"]));
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            tokenHandler.ValidateToken(token, parameters, out validatedToken);
+            var tokenExpiresAt = validatedToken.ValidTo;
+            if (DateTime.UtcNow > tokenExpiresAt)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public async Task<ResponseBase<string>> GetResetPasswordCode(ForgotPasswordModel model)
         {
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");            
@@ -166,7 +203,8 @@ namespace FrontEndWebApp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     string responseResult = await response.Content.ReadAsStringAsync();
-                    return responseResult;
+                    ResponseBase<string> resetPassCode = JsonConvert.DeserializeObject<ResponseBase<string>>(responseResult);
+                    return resetPassCode;
                 }
                 else
                 {
@@ -178,7 +216,7 @@ namespace FrontEndWebApp.Services
                 return null;
             }
         }
-        public async Task<bool> ChangePassword(string resetCode, ResetPasswordModel model)
+        public async Task<ResponseBase<string>> ResetPassword(string resetCode, ResetPasswordModel model)
         {
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
@@ -188,16 +226,45 @@ namespace FrontEndWebApp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseResult = await response.Content.ReadAsStringAsync();
-                    return true;
+                    ResponseBase<string> changePassResult = JsonConvert.DeserializeObject<ResponseBase<string>>(responseResult);
+                    return changePassResult;
                 }
                 else
                 {
-                    return false;
+                    return null;
                 }
             }
             catch (Exception)
             {
-                return false;
+                return null;
+            }
+        }
+
+        public async Task<ResponseBase<string>> ChangePassword(string userID, ChangePasswordModel model, string accessToken)
+        {
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            }
+            var json = JsonConvert.SerializeObject(model);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            try
+            {
+                var response = await _client.PostAsync("api/Users/ChangePass/"+userID, httpContent);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseResult = await response.Content.ReadAsStringAsync();
+                    ResponseBase<string> changePassResult = JsonConvert.DeserializeObject<ResponseBase<string>>(responseResult);
+                    return changePassResult;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
     }

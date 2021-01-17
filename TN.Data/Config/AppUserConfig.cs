@@ -13,8 +13,7 @@ namespace TN.Data.Config
         {
             builder.HasKey(u => u.Id);
             builder.Property(u => u.UserName).IsRequired().HasMaxLength(50);
-            builder.Property(u => u.FirstName).IsRequired().HasMaxLength(50);
-            builder.Property(u => u.LastName).IsRequired().HasMaxLength(50);
+            builder.Property(u => u.Name).IsRequired().HasMaxLength(50);
             builder.Property(u => u.Email).IsRequired().HasMaxLength(50);
             builder.Property(u => u.PhoneNumber).IsRequired(false).HasMaxLength(50);
             builder.Property(u => u.DoB).IsRequired();

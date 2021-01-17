@@ -1,7 +1,7 @@
 ﻿@model TN.ViewModels.Catalog.User.UserViewModel
 
 @{
-    ViewData["Title"] = "UpdateProfile";
+    ViewData["Title"] = "Cập nhật thông tin";
     if (User.IsInRole("admin"))
     {
         Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
@@ -12,50 +12,68 @@
     }
 }
 
-<h1>Update your profile</h1>
+<h1>Cập nhật thông tin</h1>
 
 <hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="OnPostUpdateProfile">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" class="form-control" value="@Model.Id" />
-            <input type="hidden" asp-for="isActive" class="form-control" value="@Model.isActive" />
+
+<form asp-action="OnPostUpdateProfile" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-md-4">
             <div class="form-group">
-                <label asp-for="UserName" class="control-label"></label>
+                <label asp-for="UserName" class="control-label">Tên tài khoản</label>
                 <input asp-for="UserName" class="form-control" value="@Model.UserName" />
                 <span asp-validation-for="UserName" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="LastName" class="control-label"></label>
-                <input asp-for="LastName" class="form-control" value="@Model.LastName" />
-                <span asp-validation-for="LastName" class="text-danger"></span>
+                <label asp-for="Name" class="control-label">Họ tên</label>
+                <input asp-for="Name" class="form-control" value="@Model.Name" />
+                <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="FirstName" class="control-label"></label>
-                <input asp-for="FirstName" class="form-control" value="@Model.FirstName" />
-                <span asp-validation-for="FirstName" class="text-danger"></span>
+                <label asp-for="DoB" class="control-label">Ngày sinh</label>
+                <input asp-for="DoB" class="form-control" />
+                <span asp-validation-for="DoB" class="text-danger"></span>
             </div>
+        </div>
+        <div class="col-md-4">
             <div class="form-group">
-                <label asp-for="Email" class="control-label"></label>
-                <input readonly asp-for="Email" class="form-control" value="@Model.Email" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PhoneNumber" class="control-label"></label>
+                <label asp-for="PhoneNumber" class="control-label">Số điện thoại</label>
                 <input asp-for="PhoneNumber" class="form-control" />
                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="DoB" class="control-label"></label>
-                <input asp-for="DoB" class="form-control" />
-                <span asp-validation-for="DoB" class="text-danger"></span>
+                <label asp-for="Email" class="control-label">Địa chỉ email</label>
+                <input readonly asp-for="Email" class="form-control" value="@Model.Email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Cập nhật" class="btn btn-primary" />
-                <button type="button" class="btn btn-link" onclick="window.history.back()">Trở về</button>
+            <label class="control-label">Ảnh đại diện</label>
+            <div class="form-group custom-file">
+                <input asp-for="AvatarPhoto" type="file" class="custom-file-input" id="customFile">
+                <label for="customFile" class="custom-file-label">Tải lên</label>
             </div>
-        </form>
+        </div>
     </div>
-</div>
+    <div class="row">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="Id" class="form-control" value="@Model.Id" />
+        <input type="hidden" asp-for="isActive" class="form-control" value="@Model.isActive" />
+    </div>
+    <hr />
+    <div class="form-group">
+        <input type="submit" value="Cập nhật" class="btn btn-primary" />
+        <button type="button" class="btn btn-link" onclick="window.history.back()">Trở về</button>
+    </div>
+</form>
+
+
+@section Scripts
+{
+    <script>
+        // Add the following code if you want the name of the file appear on select
+        $(".custom-file-input").on("change", function () {
+            var fileName = $(this).val().split("\\").pop();
+            $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+        });
+    </script>
+}
 

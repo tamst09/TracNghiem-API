@@ -1,5 +1,7 @@
-﻿@using Microsoft.AspNetCore.Identity
-@{bool isSignedIn = User.Identity.IsAuthenticated; }
+﻿@inject FrontEndWebApp.Areas.Admin.AdminServices.ICategoryManage _categoryManager
+@{
+    bool isSignedIn = User.Identity.IsAuthenticated;
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +11,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Quản trị hệ thống</title>
+    <title>@ViewData["Title"] - Quản trị hệ thống</title>
 
     <!-- Custom fonts for this template-->
     <link href="~/adminAssets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -33,7 +35,7 @@
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="#">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/Admin">
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
@@ -49,6 +51,29 @@
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
+            </li>
+
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Hệ thống
+            </div>
+
+            <!-- Nav Item - Pages Collapse Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true" aria-controls="collapsePages">
+                    <i class="fas fa-fw fa-folder"></i>
+                    <span>Quản lý</span>
+                </a>
+                <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" asp-action="Index" asp-controller="Users" asp-area="Admin">Người dùng</a>
+                        <a class="collapse-item" asp-action="Index" asp-controller="Categories" asp-area="Admin">Chủ đề</a>
+                        <a class="collapse-item" asp-action="Index" asp-controller="Exams" asp-area="Admin">Đề thi</a>
+                        <a class="collapse-item" asp-action="Index" asp-controller="Questions" asp-area="Admin">Câu hỏi</a>
+                    </div>
+                </div>
             </li>
 
             <!-- Divider -->
@@ -67,43 +92,16 @@
                 </a>
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Phân loại theo chủ đề</h6>
-                        <a class="collapse-item" href="buttons.html">Nhiều quan tâm</a>
-                        <a class="collapse-item" href="cards.html">Hot nhất</a>
+                        @foreach (var item in _categoryManager.GetAll().Result.data)
+                        {
+                            <a class="collapse-item" asp-area="Admin" asp-action="ViewAllExams" asp-controller="Categories" asp-route-categoryID="@item.ID">@item.CategoryName</a>
+                        }
                     </div>
                 </div>
             </li>
             <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Hệ thống
-            </div>
-
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true" aria-controls="collapsePages">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>Quản lý</span>
-                </a>
-                <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Quản lý:</h6>
-                        <a class="collapse-item" asp-action="Index" asp-controller="Users" asp-area="Admin">Người dùng</a>
-                        <a class="collapse-item" href="login.html">Đề thi</a>
-                        <a class="collapse-item" href="register.html">Câu hỏi</a>
-                        <a class="collapse-item" href="forgot-password.html">Danh sách ưa thích</a>
-                        <div class="collapse-divider"></div>
-                        <h6 class="collapse-header">Other Pages:</h6>
-                        <a class="collapse-item" href="404.html">404 Page</a>
-                        <a class="collapse-item" href="blank.html">Blank Page</a>
-                    </div>
-                </div>
-            </li>
-
             <!-- Nav Item - Charts -->
-            <li class="nav-item">
+            @*<li class="nav-item">
                 <a class="nav-link" href="charts.html">
                     <i class="fas fa-fw fa-chart-area"></i>
                     <span>Charts</span>
@@ -119,7 +117,7 @@
             </li>
 
             <!-- Divider -->
-            <hr class="sidebar-divider d-none d-md-block">
+            <hr class="sidebar-divider d-none d-md-block">*@
 
             <!-- Sidebar Toggler (Sidebar) -->
             <div class="text-center d-none d-md-inline">
@@ -231,17 +229,13 @@
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">@User.Identity.Name</span>
-                                <img class="img-profile rounded-circle" loading="lazy" src="https://source.unsplash.com/QAB-WJcbgJk/60x60">
+                                <img class="img-profile rounded-circle" style="object-fit:cover" loading="lazy" src="@Global.Avatar_Url">
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
                                 <a class="dropdown-item" asp-area="" asp-action="ShowProfile" asp-controller="Account">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Hồ sơ
-                                </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Thiết lập
+                                    Thông tin cá nhân
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <button class="dropdown-item" data-toggle="modal" data-target="#logoutModal">
@@ -258,19 +252,19 @@
                 <div class="container-fluid">
 
                     <!-- Page Heading -->
-                    <div class="d-sm-flex mb-4">
-                        <!-- Topbar Search -->
-                        <form class="ml-sm-auto d-none d-sm-inline-block form-inline my-2 my-md-0 mw-100 navbar-search">
-                            <div class="input-group">
-                                <input type="text" class="form-control bg-light border-info small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
-                                <div class="input-group-append">
-                                    <button class="btn btn-primary" type="button">
-                                        <i class="fas fa-search fa-sm"></i>
-                                    </button>
+                    @*<div class="d-sm-flex mb-4">
+                            <!-- Topbar Search -->
+                            <form class="ml-sm-auto d-none d-sm-inline-block form-inline my-2 my-md-0 mw-100 navbar-search">
+                                <div class="input-group">
+                                    <input type="text" class="form-control bg-light border-info small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary" type="button">
+                                            <i class="fas fa-search fa-sm"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        </form>
-                    </div>
+                            </form>
+                        </div>*@
                     <div class="container">
                         <main role="main" class="pb-3">
                             @RenderBody()
@@ -282,7 +276,6 @@
             </div>
             <!-- End of Main Content -->
             <!-- Footer -->
-
             <!-- End of Footer -->
 
         </div>
@@ -300,16 +293,16 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Đăng xuất</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-body">Bạn muốn thoát phiên đăng nhập?</div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Không</button>
                     <form id="logoutForm" class="form-inline" asp-area="" asp-controller="Account" asp-action="Logout">
-                        <button id="logout" type="submit" class="btn btn-primary">Logout</button>
+                        <button id="logout" type="submit" class="btn btn-primary">Đăng xuất</button>
                     </form>
                 </div>
             </div>

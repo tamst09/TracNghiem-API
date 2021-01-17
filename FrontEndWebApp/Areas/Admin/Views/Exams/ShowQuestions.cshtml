@@ -1,0 +1,232 @@
+﻿@model TN.ViewModels.Common.PagedResult<TN.Data.Entities.Question>
+
+@{
+    ViewData["Title"] = "Danh sách câu hỏi";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<h1>@ViewData["Title"]</h1>
+<h4>@ViewData["SubTitle"]</h4>
+
+@if (Model != null)
+{
+    <div class="d-sm-flex mb-4">
+        <!-- Topbar Search -->
+        <form asp-action="ShowQuestions" method="get" class="mr-sm-auto d-none d-sm-inline-block form-inline my-2 my-md-0 mw-100 navbar-search">
+            <div class="input-group">
+                <input name="keyword" type="text" class="form-control bg-light border-info small" placeholder="Tìm câu hỏi..." aria-label="Search" aria-describedby="basic-addon2">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search fa-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <p>
+        <a id="btnADD" class="btn btn-success" data-toggle="modal" data-target="#createModal" data-exam-id="@ViewData["examID"]">Thêm mới</a>
+    </p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    #
+                </th>
+                <th>
+                    Nội dung câu hỏi
+                </th>
+                <th>
+                    Số thứ tự
+                </th>
+                <th>
+                    Hành động
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td class="align-middle">
+                        <input onclick="addToSelected(@item.ID, this)" type="checkbox" value="" />
+                    </td>
+                    <td class="align-middle">
+                        @Html.DisplayFor(modelItem => item.QuesContent)
+                    </td>
+                    <td class="align-middle">
+                        @Html.DisplayFor(modelItem => item.STT)
+                    </td>
+                    <td class="align-middle">
+                        <a class="btn btn-success" onclick="openEditForm(@item.ID)" data-toggle="modal" data-target="#updateQuesModal">Sửa</a>
+                        @Html.ActionLink("Chi tiết", "Details", new { id = item.ID })
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="row">
+        <div class="col-lg-4">
+            <button class="btn btn-danger mb-5" data-toggle="modal" data-target="#deleteManyModal">Xoá các mục đã chọn</button>
+        </div>
+        <div class="col-auto">
+            @await Component.InvokeAsync("Pager", Model)
+        </div>
+    </div>
+
+    <div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm câu hỏi</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="partial"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="updateQuesModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chỉnh sửa câu hỏi</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="partial2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteManyModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xác nhận</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Bạn muốn xoá các mục đã chọn?<p class="text-danger" id="warning"></p></div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Đóng</button>
+                    <form class="form-inline">
+                        <button type="button" onclick="postToDelete()" class="btn btn-primary">Xoá</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <p>@ViewData["msg"]</p>
+}
+@section Scripts
+{
+    <script>
+        function openEditForm(id) {
+                console.log(id);
+                var route2 = '@Url.Action("Update", "Questions")?ID=' + id;
+                $('#partial2').load(route2);
+            };
+        $(function () {
+            $('#btnADD').click(function () {
+                var id = $(this).data('exam-id');
+                console.log(id);
+                var route = '@Url.Action("Create", "Questions")?examID=' + id;
+                $('#partial').load(route);
+            });
+        });
+        $(document).ready(function () {
+            // This WILL work because we are listening on the 'document',
+            // for a click on an element with an ID of #test-element
+            $(document).on("click", "#btnSave", function () {
+                var form = $(this).parents('.modal').find('form');
+                var actionUrl = form.attr('action');
+                var d = form.serialize();
+                var jsond = JSON.stringify(d)
+                console.log(actionUrl);
+                console.log(jsond);
+                $.ajax({
+                    type: "POST",
+                    url: "https://localhost:44363/Admin/Questions/Create/?" + d,
+                    contentType: 'application/json',
+                    data: JSON.stringify(d),
+                    success: function (res) {
+                        if (res.msg)
+                            console.log(res.msg);
+                        else
+                            console.log('None');
+                        window.location.reload();
+                    }
+                });
+            });
+            $(document).on("click", "#btnUpdate", function () {
+                var form = $(this).parents('.modal').find('form');
+                var actionUrl = form.attr('action');
+                var d = form.serialize();
+                var jsond = JSON.stringify(d)
+                console.log(actionUrl);
+                console.log(jsond);
+                $.ajax({
+                    type: "POST",
+                    url: "https://localhost:44363/Admin/Questions/Update/?" + d,
+                    contentType: 'application/json',
+                    data: JSON.stringify(d),
+                    success: function (res) {
+                        if (res.msg)
+                            console.log(res.msg);
+                        else
+                            console.log('None');
+                        window.location.reload();
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        let s = []
+        var msgTxt = document.getElementById("warning");
+        function addToSelected(id, checkbox) {
+            if (!checkbox.checked) {
+                removeFromSelected(id);
+            }
+            else {
+                s.push(id)
+                msgTxt.textContent = "";
+            }
+        }
+        function removeFromSelected(uid) {
+            s.forEach(function (value, index) {
+                console.log(index + "" + value);
+                if (value == uid) {
+                    s.splice(index, 1);
+                }
+            })
+        }
+        function postToDelete() {
+            if (s != null && s.length < 1) {
+                msgTxt.textContent = "Chưa chọn mục nào";
+            }
+            else {
+                $.ajax({
+                    type: "POST",
+                    url: "https://localhost:44363/Admin/Questions/DeleteMany/",
+                    contentType: 'application/json',
+                    data: JSON.stringify(s),
+                    success: function (res) {
+                        window.location.reload();
+                    }
+                });
+            }
+        }
+    </script>
+}
+

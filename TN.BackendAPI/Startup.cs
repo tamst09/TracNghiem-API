@@ -10,7 +10,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
+using System;
 using System.Text;
+using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.BackendAPI.Services.Service;
 using TN.Data.DataContext;
@@ -44,6 +46,7 @@ namespace TN.BackendAPI
             services.AddTransient<ICategoryService, CategoryService>();
             services.AddTransient<IUserExamService, UserExamService>();
             services.AddTransient<IExamService, ExamService>();
+            services.AddTransient<IQuestionService, QuestionService>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IFacebookAuth, FacebookAuthService>();
             services.AddTransient<IEmailSender, EmailSender>(i =>
@@ -76,6 +79,7 @@ namespace TN.BackendAPI
                 options.SaveToken = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
+                    ClockSkew = TimeSpan.FromSeconds(5),
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,

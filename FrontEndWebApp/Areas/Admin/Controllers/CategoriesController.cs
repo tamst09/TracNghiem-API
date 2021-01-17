@@ -1,12 +1,14 @@
 ﻿using FrontEndWebApp.Areas.Admin.AdminServices;
 using FrontEndWebApp.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Category;
 
 namespace FrontEndWebApp.Areas.Admin.Controllers
 {
@@ -25,18 +27,18 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                List<Category> categories = new List<Category>();
-                categories = await _categoryService.GetAll();
-                return View(categories);
+                var categories = await _categoryService.GetAll();
+                return View(categories.data);
             }
             catch (Exception)
             {
-                return View(null);
+                return View();
             }
         }
 
         public ActionResult Create()
         {
+            ViewData["Avatar"] = HttpContext.Session.GetString("avatarURL");
             ViewData["msg"] = "";
             try
             {
@@ -58,14 +60,23 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                     ViewData["msg"] = "Tên chủ đề không được bỏ trống";
                     return View(model);
                 }
-                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var result = await _categoryService.Create(model, token);
-                if (result)
+                if (result.msg!=null)
                 {
-                    return RedirectToAction("Index");
+                    ViewData["msg"] = result.msg;
+                    return View(model);
                 }
-                ViewData["msg"] = "Something went wrong. Try again.";
-                return View(model);
+                else if (result.data != null)
+                {
+                    ViewData["msg"] = "Tạo mới thành công";
+                    return View(model);
+                }
+                else
+                {
+                    ViewData["msg"] = "Lỗi không xác định";
+                    return View(model);
+                }
             }
             catch (Exception)
             {
@@ -80,7 +91,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             try
             {
                 var model = await _categoryService.GetByID(id);
-                return View(model);
+                return View(model.data);
             }
             catch (Exception)
             {
@@ -104,7 +115,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                     ViewData["msg"] = "Tên chủ đề không được bỏ trống";
                     return View(model);
                 }
-                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 await _categoryService.Update(id, model, token);
                 return RedirectToAction("Index");
             }
@@ -118,14 +129,65 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         {
             try
             {
-                var token = Encoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 var result = await _categoryService.Delete(id, token);
-                return Json(new { deleteResult = result });
+                return RedirectToAction("Index");
+                //return Json(new { deleteResult = result });
             }
-            catch (Exception)
+            catch
             {
+                return RedirectToAction("Index");
+                //return Json(new { deleteResult = false });
+            }
+        }
+        [HttpPost]
+        public async Task<ActionResult> DeleteRange([FromBody]int[] s)
+        {
+            try
+            {
+                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+                if (s.Length == 0)
+                {
+                    return Json(new { deleteResult = false });
+                }
+                DeleteRangeModel<int> temp = new DeleteRangeModel<int>();
+                temp.ListItem = new List<int>();
+                temp.ListItem.AddRange(s);
+                var result = await _categoryService.DeleteRange(temp, token);
+                if (result.msg != null)
+                {
+                    return Json(new { deleteResult = false });
+                }
+                return Json(new { deleteResult = true });
+            }
+            catch
+            {
+                //return RedirectToAction("Index");
                 return Json(new { deleteResult = false });
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ViewAllExams(int categoryID)
+        {
+            ViewData["CategoryName"] = _categoryService.GetByID(categoryID).Result.data.CategoryName;
+            var accessToken = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+            var lstExams = await _categoryService.GetAllExams(categoryID, accessToken);
+            if(lstExams == null)
+            {
+                ViewData["msg"] = "Lỗi kết nối máy chủ";
+                return View();
+            }
+            if(lstExams.StatusCode!=null && lstExams.StatusCode == "401")
+            {
+                return RedirectToAction("Login", "Account", new { Area =""});
+            }
+            if(lstExams.msg != null || lstExams.data == null)
+            {
+                ViewData["msg"] = lstExams.msg;
+                return View();
+            }
+            return View(lstExams.data);
         }
     }
 }

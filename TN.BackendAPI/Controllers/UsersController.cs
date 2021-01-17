@@ -4,11 +4,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using TN.Data.Entities;
 using TN.ViewModels.Catalog.User;
-using System.Text.Json;
 using System;
 using TN.BackendAPI.Services.IServices;
-using TN.ViewModels.FacebookAuth;
 using TN.ViewModels.Common;
+using static Google.Apis.Auth.GoogleJsonWebSignature;
 
 namespace TN.BackendAPI.Controllers
 {
@@ -18,174 +17,265 @@ namespace TN.BackendAPI.Controllers
     public class UsersController : ControllerBase
     {
         private readonly  IUserService _userService;
-
         public UsersController(IUserService userService)
         {
             _userService = userService;
         }
+
         // GET: api/Users
         [HttpGet]
         [Authorize("admin")]
-        public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers()
+        public async Task<IActionResult> GetUsers()
         {
-            return Ok(await _userService.GetAll());
+            var lstUser = await _userService.GetAll();
+            return Ok(new ResponseBase<List<AppUser>>() { data=lstUser });
         }
 
-        [HttpPost("paged")]
+        // POST: api/Users/Paged
+        [HttpPost("Paged")]
         [Authorize("admin")]
-        public async Task<ActionResult<PagedResult<UserViewModel>>> GetUsersPaged(UserPagingRequest model)
+        public async Task<IActionResult> GetUsersPaged(UserPagingRequest model)
         {
             var result = await _userService.GetListUserPaged(model);
             if (result == null)
             {
-                return BadRequest("Out of index");
+                return Ok(new ResponseBase<PagedResult<UserViewModel>>() { msg="Out of index"} );
             }
-            return Ok(result);
+            return Ok(new ResponseBase<PagedResult<UserViewModel>>(){ data = result });
         }
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<AppUser>> GetUser(int id)
+        public async Task<IActionResult> GetUser(int id)
         {
             var user = await _userService.GetByID(id);
             if (user == null)
             {
-                return NotFound();
+                return Ok(new ResponseBase<AppUser>() { msg = "User not found" });
             }
-            return Ok(user);
+            return Ok(new ResponseBase<AppUser>() { data = user });
         }
 
-        // GET: api/Users/5
-        [HttpGet("getStatus/{id}")]
-        public async Task<ActionResult<AppUser>> GetStatus(int id)
+        // GET: api/Users/GetNumber
+        [HttpGet("GetNumber")]
+        [Authorize("admin")]
+        public async Task<IActionResult> GetNumberUser()
+        {
+            NumberUserInfo response = new NumberUserInfo();
+            response.TotalActiveUser = 0;
+            response.TotalInactiveUser = 0;
+            var allUsers = await _userService.GetAll();
+            response.TotalUser = allUsers.Count;
+            foreach (var u in allUsers)
+            {
+                if (u.isActive)
+                    response.TotalActiveUser++;
+            }
+            response.TotalInactiveUser = response.TotalUser - response.TotalActiveUser;
+            return Ok(new ResponseBase<NumberUserInfo>() { data = response });
+        }
+
+        // GET: api/GetStatus/5
+        [HttpGet("GetStatus/{id}")]
+        public async Task<IActionResult> GetStatus(int id)
         {
             var user = await _userService.GetByID(id);
             if (user!=null && user.isActive)
             {
-                return Ok();
+                return Ok(new ResponseBase<AppUser>() { data = user });
             }
             else
             {
-                return BadRequest();
+                return Ok(new ResponseBase<AppUser>() { msg = "User not found or is locked" });
             }
         }
 
-        // GET: api/Users/detail/5
-        [HttpGet("detail/{id}")]
-        public async Task<ActionResult<AppUser>> GetUserDetails(int id)
+        // GET: api/Users/Detail/5
+        [HttpGet("Detail/{id}")]
+        public async Task<IActionResult> GetUserDetails(int id)
         {
             var user = await _userService.GetByID(id);
             if (user == null)
             {
-                return NotFound();
+                return Ok(new ResponseBase<AppUser>() { msg = "User not found" });
             }
-            return Ok(user);
+            return Ok(new ResponseBase<AppUser>() { data = user });
         }
 
-        // POST: api/Users/login
-        [HttpPost("login")]
+        // POST: api/Users/Login
+        [HttpPost("Login")]
         [AllowAnonymous]
-        public async Task<ActionResult> Login([FromBody] LoginModel request)
+        public async Task<IActionResult> Login([FromBody] LoginModel request)
         {
             var result = await _userService.Login(request);
             if (result == null || result.Error != null)
             {
-                return BadRequest(result);
+                return Ok(new ResponseBase<JwtResponse>() { msg = result.Error });
             }
-            return Ok(result);
+            return Ok(new ResponseBase<JwtResponse>() { data = result });
         }
 
-        // POST: api/Users/register
-        [HttpPost("register")]
+        // POST: api/Users/Register
+        [HttpPost("Register")]
         [AllowAnonymous]
-        public async Task<ActionResult<JwtResponse>> RegisterUser([FromBody] RegisterModel request)
+        public async Task<IActionResult> RegisterUser([FromBody] RegisterModel request)
         {
             var result = await _userService.Register(request);
             if (!string.IsNullOrEmpty(result.Error))
             {
-                return BadRequest(result);
+                return Ok(new ResponseBase<JwtResponse>() { msg = result.Error });
             }
-            return Ok(result);
+            return Ok(new ResponseBase<JwtResponse>() { data = result });
         }
 
-        // POST: api/Users/getresetcode
-        [HttpPost("getresetcode")]
+        // POST: api/Users/GetResetCode
+        [HttpPost("GetResetCode")]
         [AllowAnonymous]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel model)
         {
             var resultStringCode = await _userService.ResetPassword(model);
             if(resultStringCode!=null)
-                return Ok(resultStringCode);
-            return NotFound("User is not found");
+                return Ok(new ResponseBase<string>() { data = resultStringCode });
+            return Ok(new ResponseBase<string>() { msg = "User not found" });
         }
 
-        // POST: api/Users/resetpass
-        [HttpPost("resetpass")]
+        // POST: api/Users/ResetPass
+        [HttpPost("ResetPass")]
         [AllowAnonymous]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
         {
             var result = await _userService.ResetPasswordConfirm(model);
-            if (result=="OK")
+            if (result)
             {
-                return Ok("Password Changed");
+                return Ok(new ResponseBase<string>() { data = "Password changed" });
             }
-            return NotFound("user not found");
+            return Ok(new ResponseBase<string>() { msg = "User not found" });
         }
 
+        // POST: api/Users/ChangePass/1
+        [HttpPost("ChangePass/{userID}")]
+        public async Task<IActionResult> ChangePassword(int userID, [FromBody] ChangePasswordModel model)
+        {
+            var result = await _userService.ChangePassword(userID, model);
+            return Ok(new ResponseBase<string>() { msg = result });
+        }
 
         //POST: api/Users/RefreshToken
         [HttpPost("RefreshToken")]
         [AllowAnonymous]
-        public async Task<ActionResult> RefreshToken([FromBody] RefreshAccessTokenRequest refreshRequest)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshAccessTokenRequest refreshRequest)
         {
-            string newAccessToken = await _userService.GetNewAccessToken(refreshRequest);
+            string newAccessToken = await _userService.GenerateAccessTokenWithRefressToken(refreshRequest);
             if (!String.IsNullOrEmpty(newAccessToken))
             {
-                return Ok(new { access_token = newAccessToken });
+                return Ok(new ResponseBase<string>() { data = newAccessToken } );
             }
-            return BadRequest("User not found or Refresh Token is invalid");
+            return Ok(new ResponseBase<string>() { msg = "User not found or Refresh Token is invalid" });
         }
 
-
-        // PUT: api/Users/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
-        // more details see https://aka.ms/RazorPagesCRUD.
-        [HttpPut("UpdateUser/{id}")]
-        public async Task<ActionResult<AppUser>> PutUser(int id, [FromBody] UserViewModel user)
+        //POST: api/Users/GetRefreshToken
+        [HttpPost("GetRefreshToken")]
+        public async Task<IActionResult> GetRefreshTokenByAccessToken([FromBody] RefreshAccessTokenRequest accessToken)
         {
-            var u = await _userService.EditUserInfo(id, user);
-            return Ok(u);
+            var refreshToken = await _userService.GetRefreshTokenByAccessToken(accessToken.AccessToken);
+            if (refreshToken != null)
+                return Ok(new ResponseBase<RefreshToken>() { data = refreshToken });
+            return Ok(new ResponseBase<string>() { msg = "Invalid access token" });
         }
 
-        // POST: api/Users
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
-        // more details see https://aka.ms/RazorPagesCRUD.
+
+        // PUT: api/Users/EditUser
+        [HttpPost("EditUser")]
+        [Authorize("admin")]
+        public async Task<IActionResult> UpdateUser([FromBody] UserViewModel model)
+        {
+            var u = await _userService.EditUserInfo(model.Id, model);
+            if (u == null)
+            {
+                return Ok(new ResponseBase<AppUser>() { msg = "Invalid user info" });
+            }
+            return Ok(new ResponseBase<AppUser>() { data = u });
+        }
+
+        // PUT: api/Users/UpdateProfile/5
+        [HttpPut("UpdateProfile/{userID}")]
+        [Authorize("admin")]
+        public async Task<IActionResult> EditProfile(int userID, [FromBody] UserViewModel user)
+        {
+            var u = await _userService.EditProfile(userID, user);
+            if (u == null)
+            {
+                return Ok(new ResponseBase<AppUser>() { msg = "Invalid user info" });
+            }
+            return Ok(new ResponseBase<AppUser>() { data = u });
+        }
+
+        // POST: api/Users/CreateUser
         [HttpPost("CreateUser")]
-        public async Task<ActionResult<JwtResponse>> PostUser([FromBody]RegisterModel user)
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> PostUser([FromBody]RegisterModel user)
         {
             var u = await _userService.Register(user);
-            return Ok(u);
+            if (u.Error != null)
+            {
+                return Ok(new ResponseBase<JwtResponse>() { msg = u.Error });
+            }
+            return Ok(new ResponseBase<JwtResponse>() { data = u });
         }
 
         // DELETE: api/Users/5
         [HttpDelete("DeleteUser/{id}")]
         [Authorize("admin")]
-        public async Task<ActionResult<bool>> DeleteUser(int id)
+        public async Task<IActionResult> DeleteUser(int id)
         {
-            return await _userService.DeleteUser(id);
+            var deleteResult = await _userService.DeleteUser(id);
+            if (deleteResult)
+            {
+                return Ok(new ResponseBase<JwtResponse>() { msg = "User not found" });
+            }
+            return Ok(new ResponseBase<JwtResponse>() { });
         }
 
-        [HttpPost("loginfb")]
+        [HttpPost("LoginFb")]
         [AllowAnonymous]
-        public async Task<ActionResult<JwtResponse>> LoginFacebook([FromBody]string accesstoken)
+        public async Task<IActionResult> LoginFacebook([FromBody]string accesstoken)
         {
-            var loginUser = await _userService.LoginWithFacebookToken(accesstoken);
-            return Ok(loginUser);
+            var jwt = await _userService.LoginWithFacebookToken(accesstoken);
+            if (jwt == null)
+                return Ok(new ResponseBase<JwtResponse>() { msg = "Invalid token" });
+            return Ok(new ResponseBase<JwtResponse>() { data = jwt });
+        }
+
+        [HttpPost("LoginGG")]
+        [AllowAnonymous]
+        public async Task<IActionResult> LoginGoogle([FromBody]string token)
+        {
+            Payload payload;
+            try
+            {
+                payload = await ValidateAsync(token, new ValidationSettings
+                {
+                    Audience = new[] { "104872694801-4vdhqd2c8e32j65oqd50idd43dh08teo.apps.googleusercontent.com" }
+                });
+                var ggID = payload.Subject;
+                var email = payload.Email;
+                var name = payload.Name;
+                var avatar = payload.Picture;
+
+                var jwt = await _userService.LoginWithGoogleToken(token ,email, name, avatar, ggID);
+                if (jwt == null)
+                    return Ok(new ResponseBase<JwtResponse>() { msg = "Error" });
+                return Ok(new ResponseBase<JwtResponse>() { data = jwt });
+            }
+            catch (Exception e)
+            {
+                return Ok(new ResponseBase<JwtResponse>() { msg = e.Message });
+            }
         }
 
         [HttpPut("AddPassword")]
         [AllowAnonymous]
-        public async Task<ActionResult<AppUser>> AddPasswordForNewUser(ResetPasswordModel model)
+        public async Task<IActionResult> AddPasswordForNewUser(ResetPasswordModel model)
         {
             var user = await _userService.AddPassword(model);
             if (user == null)
@@ -197,31 +287,31 @@ namespace TN.BackendAPI.Controllers
 
         [HttpPost("LockUser/{id}")]
         [Authorize("admin")]
-        public async Task<ActionResult> LockUser(int id)
+        public async Task<IActionResult> LockUser(int id)
         {
             var lockUserResult = await _userService.DeleteUser(id);
             if (lockUserResult)
             {
-                return Ok("Locked user - UID: "+id);
+                return Ok(new ResponseBase<string>() { data = "Locked user - UID: " + id });
             }
             else
             {
-                return BadRequest("Locked user failed");
+                return Ok(new ResponseBase<string>() { msg = "Locked user failed" });
             }
         }
 
         [HttpPost("RestoreUser/{id}")]
         [Authorize("admin")]
-        public async Task<ActionResult> RestoreUser(int id)
+        public async Task<IActionResult> RestoreUser(int id)
         {
             var lockUserResult = await _userService.RestoreUser(id);
             if (lockUserResult)
             {
-                return Ok("Unlocked user - UID: " + id);
+                return Ok(new ResponseBase<string>() { data = "Unlocked user - UID: " + id });
             }
             else
             {
-                return BadRequest("Unlocked user failed");
+                return Ok(new ResponseBase<string>() { msg = "Unlocked user failed" });
             }
         }
     }

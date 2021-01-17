@@ -45,13 +45,9 @@
                                 <span asp-validation-for="UserName" class="text-danger"></span>
                             </div>
                             <div class="form-group row">
-                                <div class="col-sm-6 mb-3 mb-sm-0">
-                                    <input asp-for="FirstName" class="form-control form-control-user" placeholder="First Name (*)">
-                                    <span asp-validation-for="FirstName" class="text-danger"></span>
-                                </div>
-                                <div class="col-sm-6">
-                                    <input asp-for="LastName" class="form-control form-control-user" placeholder="Last Name (*)">
-                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                <div class="col-sm-12">
+                                    <input asp-for="Name" class="form-control form-control-user" placeholder="Last Name (*)">
+                                    <span asp-validation-for="Name" class="text-danger"></span>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -78,6 +74,31 @@
                                     <span asp-validation-for="ConfirmPassword" class="text-danger text-sm-left"></span>
                                 </div>
                             </div>
+                            <div class="form-group custom-file">
+                                <input asp-for="AvatarFile" type="file" class="custom-file-input" id="customFile">
+                                <label for="customFile" class="custom-file-label">Upload your avatar</label>
+                            </div>
+                            @if (ViewData["IsRegisterSuccess"] != null)
+                            {
+                                @if ((bool)ViewData["IsRegisterSuccess"])
+                                {
+                                    <div class="form-group row align-content-lg-center">
+                                        <div class="alert alert-success alert-dismissible">
+                                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                            <strong>Success!</strong> Login to continue.
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="form-group row align-content-lg-center">
+                                        <div class="d-none alert alert-success alert-dismissible">
+                                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                            <strong>Fail!</strong> Oh sorry!! Something went wrong. Press F5 and try again.
+                                        </div>
+                                    </div>
+                                }
+                            }
                             <div class="form-group row align-content-lg-center">
                                 <div class="col text-center">
                                     <span class="text-danger ">@ViewData["msg"]</span>
@@ -89,10 +110,10 @@
                         </form>
                         <hr>
                         <div class="text-center">
-                            <a class="small" asp-area="Public" asp-controller="Account" asp-action="ForgotPassword">Forgot Password?</a>
+                            <a class="small" asp-controller="Account" asp-action="ForgotPassword">Forgot Password?</a>
                         </div>
                         <div class="text-center">
-                            <a class="small" asp-area="Public" asp-action="Login" asp-controller="Account">Already have an account? Login!</a>
+                            <a class="small" asp-action="Login" asp-controller="Account">Already have an account? Login!</a>
                         </div>
                     </div>
                 </div>
@@ -114,6 +135,16 @@
 </body>
 
 </html>
+
+
+<script>
+    // Add the following code if you want the name of the file appear on select
+    $(".custom-file-input").on("change", function () {
+        var fileName = $(this).val().split("\\").pop();
+        $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+    });
+</script>
+
 
 
 

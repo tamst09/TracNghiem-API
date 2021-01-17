@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Common;
 
 namespace TN.BackendAPI.Services.Service
@@ -57,7 +58,7 @@ namespace TN.BackendAPI.Services.Service
                         select e;
             if (!string.IsNullOrEmpty(request.keyword))
                 query = query.Where(x => x.ExamName.Contains(request.keyword) || x.Owner.UserName.Contains(request.keyword));
-            if (request.CategoryID.HasValue && request.CategoryID.Value > 0)
+            if (request.CategoryID > 0)
             {
                 query = query.Where(e => e.CategoryID == request.CategoryID);
             }
