@@ -91,7 +91,9 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                     folder += model.Id.ToString() + "." + extension;
                     model.Avatar = "/" + folder;
                     string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
-                    await model.AvatarPhoto.CopyToAsync(new FileStream(serverFolder, FileMode.Create));
+                    var copyImageStream = new FileStream(serverFolder, FileMode.Create);
+                    model.AvatarPhoto.CopyTo(copyImageStream);
+                    copyImageStream.Close();
                 }
                 model.AvatarPhoto = null;
                 var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
@@ -146,7 +148,9 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                     folder += model.Id.ToString()+"."+extension;
                     model.Avatar = "/" + folder;
                     string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
-                    await model.AvatarPhoto.CopyToAsync(new FileStream(serverFolder, FileMode.Create));
+                    var copyImageStream = new FileStream(serverFolder, FileMode.Create);
+                    model.AvatarPhoto.CopyTo(copyImageStream);
+                    copyImageStream.Close();
                 }
                 model.AvatarPhoto = null;
                 var userUpdated = await _userManage.UpdateUserInfo(id, model, access_token);

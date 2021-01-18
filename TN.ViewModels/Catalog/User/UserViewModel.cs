@@ -30,6 +30,7 @@ namespace TN.ViewModels.Catalog.User
         [Required(ErrorMessage = "Empty")]
         [Display(Name = "Date of birth")]
         [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}")]
         public DateTime DoB { get; set; }
 
         [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 8)]

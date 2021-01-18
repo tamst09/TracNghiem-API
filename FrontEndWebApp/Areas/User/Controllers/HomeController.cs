@@ -13,7 +13,6 @@ namespace FrontEndWebApp.Areas.User.Controllers
     {
         public IActionResult Index()
         {
-            ViewData["Title"] = "User dashboard";
             return View();
         }
     }

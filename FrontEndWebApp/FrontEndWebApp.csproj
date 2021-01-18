@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <Folder Include="Models\" />
-    <Folder Include="Views\Shared\" />
     <Folder Include="wwwroot\images\cover\exam\" />
     <Folder Include="wwwroot\images\cover\user\" />
     <Folder Include="wwwroot\images\common\" />
@@ -33,7 +32,8 @@
     <Folder Include="wwwroot\lib\jquery-validation\dist\" />
     <Folder Include="wwwroot\lib\jquery\" />
     <Folder Include="wwwroot\lib\jquery\dist\" />
-    <Folder Include="wwwroot\publicAssets\" />
+    <Folder Include="wwwroot\homepage\" />
+    <Folder Include="wwwroot\userAssets\" />
   </ItemGroup>
 
 </Project>
