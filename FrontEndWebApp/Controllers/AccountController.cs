@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using TN.ViewModels.Catalog.User;
 
@@ -99,6 +100,9 @@ namespace FrontEndWebApp.Controllers
                 }
                 ViewData["msg"] = "Đổi mật khẩu thành công";
                 ViewData["success"] = true;
+                HttpContext.Response.Cookies.Delete("access_token_cookie");
+                HttpContext.Response.Cookies.Delete("refresh_token_cookie");
+                await HttpContext.SignOutAsync();
                 return View();
             }
             else
@@ -186,7 +190,9 @@ namespace FrontEndWebApp.Controllers
                 folder += model.Id.ToString() + "." + extension;
                 model.AvatarPhotoURL = "/" + folder;
                 string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
-                await model.AvatarFile.CopyToAsync(new FileStream(serverFolder, FileMode.Create));
+                var copyImageStream = new FileStream(serverFolder, FileMode.Create);
+                model.AvatarFile.CopyTo(copyImageStream);
+                copyImageStream.Close();
             }
             model.AvatarFile = null;
             string url = model.AvatarPhotoURL;
@@ -341,9 +347,19 @@ namespace FrontEndWebApp.Controllers
                 folder += model.Id.ToString() + "." + extension;
                 model.Avatar = "/"+folder;
                 string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
-                await model.AvatarPhoto.CopyToAsync(new FileStream(serverFolder, FileMode.Create));
+                try
+                {
+                    var copyImageStream = new FileStream(serverFolder, FileMode.Create);
+                    model.AvatarPhoto.CopyTo(copyImageStream);
+                    copyImageStream.Close();
+                }
+                catch (Exception e)
+                {
+
+                    throw;
+                }
+                model.AvatarPhoto = null;
             }
-            model.AvatarPhoto = null;
             var userID = Int32.Parse(User.FindFirst("UserID").Value);
             if(id != userID)
             {
@@ -352,12 +368,13 @@ namespace FrontEndWebApp.Controllers
             var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
             var result = await _accountService.UpdateProfile(id, model, access_token);
             // success
-            if (result.data != null)
-                return RedirectToAction(nameof(ShowProfile), new { id = result.data.Id });
+            if (result!=null && result.data != null)
+                return RedirectToAction(nameof(ShowProfile));
             // fail
+            ViewData["msg"] = "Update failed";
             return RedirectToAction(nameof(UpdateProfile), new
             {
-                id
+                id = id
             });
         }
         //public async Task<IActionResult> AddPassword(int id)

@@ -48,12 +48,6 @@ namespace FrontEndWebApp.Controllers
                     ViewData["message"] = "Something went wrong";
                     break;
             }
-            //if(HttpContext.Response.StatusCode == (int)HttpStatusCode.InternalServerError)
-            //{
-            //    ViewData["message"] = "Server not avaible";
-            //}
-            //else
-            //    ViewData["message"] = exception.Error.Message;
             ViewData["stackTrace"] = exception.Error.StackTrace;
 
             return View();

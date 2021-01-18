@@ -199,7 +199,6 @@ namespace TN.BackendAPI.Controllers
 
         // PUT: api/Users/UpdateProfile/5
         [HttpPut("UpdateProfile/{userID}")]
-        [Authorize("admin")]
         public async Task<IActionResult> EditProfile(int userID, [FromBody] UserViewModel user)
         {
             var u = await _userService.EditProfile(userID, user);
