@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@inject FrontEndWebApp.Areas.Admin.AdminServices.ICategoryManage categoryManager
+@{
+    var lstCategory = categoryManager.GetAll().Result;
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <!-- basic -->
@@ -56,23 +60,23 @@
                             Topics
                         </button>
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item" href="#">Vocabulary</a>
-                            <a class="dropdown-item" href="#">Grammar</a>
-                            <a class="dropdown-item" href="#">For exercise</a>
-                            <a class="dropdown-item" href="#">General review</a>
-                            <a class="dropdown-item" href="#">Other</a>
+                            <a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-route-categoryId="0">All</a>
+                            @foreach (var categoryItem in lstCategory.data)
+                            {
+                                <a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-route-categoryId="@categoryItem.ID">@categoryItem.CategoryName</a>
+                            }
                         </div>
                     </div>
                     <div class="main">
                         <!-- Another variation with a button -->
-                        <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Search for exam, user...">
+                        <form method="get" asp-action="Index" asp-controller="Home" class="input-group">
+                            <input name="keyword" type="text" class="form-control" placeholder="Search for exam, user...">
                             <div class="input-group-append">
-                                <button class="btn btn-secondary" type="button" style="background-color: #f26522; border-color:#f26522 ">
+                                <button class="btn btn-secondary" type="submit" style="background-color: #f26522; border-color:#f26522 ">
                                     <i class="fa fa-search"></i>
                                 </button>
                             </div>
-                        </div>
+                        </form>
                     </div>
                     <div class="header_box">
                         <div class="login_menu">

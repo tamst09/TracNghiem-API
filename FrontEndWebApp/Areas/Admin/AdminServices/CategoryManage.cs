@@ -106,11 +106,8 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             {
                 var body = await response.Content.ReadAsStringAsync();
                 ResponseBase<List<Exam>> lstExam = JsonConvert.DeserializeObject<ResponseBase<List<Exam>>>(body);
+                lstExam.success = true;
                 return lstExam;
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized || response.StatusCode == System.Net.HttpStatusCode.Forbidden)
-            {
-                return new ResponseBase<List<Exam>>() { StatusCode = "401" };
             }
             else
             {

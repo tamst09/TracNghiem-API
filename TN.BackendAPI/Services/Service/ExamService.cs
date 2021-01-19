@@ -32,11 +32,14 @@ namespace TN.BackendAPI.Services.Service
             var allExam = await _db.Exams.Where(e => e.isActive == true && e.Owner.isActive == true).Include(e => e.Category).Include(e => e.Owner).Include(e => e.Questions).ToListAsync();
             // check keyword de xem co dang tim kiem hay phan loai ko
             // sau do gan vao Query o tren
+            if (model.CategoryID > 0)
+            {
+                allExam = allExam.Where(e => e.CategoryID == model.CategoryID).ToList();
+            }
             if (!string.IsNullOrEmpty(model.keyword))
             {
-                allExam = allExam.Where(e => e.ExamName.Contains(model.keyword) ||
-                e.Category.CategoryName.Contains(model.keyword) ||
-                e.Owner.UserName.Contains(model.keyword)
+                allExam = allExam.Where(e => e.ExamName.ToLower().Contains(model.keyword.ToLower()) ||
+                e.Owner.UserName.ToLower().Contains(model.keyword.ToLower())
                 ).ToList();
             }
             // get total row from query
@@ -149,11 +152,14 @@ namespace TN.BackendAPI.Services.Service
             allExam.OrderBy(e => e.ExamName).ToList();
             // check keyword de xem co dang tim kiem hay phan loai ko
             // sau do gan vao Query o tren
+            if (model.CategoryID > 0)
+            {
+                allExam = allExam.Where(e => e.CategoryID == model.CategoryID).ToList();
+            }
             if (!string.IsNullOrEmpty(model.keyword))
             {
-                allExam = allExam.Where(e => e.ExamName.Contains(model.keyword) ||
-                e.Category.CategoryName.Contains(model.keyword) ||
-                e.Owner.UserName.Contains(model.keyword)
+                allExam = allExam.Where(e => e.ExamName.ToLower().Contains(model.keyword.ToLower())||
+                e.Owner.UserName.ToLower().Contains(model.keyword.ToLower())
                 ).ToList();
             }
             // get total row from query

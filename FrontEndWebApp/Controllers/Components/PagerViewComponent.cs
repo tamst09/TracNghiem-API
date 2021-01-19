@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TN.ViewModels.Common;
 
-namespace FrontEndWebApp.Areas.Admin.Controllers.Components
+namespace FrontEndWebApp.Controllers.Components
 {
     public class PagerViewComponent : ViewComponent
     {

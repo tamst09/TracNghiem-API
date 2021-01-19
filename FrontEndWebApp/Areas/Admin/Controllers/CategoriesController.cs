@@ -178,7 +178,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                 ViewData["msg"] = "Lỗi kết nối máy chủ";
                 return View();
             }
-            if(lstExams.StatusCode!=null && lstExams.StatusCode == "401")
+            if(lstExams.success == false)
             {
                 return RedirectToAction("Login", "Account", new { Area =""});
             }

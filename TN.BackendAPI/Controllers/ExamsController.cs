@@ -107,8 +107,8 @@ namespace TN.BackendAPI.Controllers
             var exams = await _examService.GetAll(userID);
             return Ok(new ResponseBase<List<Exam>>() { data = exams });
         }
-        [HttpPost("Paged/{userID}")]
-        public async Task<IActionResult> UserGetAllPaging(ExamPagingRequest model, int userID)
+        [HttpPost("Paged")]
+        public async Task<IActionResult> UserGetAllPaging(ExamPagingRequest model,[FromQuery] int userID)
         {
             var exams = await _examService.GetAllPaging(model, userID);
             return Ok(new ResponseBase<PagedResult<Exam>>() { data = exams });
