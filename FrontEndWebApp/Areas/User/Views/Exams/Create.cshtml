@@ -1,0 +1,46 @@
+﻿@model TN.ViewModels.Catalog.Exams.ExamModel
+@{
+    Layout = "~/Areas/User/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "NEW EXAM";
+    var lstCategory = (List<TN.Data.Entities.Category>)ViewData["lstCategory"];
+}
+<h1 class="fashion_taital">New exam</h1>
+<h5 class="fashion_taital">@ViewData["msg"]</h5>
+<hr />
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="text-danger">@ViewData["msg"]</div>
+            <div class="form-group">
+                <label asp-for="ExamName" class="control-label">Name</label>
+                <input asp-for="ExamName" class="form-control" />
+                <span asp-validation-for="ExamName" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="isPrivate" /> Only me
+                </label>
+            </div>
+            <div class="form-group">
+                <label asp-for="Time" class="control-label">Time to do (minute)</label>
+                <input type="number" asp-for="Time" value="0" class="form-control" />
+                <span class="text-danger">*Leave it as is if you don't want to set it up</span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CategoryID" class="control-label">Topic</label>
+                <select asp-for="CategoryID" class="form-control">
+                    @foreach (var category in lstCategory)
+                    {
+                        <option value="@category.ID">@category.CategoryName</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+                <a class="btn btn-link" asp-action="Index">Back to list</a>
+            </div>
+        </form>
+    </div>
+</div>
+

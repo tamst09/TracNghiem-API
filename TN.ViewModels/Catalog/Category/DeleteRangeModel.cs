@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using TN.ViewModels.Common;
 
-namespace TN.ViewModels.Catalog.Category
+namespace TN.ViewModels.Common
 {
     public class DeleteRangeModel<T>
     {

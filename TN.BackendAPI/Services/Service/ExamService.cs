@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
-using TN.ViewModels.Catalog.Category;
 using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Common;
 
@@ -32,17 +31,31 @@ namespace TN.BackendAPI.Services.Service
             var allExam = await _db.Exams.Where(e => e.isActive == true && e.Owner.isActive == true).Include(e => e.Category).Include(e => e.Owner).Include(e => e.Questions).ToListAsync();
             // check keyword de xem co dang tim kiem hay phan loai ko
             // sau do gan vao Query o tren
+            if (model.CategoryID > 0)
+            {
+                allExam = allExam.Where(e => e.CategoryID == model.CategoryID).ToList();
+            }
             if (!string.IsNullOrEmpty(model.keyword))
             {
-                allExam = allExam.Where(e => e.ExamName.Contains(model.keyword) ||
-                e.Category.CategoryName.Contains(model.keyword) ||
-                e.Owner.UserName.Contains(model.keyword)
+                allExam = allExam.Where(e => e.ExamName.ToLower().Contains(model.keyword.ToLower()) ||
+                e.Owner.UserName.ToLower().Contains(model.keyword.ToLower())
                 ).ToList();
             }
             // get total row from query
             int totalrecord = allExam.Count;
             // get so trang
-            int soTrang = (totalrecord % model.PageSize == 0) ? (totalrecord / model.PageSize) : (totalrecord / model.PageSize + 1);
+            int soTrang = 0;
+            if (totalrecord > model.PageSize)
+            {
+                if (totalrecord % model.PageSize == 0)
+                {
+                    soTrang = totalrecord / model.PageSize;
+                }
+                else
+                {
+                    soTrang = totalrecord / model.PageSize + 1;
+                }
+            }
             // get data and paging
             var data = allExam.Skip((model.PageIndex - 1) * model.PageSize)
                 .Take(model.PageSize)
@@ -149,17 +162,31 @@ namespace TN.BackendAPI.Services.Service
             allExam.OrderBy(e => e.ExamName).ToList();
             // check keyword de xem co dang tim kiem hay phan loai ko
             // sau do gan vao Query o tren
+            if (model.CategoryID > 0)
+            {
+                allExam = allExam.Where(e => e.CategoryID == model.CategoryID).ToList();
+            }
             if (!string.IsNullOrEmpty(model.keyword))
             {
-                allExam = allExam.Where(e => e.ExamName.Contains(model.keyword) ||
-                e.Category.CategoryName.Contains(model.keyword) ||
-                e.Owner.UserName.Contains(model.keyword)
+                allExam = allExam.Where(e => e.ExamName.ToLower().Contains(model.keyword.ToLower())||
+                e.Owner.UserName.ToLower().Contains(model.keyword.ToLower())
                 ).ToList();
             }
             // get total row from query
             int totalrecord = allExam.Count;
             // get so trang
-            int soTrang = (totalrecord % model.PageSize == 0) ? (totalrecord / model.PageSize) : (totalrecord / model.PageSize + 1);
+            int soTrang = 0;
+            if (totalrecord > model.PageSize)
+            {
+                if (totalrecord % model.PageSize == 0)
+                {
+                    soTrang = totalrecord / model.PageSize;
+                }
+                else
+                {
+                    soTrang = totalrecord / model.PageSize + 1;
+                }
+            }
             // get data and paging
             var data = allExam.Skip((model.PageIndex - 1) * model.PageSize)
                 .Take(model.PageSize)
@@ -190,11 +217,78 @@ namespace TN.BackendAPI.Services.Service
                 PageSize = model.PageSize
             };
         }
+        public async Task<PagedResult<Exam>> GetOwnedPaging(ExamPagingRequest model, int userID)
+        {
+            var allExam = await _db.Exams.Where(e => e.isActive == true).Include(e => e.Category).Include(e => e.Owner).Include(e => e.Questions).ToListAsync();
+            allExam = allExam.Where(e => e.OwnerID == userID).ToList();
+            // check keyword de xem co dang tim kiem hay phan loai ko
+            // sau do gan vao Query o tren
+            if (model.CategoryID > 0)
+            {
+                allExam = allExam.Where(e => e.CategoryID == model.CategoryID).ToList();
+            }
+            if (!string.IsNullOrEmpty(model.keyword))
+            {
+                allExam = allExam.Where(e => e.ExamName.ToLower().Contains(model.keyword.ToLower()) ||
+                e.Owner.UserName.ToLower().Contains(model.keyword.ToLower())
+                ).ToList();
+            }
+            // get total row from query
+            int totalrecord = allExam.Count;
+            // get so trang
+            int soTrang = 0;
+            if (totalrecord > model.PageSize)
+            {
+                if (totalrecord % model.PageSize == 0)
+                {
+                    soTrang = totalrecord / model.PageSize;
+                }
+                else
+                {
+                    soTrang = totalrecord / model.PageSize + 1;
+                }
+            }
+            // get data and paging
+            var data = allExam.Skip((model.PageIndex - 1) * model.PageSize)
+                .Take(model.PageSize)
+                .Select(u => new Exam()
+                {
+                    ID = u.ID,
+                    CategoryID = u.CategoryID,
+                    ExamName = u.ExamName,
+                    ImageURL = u.ImageURL,
+                    NumOfAttemps = u.NumOfAttemps,
+                    OwnerID = u.OwnerID,
+                    Time = u.Time,
+                    TimeCreated = u.TimeCreated,
+                    isActive = u.isActive,
+                    isPrivate = u.isPrivate,
+                    Category = u.Category,
+                    Owner = u.Owner,
+                    Questions = u.Questions
+                })
+                .ToList();
+            // return
+            return new PagedResult<Exam>()
+            {
+                Items = data,
+                TotalRecords = totalrecord,
+                TotalPages = soTrang,
+                PageIndex = model.PageIndex,
+                PageSize = model.PageSize
+            };
+        }
+        public async Task<List<Exam>> GetOwned(int userID)
+        {
+            var allExam = await _db.Exams.Where(e => e.isActive == true).Include(e => e.Category).Include(e => e.Owner).Include(e => e.Questions).ToListAsync();
+            allExam = allExam.Where(e => e.OwnerID == userID).ToList();
+            return allExam;
+        }
         public async Task<Exam> GetByID(int id, int userID)
         {
-            var exam = await _db.Exams.Where(e => e.isActive == true && e.OwnerID == userID).Include(e => e.Owner).Include(e => e.Questions).Include(e => e.Category).FirstOrDefaultAsync(e => e.ID == id);
+            var exam = await _db.Exams.Where(e => e.isActive == true && (e.OwnerID == userID || (e.OwnerID!=userID && e.isPrivate==false))).Include(e => e.Owner).Include(e => e.Questions).Include(e => e.Category).FirstOrDefaultAsync(e => e.ID == id);
             if (exam == null)
-                throw new Exception("Exam not found");
+                return null;
             exam.Questions.OrderBy(e => e.STT).ToList();
             return exam;
         }
@@ -225,7 +319,7 @@ namespace TN.BackendAPI.Services.Service
             {
                 foreach (var q in exam.Questions)
                 {
-                    q.isActive = false;
+                    _db.Questions.Remove(q);
                 }
             }
             exam.isActive = false;

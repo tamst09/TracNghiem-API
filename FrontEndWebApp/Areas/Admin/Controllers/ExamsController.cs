@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TN.Data.Entities;
-using TN.ViewModels.Catalog.Category;
 using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Catalog.Question;
+using TN.ViewModels.Common;
 
 namespace FrontEndWebApp.Areas.Admin.Controllers
 {
@@ -191,6 +191,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                 ViewData["SubTitle"] = examName!=null?"Đề thi: "+examName.data.ExamName:"";
                 var model = new QuestionPagingRequest()
                 {
+                    ExamID = id,
                     keyword = keyword,
                     PageIndex = pageIndex,
                     PageSize = pageSize

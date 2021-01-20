@@ -7,7 +7,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using TN.Data.Entities;
-using TN.ViewModels.Catalog.Category;
 using TN.ViewModels.Common;
 using TN.ViewModels.Settings;
 
@@ -106,11 +105,8 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             {
                 var body = await response.Content.ReadAsStringAsync();
                 ResponseBase<List<Exam>> lstExam = JsonConvert.DeserializeObject<ResponseBase<List<Exam>>>(body);
+                lstExam.success = true;
                 return lstExam;
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized || response.StatusCode == System.Net.HttpStatusCode.Forbidden)
-            {
-                return new ResponseBase<List<Exam>>() { StatusCode = "401" };
             }
             else
             {

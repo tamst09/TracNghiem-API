@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
-using TN.ViewModels.Catalog.Category;
 using TN.ViewModels.Catalog.Question;
 using TN.ViewModels.Common;
 
@@ -72,15 +71,17 @@ namespace TN.BackendAPI.Services.Service
         {
             try
             {
-                IEnumerable<Question> lstExam = new List<Question>();
                 foreach (var id in lstId.ListItem)
                 {
                     var q = await _db.Questions.FindAsync(id);
                     if (q.Results != null)
                     {
-                        q.Results = null;
+                        foreach (var record in q.Results)
+                        {
+                            _db.Results.Remove(record);
+                        }
                     }
-                    q.isActive = false;
+                    _db.Questions.Remove(q);
                 }
                 await _db.SaveChangesAsync();
                 return true;
@@ -118,10 +119,25 @@ namespace TN.BackendAPI.Services.Service
                 q.Exam.ExamName.Contains(model.keyword)
                 ).ToList();
             }
+            if (model.ExamID > 0)
+            {
+                allQuestions = allQuestions.Where(q => q.ExamID == model.ExamID).ToList();
+            }
             // get total row from query
             int totalrecord = allQuestions.Count;
             // get so trang
-            int soTrang = (totalrecord % model.PageSize == 0) ? (totalrecord / model.PageSize) : (totalrecord / model.PageSize + 1);
+            int soTrang = 0;
+            if(totalrecord > model.PageSize)
+            {
+                if(totalrecord % model.PageSize == 0)
+                {
+                    soTrang = totalrecord / model.PageSize;
+                }
+                else
+                {
+                    soTrang = totalrecord / model.PageSize + 1;
+                }
+            }
             // get data and paging
             var data = allQuestions.Skip((model.PageIndex - 1) * model.PageSize)
                 .Take(model.PageSize)

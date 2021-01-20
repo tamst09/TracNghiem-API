@@ -42,9 +42,7 @@ namespace TN.BackendAPI
             services.AddTransient<UserManager<AppUser>, UserManager<AppUser>>();
             services.AddTransient<SignInManager<AppUser>, SignInManager<AppUser>>();
             services.AddTransient<RoleManager<AppRole>, RoleManager<AppRole>>();
-            services.AddTransient<IStorageService, StorageService>();
             services.AddTransient<ICategoryService, CategoryService>();
-            services.AddTransient<IUserExamService, UserExamService>();
             services.AddTransient<IExamService, ExamService>();
             services.AddTransient<IQuestionService, QuestionService>();
             services.AddTransient<IUserService, UserService>();

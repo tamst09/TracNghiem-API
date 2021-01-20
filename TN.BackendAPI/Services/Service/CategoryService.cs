@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
-using TN.ViewModels.Catalog.Category;
+using TN.ViewModels.Common;
 
 namespace TN.BackendAPI.Services.Service
 {
@@ -124,8 +124,8 @@ namespace TN.BackendAPI.Services.Service
         }
         public async Task<List<Exam>> AdminGetExams(int categoryID)
         {
-            var exist = _db.Categories.Where(c => c.ID == categoryID && c.isActive == true);
-            if (exist != null)
+            var lstCategory = await _db.Categories.Where(c => c.ID == categoryID && c.isActive == true).ToListAsync();
+            if (lstCategory != null)
             {
                 var exams = _db.Exams.Where(e => e.CategoryID == categoryID && e.isActive == true).
                     Include(e => e.Category).

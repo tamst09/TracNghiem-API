@@ -1,4 +1,5 @@
 using FrontEndWebApp.Areas.Admin.AdminServices;
+using FrontEndWebApp.Areas.User.Services;
 using FrontEndWebApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -37,11 +38,17 @@ namespace FrontEndWebApp
             //services.AddHttpContextAccessor();
             services.AddSession();
             // Dependency Injection
+            // DI of Admin
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<IUserManage, UserManage>();
             services.AddTransient<ICategoryManage, CategoryManage>();
             services.AddTransient<IExamManage, ExamManage>();
             services.AddTransient<IQuestionManage, QuestionManage>();
+            // DI of User
+            services.AddTransient<ICategoryService, CategoryService>();
+            services.AddTransient<IExamService, ExamService>();
+            services.AddTransient<IQuestionService, QuestionService>();
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
