@@ -1,0 +1,59 @@
+﻿@{
+    ViewData["Title"] = "YOUR RESULT";
+    Layout = null;
+}
+@model List<TN.Data.Entities.Result>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>DOING EXAM</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="~/doQuiz/css/styles.css">
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+    <script src='https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.bundle.min.js'></script>
+</head>
+<body>
+    <div class="wrapper bg-white rounded">
+        <div class="content">
+            <div class="content">
+                <p class="text-justify h4 pb-lg-1 font-weight-bold">
+                    RESULT
+                </p>
+                <div class="options py-3">
+                    <label class="rounded p-2 option">
+                        User ID: @Model[0].UserID
+                    </label>
+                    @foreach (var i in Model)
+                    {
+                        <label class="rounded p-2 option">
+                            Question ID: @i.QuestionID
+                        </label>
+                        @if(i.OptChoose != "N")
+                        {
+                            <label class="rounded p-2 option">
+                                You choose: @i.OptChoose
+                            </label>
+                        }
+                        else
+                        {
+                            <label class="rounded p-2 option">
+                                You choose: None
+                            </label>
+                        }
+                    }
+                    <label class="rounded p-2 option">
+                        TOTAL SCORES: <span style="color:orangered">@ViewData["Score"]</span>
+                    </label>
+                    <a class="btn btn-danger" asp-action="Index" asp-controller="Home">Exit</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+

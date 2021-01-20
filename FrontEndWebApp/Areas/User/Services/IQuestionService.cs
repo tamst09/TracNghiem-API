@@ -13,6 +13,7 @@ namespace FrontEndWebApp.Areas.User.Services
         // GET
         Task<ResponseBase<Question>> GetByID(int id, string accessToken);
         Task<ResponseBase<List<Question>>> GetAllByExamID(int examID, string accessToken);
+        Task<ResponseBase<PagedResult<Question>>> GetByExamPaging(QuestionPagingRequest model, string accessToken);
 
         // CRUD
         Task<ResponseBase<Question>> Create(QuestionModel model, string accessToken);
