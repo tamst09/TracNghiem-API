@@ -235,7 +235,11 @@ namespace TN.BackendAPI.Services.Service
             }
             bool isNewUser = true;
             var FbUserInfo = await _facebookAuth.GetUserInfoAsync(accessToken);
-            var user = await _dbContext.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.Email == FbUserInfo.Email);
+            if(string.IsNullOrEmpty(FbUserInfo.Email))
+            {
+                FbUserInfo.Email = FbUserInfo.FirstName.ToLower() + "_" + FbUserInfo.LastName.ToLower();
+            }
+            var user = await _dbContext.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.UserName==FbUserInfo.Email || u.Email == FbUserInfo.Email);
 
             if (user == null)
             {

@@ -61,5 +61,21 @@ namespace FrontEndWebApp.Areas.User.Controllers
             ViewData["msg"] = "Create failed";
             return View();
         }
+
+        public async Task<IActionResult> ManageQuestions(int examID)
+        {
+            var lstCategory = await _categoryService.GetAll();
+            ViewData["lstCategory"] = lstCategory.data;
+            var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+            var exam = await _examService.GetByID(examID, token, User.FindFirst("UserID").Value);
+            if (exam != null && exam.msg == null && exam.data != null)
+            {
+                ViewData["examID"] = exam.data.ID;
+                ViewData["examName"] = exam.data.ExamName.ToUpper();
+                return View(exam.data.Questions.Where(q => q.isActive).ToList());
+            }
+            ViewData["msg"] = "Sorry!! Something went wrong. Please try again.";
+            return View();
+        }
     }
 }

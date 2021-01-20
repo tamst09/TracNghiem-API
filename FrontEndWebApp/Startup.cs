@@ -47,6 +47,7 @@ namespace FrontEndWebApp
             // DI of User
             services.AddTransient<ICategoryService, CategoryService>();
             services.AddTransient<IExamService, ExamService>();
+            services.AddTransient<IQuestionService, QuestionService>();
 
             services.AddAuthentication(options =>
             {

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
-using TN.ViewModels.Catalog.Category;
 using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Common;
 

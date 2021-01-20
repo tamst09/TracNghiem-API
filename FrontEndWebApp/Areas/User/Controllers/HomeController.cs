@@ -47,6 +47,7 @@ namespace FrontEndWebApp.Areas.User.Controllers
             ViewData["commonExams"] = commonExams;
             ViewData["newestExams"] = newestExams;
             ViewData["allExams"] = allExams.data;
+            ViewData["Title"] = "HOME";
             return View();
         }
         [HttpGet("PreviewExam")]

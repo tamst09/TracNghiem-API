@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
-using TN.ViewModels.Catalog.Category;
 using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Common;
 
@@ -45,7 +44,18 @@ namespace TN.BackendAPI.Services.Service
             // get total row from query
             int totalrecord = allExam.Count;
             // get so trang
-            int soTrang = (totalrecord % model.PageSize == 0) ? (totalrecord / model.PageSize) : (totalrecord / model.PageSize + 1);
+            int soTrang = 0;
+            if (totalrecord > model.PageSize)
+            {
+                if (totalrecord % model.PageSize == 0)
+                {
+                    soTrang = totalrecord / model.PageSize;
+                }
+                else
+                {
+                    soTrang = totalrecord / model.PageSize + 1;
+                }
+            }
             // get data and paging
             var data = allExam.Skip((model.PageIndex - 1) * model.PageSize)
                 .Take(model.PageSize)
@@ -165,7 +175,18 @@ namespace TN.BackendAPI.Services.Service
             // get total row from query
             int totalrecord = allExam.Count;
             // get so trang
-            int soTrang = (totalrecord % model.PageSize == 0) ? (totalrecord / model.PageSize) : (totalrecord / model.PageSize + 1);
+            int soTrang = 0;
+            if (totalrecord > model.PageSize)
+            {
+                if (totalrecord % model.PageSize == 0)
+                {
+                    soTrang = totalrecord / model.PageSize;
+                }
+                else
+                {
+                    soTrang = totalrecord / model.PageSize + 1;
+                }
+            }
             // get data and paging
             var data = allExam.Skip((model.PageIndex - 1) * model.PageSize)
                 .Take(model.PageSize)
@@ -215,7 +236,18 @@ namespace TN.BackendAPI.Services.Service
             // get total row from query
             int totalrecord = allExam.Count;
             // get so trang
-            int soTrang = (totalrecord % model.PageSize == 0) ? (totalrecord / model.PageSize) : (totalrecord / model.PageSize + 1);
+            int soTrang = 0;
+            if (totalrecord > model.PageSize)
+            {
+                if (totalrecord % model.PageSize == 0)
+                {
+                    soTrang = totalrecord / model.PageSize;
+                }
+                else
+                {
+                    soTrang = totalrecord / model.PageSize + 1;
+                }
+            }
             // get data and paging
             var data = allExam.Skip((model.PageIndex - 1) * model.PageSize)
                 .Take(model.PageSize)

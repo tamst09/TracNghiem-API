@@ -75,7 +75,7 @@ namespace FrontEndWebApp.Controllers
             }
         }
 
-        public async Task<IActionResult> ChangePassword()
+        public IActionResult ChangePassword()
         {
             ViewData["success"] = false;
             return View();
@@ -353,10 +353,10 @@ namespace FrontEndWebApp.Controllers
                     model.AvatarPhoto.CopyTo(copyImageStream);
                     copyImageStream.Close();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-
-                    throw;
+                    model.AvatarPhoto = null;
+                    model.Avatar = null;
                 }
                 model.AvatarPhoto = null;
             }

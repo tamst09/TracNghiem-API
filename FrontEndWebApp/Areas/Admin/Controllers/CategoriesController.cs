@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TN.Data.Entities;
-using TN.ViewModels.Catalog.Category;
+using TN.ViewModels.Common;
 
 namespace FrontEndWebApp.Areas.Admin.Controllers
 {

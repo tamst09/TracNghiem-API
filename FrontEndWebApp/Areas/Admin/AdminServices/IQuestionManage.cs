@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TN.Data.Entities;
-using TN.ViewModels.Catalog.Category;
 using TN.ViewModels.Catalog.Question;
 using TN.ViewModels.Common;
 

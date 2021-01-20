@@ -1,6 +1,5 @@
 ﻿@inject FrontEndWebApp.Areas.Admin.AdminServices.ICategoryManage categoryManager
 @{
-    ViewData["Title"] = "HOME";
     var lstCategory = categoryManager.GetAll().Result;
 }
 <!DOCTYPE html>

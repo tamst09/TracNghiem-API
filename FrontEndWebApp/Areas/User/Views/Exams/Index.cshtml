@@ -47,7 +47,7 @@
                                     <td>@item.Questions.Where(q => q.isActive == true).ToList().Count</td>
                                     <td>@item.Category.CategoryName</td>
                                     <td>
-                                        <a asp-action="PreviewExam" asp-controller="Home" asp-route-examID="@item.ID">Preview <i class="fa fa-arrow-circle-right"></i></a>
+                                        <a asp-action="ManageQuestions" asp-controller="Exams" asp-route-examID="@item.ID">View <i class="fa fa-eye" aria-hidden="true"></i></a>
                                     </td>
                                 </tr>
                             }

@@ -1,0 +1,77 @@
+﻿@model TN.ViewModels.Catalog.Question.QuestionModel
+<form>
+    <div class="text-danger">@(ViewData["msg"]==null?"":ViewData["msg"])</div>
+    <div class="form-group">
+        <label asp-for="QuesContent" class="control-label">Question</label>
+        <input asp-for="QuesContent" class="form-control" value="@Model.QuesContent" />
+        <span asp-validation-for="QuesContent" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Option1" class="control-label">- A -</label>
+        <input asp-for="Option1" class="form-control" value="@Model.Option1" />
+        <span asp-validation-for="Option1" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Option2" class="control-label">- B -</label>
+        <input asp-for="Option2" class="form-control" value="@Model.Option2" />
+        <span asp-validation-for="Option2" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Option3" class="control-label">- C -</label>
+        <input asp-for="Option3" class="form-control" value="@Model.Option3" />
+        <span asp-validation-for="Option3" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Option4" class="control-label">- D -</label>
+        <input asp-for="Option4" class="form-control" value="@Model.Option4" />
+        <span asp-validation-for="Option4" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Answer" class="control-label">Correct Answer</label>
+        <select asp-for="Answer" class="form-control">
+            @if (Model.Answer == "A" || Model.Answer == "a")
+            {
+                <option value="A" selected>A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+            }
+            else if (Model.Answer == "B" || Model.Answer == "b")
+            {
+                <option value="A">A</option>
+                <option value="B" selected>B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+            }
+            else if (Model.Answer == "C" || Model.Answer == "c")
+            {
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C" selected>C</option>
+                <option value="D">D</option>
+            }
+            else if (Model.Answer == "D" || Model.Answer == "d")
+            {
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D" selected>D</option>
+            }
+            else
+            {
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+            }
+        </select>
+    </div>
+    <div class="form-group">
+        <input type="hidden" value="@Model.ExamID" asp-for="ExamID" class="form-control" />
+        <input type="hidden" value="@Model.ID" asp-for="ID" class="form-control" />
+    </div>
+    <div class="form-group">
+        <input id="btnUpdate" type="button" value="Update" class="btn btn-primary" />
+        <input type="reset" value="Reset" class="btn btn-dark" />
+    </div>
+</form>
