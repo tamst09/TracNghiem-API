@@ -86,6 +86,25 @@ namespace FrontEndWebApp.Areas.User.Services
             }
         }
 
+        public async Task<ResponseBase<PagedResult<Question>>> GetByExamPaging(QuestionPagingRequest model, string accessToken)
+        {
+            if (accessToken != null)
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var json = JsonConvert.SerializeObject(model);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("api/Questions/Paged", httpContent);
+            if (response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                ResponseBase<PagedResult<Question>> question = JsonConvert.DeserializeObject<ResponseBase<PagedResult<Question>>>(body);
+                return question;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public async Task<ResponseBase<string>> Update(QuestionModel model, string accessToken)
         {
             if (accessToken != null)

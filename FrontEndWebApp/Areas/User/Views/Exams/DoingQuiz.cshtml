@@ -1,0 +1,158 @@
+﻿@model TN.ViewModels.Common.PagedResult<TN.Data.Entities.Question>
+@{
+    ViewData["Title"] = "DOING EXAM";
+    Layout = null;
+    var list = Model.Items as List<TN.Data.Entities.Question>;
+    string phut = "--";
+    string giay = "--";
+    if (ViewBag.min != null && ViewBag.sec)
+    {
+        phut = "00";
+        giay = "00";
+        phut = ViewBag.min > 9 ? ViewBag.min.ToString() : "0" + ViewBag.min.ToString();
+        giay = ViewBag.sec > 9 ? ViewBag.sec.ToString() : "0" + ViewBag.sec.ToString();
+    }
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>DOING EXAM</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="~/doQuiz/css/styles.css">
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+    <script src='https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.bundle.min.js'></script>
+</head>
+<body>
+    <div class="row">
+        <div class="col-sm-4">
+            <div class="card position-fixed" style="width: 17rem;">
+                <div class="card-body">
+                    <div class="text-left">
+                        <strong style="font-size: 12pt; color: blue;">
+                            Time remaining: <span style="color:red" id="timer" class="timer">@phut:@giay</span>
+                        </strong>
+                    </div>
+                    <a data-toggle="modal" data-target="#exampleModalCenter" class="btn-link" style="color:royalblue; cursor:pointer">Finish...</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="wrapper bg-white rounded">
+        @foreach (var item in Model.Items)
+        {
+            <div class="content">
+                <p class="text-justify h4 pb-lg-1 font-weight-bold">
+                    @item.QuesContent
+                </p>
+                <div class="options py-3">
+                    <label class="rounded p-2 option">
+                        @item.Option1
+                        <input onchange="fire(this)" data-stt="@item.ID" type="radio" name="radio-@item.ID" value="A">
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="rounded p-2 option">
+                        @item.Option2
+                        <input onchange="fire(this)" data-stt="@item.ID" type="radio" name="radio-@item.ID" value="B">
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="rounded p-2 option">
+                        @item.Option3
+                        <input onchange="fire(this)" data-stt="@item.ID" type="radio" name="radio-@item.ID" value="C">
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="rounded p-2 option">
+                        @item.Option4
+                        <input onchange="fire(this)" data-stt="@item.ID" type="radio" name="radio-@item.ID" value="D">
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+            </div>
+        }
+    <div class="row justify-content-md-center">
+        @await Component.InvokeAsync("Pager", Model)
+        <input type="button" data-toggle="modal" data-target="#exampleModalCenter" value="Finish and submit" class="btn btn-primary mb-lg-4 mx-sm-0 mx-1">
+    </div>
+    </div>
+
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Confirm</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Do you want to submit ?
+                </div>
+                <div class="modal-footer">
+                    <a type="button" onclick="Submit()" class="btn btn-primary" asp-action="SubmitTest" asp-controller="Exams" style="padding-left:20px;padding-right:20px">Submit</a>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    var isSubmit = false;
+    function Submit() {
+        isSubmit = true;
+    }
+    $(window).bind('beforeunload', function () {
+        if (!isSubmit)
+            return "Do you want to exit this page?";
+    });
+</script>
+<script>
+        var min = @ViewBag.min;
+        var sec = @ViewBag.sec;
+        if (min != null && sec!=null) countdown();
+        function countdown() {
+                cdID = setInterval(function () {
+                    if (sec == 0) {
+                        min--;
+                        sec = 60;
+                    }
+                    sec--;
+                    if (min < 10) {
+                        $('#timer').css('color', 'red');
+                        min_text = '0' + min;
+                    } else {
+                        min_text = min;
+                    }
+                    if (sec < 10)
+                        sec_text = '0' + sec;
+                    else
+                        sec_text = sec;
+                    if (min < 0) {
+                        Submit();
+                        window.location.replace("https://localhost:44363/User/Exams/SubmitTest");
+                    }
+                    $('#timer').text(min_text + ':' + sec_text);
+                }, 1000);
+        }
+</script>
+<script>
+        function fire(x) {
+            stt = x.getAttribute("data-stt");
+            val = x.value;
+            console.log(stt+"-"+val);
+            obj = {
+                QuestionID: stt,
+                OptChoose: val
+            }
+            $.ajax({
+                type: "POST",
+                url: "https://localhost:44363/User/Exams/SubmitOne",
+                contents: "application/json; charset=utf-8",
+                dataType: "json",
+                data: obj,
+                success: function (data) {
+                },
+            })
+        }
+</script>

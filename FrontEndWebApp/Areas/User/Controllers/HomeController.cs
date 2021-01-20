@@ -62,18 +62,5 @@ namespace FrontEndWebApp.Areas.User.Controllers
             }
             return View();
         }
-
-        [HttpGet("DoingExam")]
-        public async Task<IActionResult> DoingExam(string examID)
-        {
-            var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var questions = await _examService.GetByID(Int32.Parse(examID), token, User.FindFirst("UserID").Value);
-            if(questions!=null && questions.msg==null && questions.data != null)
-            {
-                return View(questions.data);
-            }
-            return View();
-        }
-
     }
 }

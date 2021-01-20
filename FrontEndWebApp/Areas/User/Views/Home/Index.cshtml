@@ -37,7 +37,7 @@
                                             <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">@exam.Owner.UserName</span></p>
                                         </div>
                                         <div class="btn_main">
-                                            <div class="buy_bt"><a href="#">Attemps</a></div>
+                                            <div class="buy_bt"><a href="#" onclick="openAttempOptionForm(@exam.ID)" data-toggle="modal" data-target="#attempOptionModal">Attemps</a></div>
                                             <div class="seemore_bt"><a asp-action="PreviewExam" asp-controller="Home" asp-route-examID="@exam.ID">Preview</a></div>
                                         </div>
                                     </div>
@@ -82,7 +82,7 @@
                                             <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">@exam.Owner.UserName</span></p>
                                         </div>
                                         <div class="btn_main">
-                                            <div class="buy_bt"><a href="#">Attemps</a></div>
+                                            <div class="buy_bt"><a href="#" onclick="openAttempOptionForm(@exam.ID)" data-toggle="modal" data-target="#attempOptionModal">Attemps</a></div>
                                             <div class="seemore_bt"><a asp-action="PreviewExam" asp-controller="Home" asp-route-examID="@exam.ID">Preview</a></div>
                                         </div>
                                     </div>
@@ -129,7 +129,7 @@
                                             <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">@exam.Owner.UserName</span></p>
                                         </div>
                                         <div class="btn_main">
-                                            <div class="buy_bt"><a href="#">Attemps</a></div>
+                                            <div class="buy_bt"><a href="#" onclick="openAttempOptionForm(@exam.ID)" data-toggle="modal" data-target="#attempOptionModal">Attemps</a></div>
                                             <div class="seemore_bt"><a asp-action="PreviewExam" asp-controller="Home" asp-route-examID="@exam.ID">Preview</a></div>
                                         </div>
                                     </div>
@@ -147,4 +147,45 @@
         </div>
     </div>
 </div>
-<!-- all section end -->
+<div class="modal fade" id="attempOptionModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"># Options</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="partialOptions"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- all section end-->
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+            $(document).on("click", "#btnDoQuiz", function () {
+                var form = $(this).parents('.modal').find('form');
+                var d = form.serialize();
+                $.ajax({
+                    type: "POST",
+                    url: "https://localhost:44363/User/Exams/AttempQuiz/?" + d,
+                    contentType: 'application/json',
+                    data: JSON.stringify(d),
+                    success: function (res) {
+                        if (res.examID)
+                            window.location.replace("https://localhost:44363/User/Exams/DoingQuiz?examID=" + res.examID);
+                        else
+                            window.location.reload();
+                    }
+                });
+            });
+        });
+        function openAttempOptionForm(id) {
+                var route = '@Url.Action("AttempQuizOptions", "Exams")?examID=' + id;
+                $('#partialOptions').load(route);
+            };
+    </script>
+}

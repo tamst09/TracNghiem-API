@@ -55,7 +55,7 @@ namespace FrontEndWebApp.Areas.User.Controllers
                 ViewData["msg"] = "Created successfully";
             }
             //return Json(new { msg = "OK" });
-            return RedirectToAction("ManageQuestions", "Exams", new { id = model.ExamID });
+            return RedirectToAction("ManageQuestions", "Exams", new { examID = model.ExamID });
         }
 
         [HttpPost]
