@@ -107,14 +107,26 @@ namespace TN.BackendAPI.Controllers
             var exams = await _examService.GetAll(userID);
             return Ok(new ResponseBase<List<Exam>>() { data = exams });
         }
+        [HttpGet("GetAll")]
+        public async Task<IActionResult> UserGetOwned([FromQuery]int userID)
+        {
+            var exams = await _examService.GetOwned(userID);
+            return Ok(new ResponseBase<List<Exam>>() { data = exams });
+        }
         [HttpPost("Paged")]
         public async Task<IActionResult> UserGetAllPaging(ExamPagingRequest model,[FromQuery] int userID)
         {
             var exams = await _examService.GetAllPaging(model, userID);
             return Ok(new ResponseBase<PagedResult<Exam>>() { data = exams });
         }
-        [HttpGet("{id}/{userID}")]
-        public async Task<IActionResult> UserGetOne(int id, int userID)
+        [HttpPost("Paged/Owned")]
+        public async Task<IActionResult> UserGetOwnedPaging(ExamPagingRequest model, [FromQuery] int userID)
+        {
+            var exams = await _examService.GetOwnedPaging(model, userID);
+            return Ok(new ResponseBase<PagedResult<Exam>>() { data = exams });
+        }
+        [HttpGet("User")]
+        public async Task<IActionResult> UserGetOne([FromQuery]int id, [FromQuery]int userID)
         {
             var exam = await _examService.GetByID(id, userID);
             if (exam != null)
@@ -123,8 +135,8 @@ namespace TN.BackendAPI.Controllers
             }
             return Ok(new ResponseBase<Exam>() { msg = "Đề thi không có sẵn" });
         }
-        [HttpDelete("{id}/{userID}")]
-        public async Task<IActionResult> UserDeleteOne(int id, int userID)
+        [HttpDelete("User")]
+        public async Task<IActionResult> UserDeleteOne([FromQuery]int id, [FromQuery]int userID)
         {
             var isDeleted = await _examService.Delete(id, userID);
             if (isDeleted)
@@ -133,8 +145,8 @@ namespace TN.BackendAPI.Controllers
             }
             return Ok(new ResponseBase<Exam>() { msg = "Đề thi không tồn tại" });
         }
-        [HttpPut("{id}/{userID}")]
-        public async Task<IActionResult> UserUpdateOne(int id, int userID, ExamModel model)
+        [HttpPut("User")]
+        public async Task<IActionResult> UserUpdateOne([FromQuery]int id, [FromQuery]int userID, [FromBody]ExamModel model)
         {
             if (id != model.ID)
             {
@@ -149,15 +161,15 @@ namespace TN.BackendAPI.Controllers
         }
         //----------------------------------
         //================================== COMMON =====================================
-        [HttpPost("{userID}")]
-        public async Task<IActionResult> Create(ExamModel model, int userID)
+        [HttpPost]
+        public async Task<IActionResult> Create(ExamModel model, [FromQuery]int userID)
         {
             var newExam = await _examService.Create(model, userID);
             if(newExam == null)
             {
-                return Ok(new ResponseBase<Exam>() { msg = "Người dùng không hợp lệ" });
+                return Ok(new ResponseBase<Exam>() { success = false, msg = "Người dùng không hợp lệ" });
             }
-            return Ok(new ResponseBase<Exam>() { data = newExam });
+            return Ok(new ResponseBase<Exam>() { success = true, data = newExam });
         }
         [HttpPost("IncreaseAttemp/{id}")]
         public async Task<IActionResult> IncreaseAttemp(int id)

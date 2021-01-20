@@ -20,6 +20,8 @@ namespace TN.BackendAPI.Services.IServices
         //USER
         Task<List<Exam>> GetAll(int userID);
         Task<PagedResult<Exam>> GetAllPaging(ExamPagingRequest model, int userID);
+        Task<PagedResult<Exam>> GetOwnedPaging(ExamPagingRequest model, int userID);
+        Task<List<Exam>> GetOwned(int userID);
         Task<Exam> GetByID(int id, int userID);
         Task<bool> Update(ExamModel request, int userID);
         Task<bool> Delete(int examID, int userID);

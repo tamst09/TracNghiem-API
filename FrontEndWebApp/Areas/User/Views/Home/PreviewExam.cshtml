@@ -1,0 +1,81 @@
+﻿@model IEnumerable<TN.Data.Entities.Question>
+
+@{
+    ViewData["Title"] = "PREVIEW EXAM";
+    Layout = "~/Areas/User/Views/Shared/_Layout.cshtml";
+}
+
+<h5 class="fashion_taital">@ViewData["msg"]</h5>
+
+@if (Model != null)
+{
+    <h2 class="fashion_taital">Previewing <br />@ViewData["examName"]</h2>
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table id="dttable" class="table table-bordered table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Question</th>
+                                <th>Answer A</th>
+                                <th>Answer B</th>
+                                <th>Answer C</th>
+                                <th>Answer D</th>
+                                <th>Correct Answer (Show) <input onclick="showAnswer(this)" type="checkbox"/></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.STT</td>
+                                    <td>@item.QuesContent</td>
+                                    <td>@item.Option1</td>
+                                    <td>@item.Option2</td>
+                                    <td>@item.Option3</td>
+                                    <td>@item.Option4</td>
+                                    <td class="d-none ans" >@item.Answer</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <button class="btn btn-danger mb-5" data-toggle="modal" data-target="#deleteManyModal">Delete all selected</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts
+{ 
+    <script>
+        $(document).ready(function () {
+            $('#dttable').DataTable({
+                "columnDefs": [
+                    { "orderable": false, "targets": 6 }
+                ]
+            });
+        });
+    </script>
+    <script>
+        function showAnswer(checkbox) {
+            var elements = document.getElementsByClassName("ans");
+            if (checkbox.checked) {
+                for (let item of elements) {
+                    item.classList.remove("d-none");
+                }
+            }
+            else {
+                for (let item of elements) {
+                    item.classList.add("d-none");
+                }
+            }
+        }
+    </script>
+}

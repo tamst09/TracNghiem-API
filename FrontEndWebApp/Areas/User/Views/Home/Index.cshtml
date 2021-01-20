@@ -1,9 +1,11 @@
-﻿@{ 
+﻿@{
     Layout = "~/Areas/User/Views/Shared/_Layout.cshtml";
-    TN.ViewModels.Common.PagedResult<TN.Data.Entities.Exam> allExam = (TN.ViewModels.Common.PagedResult<TN.Data.Entities.Exam>)ViewData["allExam"];
+    List<TN.Data.Entities.Exam> commonExam = (List<TN.Data.Entities.Exam>)ViewData["commonExams"];
+    List<TN.Data.Entities.Exam> newestExam = (List<TN.Data.Entities.Exam>)ViewData["newestExams"];
+    TN.ViewModels.Common.PagedResult<TN.Data.Entities.Exam> allExam = (TN.ViewModels.Common.PagedResult<TN.Data.Entities.Exam>)ViewData["allExams"];
 }
-<!-- banner bg main end -->
-<!-- fashion section start -->
+
+<!-- common section start -->
 
 <div class="fashion_section">
     <div id="main_slider" class="carousel slide" data-ride="carousel">
@@ -13,220 +15,88 @@
                     <h1 id="common-header" class="fashion_taital">Common</h1>
                     <div class="fashion_section_2">
                         <div class="row">
-                            <div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
+                            @foreach (var exam in commonExam)
+                            {
+                                <div class="col-lg-3 col-sm-3">
+                                    <div class="box_main">
+                                        <h4 class="shirt_text">@exam.ExamName</h4>
+                                        <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:auto;height:100px;object-fit:cover;" src="userAssets/images/exam_cover.jpg"></div>
+                                        <div>
+                                            <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">@exam.Questions.Where(q => q.isActive).ToList().Count</span></p>
+                                            <p class="m-0 mb-1">
+                                                Time to do:
+                                                @if (exam.Time != 0)
+                                                {
+                                                    <span style="color: #fd7e14;">@(exam.Time / 60)m@(exam.Time % 60)s</span>
+                                                }
+                                                else
+                                                {
+                                                    <span style="color: #fd7e14;">Unlimited</span>
+                                                }
+                                            </p>
+                                            <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">@exam.Owner.UserName</span></p>
+                                        </div>
+                                        <div class="btn_main">
+                                            <div class="buy_bt"><a href="#">Attemps</a></div>
+                                            <div class="seemore_bt"><a asp-action="PreviewExam" asp-controller="Home" asp-route-examID="@exam.ID">Preview</a></div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <div class="container">
-                    <h1 id="common-header" class="fashion_taital">Common</h1>
-                    <div class="fashion_section_2">
-                        <div class="row">
-                            <div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <div class="container">
-                    <h1 id="common-header" class="fashion_taital">Common</h1>
-                    <div class="fashion_section_2">
-                        <div class="row">
-                            <div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
-                                    </div>
-                                </div>
-                            </div>
+                            }
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <a class="carousel-control-prev" href="#main_slider" role="button" data-slide="prev">
-            <i class="fa fa-angle-left"></i>
-        </a>
-
-        <a class="carousel-control-next" href="#main_slider" role="button" data-slide="next">
-            <i class="fa fa-angle-right"></i>
-        </a>
     </div>
 </div>
-<!-- fashion section end -->
-<!-- electronic section start -->
+<!-- common section end -->
+<!-- newest section start -->
+<div class="fashion_section">
+    <div id="main_slider" class="carousel slide" data-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="container">
+                    <h1 id="common-header" class="fashion_taital">New</h1>
+                    <div class="fashion_section_2">
+                        <div class="row">
+                            @foreach (var exam in newestExam)
+                            {
+                                <div class="col-lg-3 col-sm-3">
+                                    <div class="box_main">
+                                        <h4 class="shirt_text">@exam.ExamName</h4>
+                                        <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:auto;height:100px;object-fit:cover;" src="userAssets/images/exam_cover.jpg"></div>
+                                        <div>
+                                            <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">@exam.Questions.Where(q => q.isActive).ToList().Count</span></p>
+                                            <p class="m-0 mb-1">
+                                                Time to do:
+                                                @if (exam.Time != 0)
+                                                {
+                                                    <span style="color: #fd7e14;">@(exam.Time / 60)m@(exam.Time % 60)s</span>
+                                                }
+                                                else
+                                                {
+                                                    <span style="color: #fd7e14;">Unlimited</span>
+                                                }
+                                            </p>
+                                            <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">@exam.Owner.UserName</span></p>
+                                        </div>
+                                        <div class="btn_main">
+                                            <div class="buy_bt"><a href="#">Attemps</a></div>
+                                            <div class="seemore_bt"><a asp-action="PreviewExam" asp-controller="Home" asp-route-examID="@exam.ID">Preview</a></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- newest section end -->
+<!-- all section start -->
 <div class="fashion_section">
     <div id="electronic_main_slider" class="carousel slide" data-ride="carousel">
         <div class="carousel-inner">
@@ -234,7 +104,6 @@
                 <div class="container">
                     <h1 id="common-header" class="fashion_taital">All exams</h1>
                     <div class="fashion_section_2">
-                        
                         <div class="row">
                             @foreach (var exam in allExam.Items)
                             {
@@ -243,92 +112,33 @@
                                 <div class="col-lg-3 col-sm-3">
                                     <div class="box_main">
                                         <h4 class="shirt_text">@exam.ExamName</h4>
-                                        <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
+                                        <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:auto;height:100px;object-fit:cover;" src="userAssets/images/exam_cover.jpg"></div>
                                         <div>
-                                            <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">@exam.Questions.Where(q=>q.isActive).ToList().Count</span></p>
-                                            <p class="m-0 mb-1">Time to do: 
-                                            @if (exam.Time != 0)
-                                            { 
-                                                <span style="color: #fd7e14;">@(exam.Time / 60)m@(exam.Time % 60)s</span>
-                                            }
-                                            else
-                                            {
-                                                <span style="color: #fd7e14;">Unlimited</span>
-                                            }
+                                            <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">@exam.Questions.Where(q => q.isActive).ToList().Count</span></p>
+                                            <p class="m-0 mb-1">
+                                                Time to do:
+                                                @if (exam.Time != 0)
+                                                {
+                                                    <span style="color: #fd7e14;">@(exam.Time / 60)m@(exam.Time % 60)s</span>
+                                                }
+                                                else
+                                                {
+                                                    <span style="color: #fd7e14;">Unlimited</span>
+                                                }
                                             </p>
                                             <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">@exam.Owner.UserName</span></p>
                                         </div>
                                         <div class="btn_main">
                                             <div class="buy_bt"><a href="#">Attemps</a></div>
-                                            <div class="seemore_bt"><a href="#">Preview</a></div>
+                                            <div class="seemore_bt"><a asp-action="PreviewExam" asp-controller="Home" asp-route-examID="@exam.ID">Preview</a></div>
                                         </div>
                                     </div>
                                 </div>
 
 
                             }
-                                            </div>
-                            @*<div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-sm-3">
-                                <div class="box_main">
-                                    <h4 class="shirt_text">ExamName</h4>
-                                    <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:100px;height:100px;object-fit:cover;" src="userAssets/images/computer-img.png"></div>
-                                    <div>
-                                        <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">60</span></p>
-                                        <p class="m-0 mb-1">Time to do: <span style="color: #fd7e14;">60m</span></p>
-                                        <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">admin1999</span></p>
-                                    </div>
-                                    <div class="btn_main">
-                                        <div class="buy_bt"><a href="#">Attemps</a></div>
-                                        <div class="seemore_bt"><a href="#">Preview</a></div>
-                                    </div>
-                                </div>
-                            </div>*@
                         </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -337,4 +147,4 @@
         </div>
     </div>
 </div>
-<!-- electronic section end -->
+<!-- all section end -->

@@ -37,15 +37,42 @@ namespace FrontEndWebApp.Areas.User.Controllers
             {
                 examPagingRequest.CategoryID = Int32.Parse(categoryId);
             }
-            var allExams = await _examService.GetAllExams(examPagingRequest, token, User.FindFirst("UserID").Value);  // get all exams paged - about 8 exams per page
-            //var allCommonExams = // about 8 exams having most attemp
+            var allExams = await _examService.GetAllExams(examPagingRequest, token, User.FindFirst("UserID").Value);
+            // get all exams paged - about 8 exams per page
+            var allExamsNotPaged = await _examService.GetAll(token, User.FindFirst("UserID").Value);
+            var commonExams = allExamsNotPaged.data.OrderByDescending(e => e.NumOfAttemps).Take(8).ToList();
+            var newestExams = allExamsNotPaged.data.OrderByDescending(e => e.TimeCreated).Take(8).ToList();
+            // about 8 exams having most attemp
             //var allNewExams = // about 8 exams that time created newest
-            if(keyword!=null)
-            {
-                //allexams = await _categoryService.GetAllExams(Int32.Parse(keyword), token);
-            }
-            ViewData["allexam"] = allExams.data;
+            ViewData["commonExams"] = commonExams;
+            ViewData["newestExams"] = newestExams;
+            ViewData["allExams"] = allExams.data;
             return View();
         }
+        [HttpGet("PreviewExam")]
+        public async Task<IActionResult> PreviewExam(string examID)
+        {
+            var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+            var exam = await _examService.GetByID(Int32.Parse(examID), token, User.FindFirst("UserID").Value);
+            if (exam != null && exam.msg == null && exam.data != null)
+            {
+                ViewData["examName"] = exam.data.ExamName;
+                return View(exam.data.Questions.Where(q=>q.isActive).ToList());
+            }
+            return View();
+        }
+
+        [HttpGet("DoingExam")]
+        public async Task<IActionResult> DoingExam(string examID)
+        {
+            var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
+            var questions = await _examService.GetByID(Int32.Parse(examID), token, User.FindFirst("UserID").Value);
+            if(questions!=null && questions.msg==null && questions.data != null)
+            {
+                return View(questions.data);
+            }
+            return View();
+        }
+
     }
 }

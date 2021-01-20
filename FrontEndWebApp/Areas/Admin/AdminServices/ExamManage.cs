@@ -72,7 +72,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             }
-            var response = await _httpClient.GetAsync("/api/exams/Admin/"+id.ToString());
+            var response = await _httpClient.GetAsync("/api/exams/User/"+id.ToString());
             if (response.IsSuccessStatusCode)
             {
                 var resultContent = await response.Content.ReadAsStringAsync();
@@ -152,7 +152,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             }
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("/api/exams/" + userID.ToString(), httpContent);
+            var response = await _httpClient.PostAsync("/api/exams/?userID=" + userID.ToString(), httpContent);
             if (response.IsSuccessStatusCode)
             {
                 var resultContent = await response.Content.ReadAsStringAsync();
