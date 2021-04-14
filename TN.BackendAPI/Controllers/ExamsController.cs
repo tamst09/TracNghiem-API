@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,19 +26,23 @@ namespace TN.BackendAPI.Controllers
         }
 
         //=============================== ADMIN ===================================
-        // GET: api/Exams/Admin/
+        // GET: api/Exams/Admin?categoryID=1
         [Authorize(Roles = "admin")]
         [HttpGet("Admin")]
-        public async Task<IActionResult> AdminGetAll()
+        public async Task<IActionResult> AdminGetAll([FromQuery] string categoryID)
         {
             var exams = await _examService.GetAll();
+            if (categoryID != null)
+            {
+                exams = exams.FindAll(e => e.CategoryID == Int32.Parse(categoryID));
+            }
             return Ok(new ResponseBase<List<Exam>>() { data = exams });
         }
 
         // POST: api/Exams/Admin/Paged
         [Authorize(Roles = "admin")]
         [HttpPost("Admin/Paged")]
-        public async Task<IActionResult> AdminGetAllPaging(ExamPagingRequest model)
+        public async Task<IActionResult> AdminGetAllPaging(ExamPagingRequest model, [FromQuery] string categoryID)
         {
             var exams = await _examService.GetAllPaging(model);
             return Ok(new ResponseBase<PagedResult<Exam>>() { data = exams });
@@ -48,7 +53,7 @@ namespace TN.BackendAPI.Controllers
         [HttpGet("Admin/{id}")]
         public async Task<IActionResult> AdminGetOne(int id)
         {
-            var exam = await _examService.GetByID(id);
+            var exam = await _examService.GetOne(id);
             if (exam != null)
             {
                 return Ok(new ResponseBase<Exam>() { data = exam });
@@ -127,7 +132,7 @@ namespace TN.BackendAPI.Controllers
         [HttpGet("User")]
         public async Task<IActionResult> UserGetOne([FromQuery]int id, [FromQuery]int userID)
         {
-            var exam = await _examService.GetByID(id, userID);
+            var exam = await _examService.GetOne(id, userID);
             if (exam != null)
             {
                 return Ok(new ResponseBase<Exam>() { data = exam });

@@ -9,24 +9,22 @@ namespace TN.BackendAPI.Services.IServices
     public interface IExamService
     {
         // ADMIN
-        Task<List<Exam>> GetAll();
-        Task<PagedResult<Exam>> GetAllPaging(ExamPagingRequest model);
-        Task<Exam> GetByID(int id);
-        Task<bool> Update(ExamModel request);
-        Task<bool> Delete(int examID);
-        Task<bool> DeleteMany(DeleteRangeModel<int> lstExamId);
+        Task<ResponseBase<PagedResult<Exam>>> GetAllPaging(ExamPagingRequest model);
+        Task<ResponseBase<Exam>> GetOne(int id);
+        Task<ResponseBase<Exam>> Update(ExamModel request);
+        Task<ResponseBase<bool>> Delete(int examID);
+        Task<ResponseBase<bool>> DeleteMany(DeleteRangeModel<int> lstExamId);
 
         //USER
-        Task<List<Exam>> GetAll(int userID);
-        Task<PagedResult<Exam>> GetAllPaging(ExamPagingRequest model, int userID);
-        Task<PagedResult<Exam>> GetOwnedPaging(ExamPagingRequest model, int userID);
-        Task<List<Exam>> GetOwned(int userID);
-        Task<Exam> GetByID(int id, int userID);
-        Task<bool> Update(ExamModel request, int userID);
-        Task<bool> Delete(int examID, int userID);
+        Task<ResponseBase<PagedResult<Exam>>> GetAllPaging(ExamPagingRequest model, int userID);
+        Task<ResponseBase<PagedResult<Exam>>> GetOwnedPaging(ExamPagingRequest model, int userID);
+        Task<ResponseBase<List<Exam>>> GetOwned(int userID);
+        Task<ResponseBase<Exam>> GetOne(int id, int userID);
+        Task<ResponseBase<Exam>> Update(ExamModel request, int userID);
+        Task<ResponseBase<bool>> Delete(int examID, int userID);
 
         //COMMON
-        Task<Exam> Create(ExamModel request, int userID);
-        Task<int> IncreaseAttemps(int examID);
+        Task<ResponseBase<Exam>> Create(ExamModel request, int userID);
+        Task<ResponseBase<int>> IncreaseAttemps(int examID)
     }
 }

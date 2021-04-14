@@ -9,12 +9,11 @@ namespace TN.BackendAPI.Services.IServices
 {
     public interface ICategoryService
     {
-        Task<Category> Create(Category request);
-        Task<Category> Update(Category request);
-        Task<bool> Delete(int id);
-        Task<bool> DeleteListCategory(DeleteRangeModel<int> lstCategoryId);
-        Task<List<Category>> GetAll();
-        Task<Category> GetByID(int id);
-        Task<List<Exam>> AdminGetExams(int categoryID);
+        Task<ResponseBase<Category>> Create(Category request);
+        Task<ResponseBase<Category>> Update(Category request);
+        Task<ResponseBase<bool>> Delete(int categoryID);
+        Task<ResponseBase<bool>> DeleteMany(DeleteRangeModel<int> lstCategoryId);
+        Task<ResponseBase<List<Category>>> GetAll();
+        Task<ResponseBase<Category>> GetOne(int id);
     }
 }

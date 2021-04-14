@@ -11,6 +11,7 @@ using TN.ViewModels.Common;
 
 namespace TN.BackendAPI.Controllers
 {
+    // api/Categories
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
@@ -29,7 +30,7 @@ namespace TN.BackendAPI.Controllers
         public async Task<IActionResult> GetCategories()
         {
             var allCategory = await _categoryService.GetAll();
-            return Ok(new ResponseBase<List<Category>>() { data = allCategory });
+            return Ok(allCategory);
         }
 
         // GET: api/Categories/5
@@ -37,12 +38,8 @@ namespace TN.BackendAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetCategory(int id)
         {
-            var category = await _categoryService.GetByID(id);
-            if (category != null)
-            {
-                return Ok(new ResponseBase<Category>() { data = category });
-            }
-            return Ok(new ResponseBase<Category>() { msg = "Không tìm thấy" });
+            var category = await _categoryService.GetOne(id);
+            return Ok(category);
         }
 
         // PUT: api/Categories/5
@@ -52,14 +49,10 @@ namespace TN.BackendAPI.Controllers
         {
             if (id != category.ID)
             {
-                return Ok(new ResponseBase<Category>() { msg = "Chủ đề không tồn tại" });
+                return BadRequest();
             }
             var updateResult = await _categoryService.Update(category);
-            if (updateResult == null)
-            {
-                return Ok(new ResponseBase<Category>() { msg = "Lỗi cập nhật" });
-            }
-            return Ok(new ResponseBase<Category>() { data = updateResult });
+            return Ok(updateResult);
         }
 
         // POST: api/Categories
@@ -68,7 +61,7 @@ namespace TN.BackendAPI.Controllers
         public async Task<IActionResult> PostCategory([Bind("CategoryName")] Category category)
         {
             var createResult = await _categoryService.Create(category);
-            return Ok(new ResponseBase<Category>() { data = createResult });
+            return Ok(createResult);
         }
 
         // DELETE: api/Categories/5
@@ -77,37 +70,24 @@ namespace TN.BackendAPI.Controllers
         public async Task<IActionResult> DeleteCategory(int id)
         {
             var deleteResult = await _categoryService.Delete(id);
-            if (deleteResult)
-                return Ok(new ResponseBase<Category>() { });
-            else
-                return Ok(new ResponseBase<Category>() { msg = "Xoá thất bại" });
+            return Ok(deleteResult);
         }
 
-        // DELETE: api/Categories/DeleteRange
-        [HttpPost("DeleteRange")]
+        // POST: api/Categories/DeleteMany
+        [HttpPost("DeleteMany")]
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteManyCategory(DeleteRangeModel<int> lstCategoryId)
         {
-            var deleteResult = await _categoryService.DeleteListCategory(lstCategoryId);
-            if (deleteResult)
-                return Ok(new ResponseBase<Category>() { });
-            else
-                return Ok(new ResponseBase<Category>() { msg = "Xoá thất bại" });
+            var deleteResult = await _categoryService.DeleteMany(lstCategoryId);
+            return Ok(deleteResult);
         }
 
         // GET: api/Categories/Exams/5
         [HttpGet("Exams/{id}")]
         public async Task<IActionResult> GetExams(int id)
         {
-            var exams = await _categoryService.AdminGetExams(id);
-            if (exams != null)
-            {
-                return Ok(new ResponseBase<List<Exam>>() { data = exams });
-            }
-            else
-            {
-                return Ok(new ResponseBase<List<Exam>>() { msg = "Đề thi không có sẵn" });
-            }
+            var exams = await _categoryService.GetOne(id);
+            return Ok(exams);
         }
     }
 }

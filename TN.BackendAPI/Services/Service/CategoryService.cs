@@ -18,7 +18,7 @@ namespace TN.BackendAPI.Services.Service
         {
             _db = db;
         }
-        public async Task<Category> Create(Category request)
+        public async Task<ResponseBase<Category>> Create(Category request)
         {
             var findResult = _db.Categories.Where(c => c.CategoryName == request.CategoryName).FirstOrDefault();
             if (findResult!=null && !findResult.isActive)
@@ -26,7 +26,11 @@ namespace TN.BackendAPI.Services.Service
                 findResult.Exams = null;
                 findResult.isActive = true;
                 await _db.SaveChangesAsync();
-                return findResult;
+                return new ResponseBase<Category>() { 
+                    data = findResult,
+                    msg = "Created successfully",
+                    success = true
+                };
             }
             var newCategory = new Category()
             {
@@ -36,10 +40,15 @@ namespace TN.BackendAPI.Services.Service
             };
             _db.Categories.Add(newCategory);
             await _db.SaveChangesAsync();
-            return newCategory;
+            return new ResponseBase<Category>()
+            {
+                data = newCategory,
+                msg = "Created successfully",
+                success = true
+            };
         }
 
-        public async Task<Category> Update(Category request)
+        public async Task<ResponseBase<Category>> Update(Category request)
         {
             try
             {
@@ -48,20 +57,41 @@ namespace TN.BackendAPI.Services.Service
                 {
                     findResult.CategoryName = request.CategoryName;
                     await _db.SaveChangesAsync();
-                    return findResult;
+                    return new ResponseBase<Category>()
+                    {
+                        data = findResult,
+                        msg = "Created successfully",
+                        success = true
+                    };
                 }
-                return null;
+                return new ResponseBase<Category>()
+                {
+                    msg = "category id not found",
+                    success = false
+                };
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return null;
+                return new ResponseBase<Category>()
+                {
+                    msg = "Exception: "+ e.Message,
+                    success = false
+                };
             }
         }
 
-        public async Task<bool> Delete(int categoryID)
+        public async Task<ResponseBase<bool>> Delete(int categoryID)
         {
             var category = await _db.Categories.FindAsync(categoryID);
-            if (category == null) return false;
+            if (category == null)
+            {
+                return new ResponseBase<bool>()
+                {
+                    data = false,
+                    msg = "category id not found",
+                    success = false
+                };
+            }
             if (category.Exams != null)
             {
                 foreach (var exam in category.Exams)
@@ -70,13 +100,17 @@ namespace TN.BackendAPI.Services.Service
                     exam.Category = null;
                 }
             }
-            
             category.isActive = false;
             await _db.SaveChangesAsync();
-            return true;
+            return new ResponseBase<bool>()
+            {
+                msg = "Deleted",
+                success = true,
+                data = true
+            };
         }
 
-        public async Task<bool> DeleteListCategory(DeleteRangeModel<int> lstCategoryId)
+        public async Task<ResponseBase<bool>> DeleteMany(DeleteRangeModel<int> lstCategoryId)
         {
             try
             {
@@ -94,50 +128,53 @@ namespace TN.BackendAPI.Services.Service
                     category.isActive = false;
                 }
                 await _db.SaveChangesAsync();
-                return true;
+                return new ResponseBase<bool>()
+                {
+                    msg = "Deleted",
+                    success = true,
+                    data = true
+                };
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return false;
+                return new ResponseBase<bool>()
+                {
+                    msg = e.Message,
+                    success = false,
+                    data = false
+                };
             }
         }
 
-        public async Task<List<Category>> GetAll()
+        public async Task<ResponseBase<List<Category>>> GetAll()
         {
-            var categoryList = await _db.Categories.Include(c => c.Exams).Where(c => c.isActive == true).ToListAsync();
-            foreach(var category in categoryList)
+            var categoryList = await _db.Categories.Where(c => c.isActive == true).ToListAsync();
+            return new ResponseBase<List<Category>>()
             {
-                category.Exams = category.Exams.Where(e => e.isActive == true).ToList();
-            }
-            return categoryList;
+                msg = categoryList.Count+" category(s) found",
+                success = true,
+                data = categoryList
+            };
         }
 
-        public async Task<Category> GetByID(int id)
+        public async Task<ResponseBase<Category>> GetOne(int id)
         {
-            var category = await _db.Categories.Include(c => c.Exams).Where(c => c.isActive == true).FirstOrDefaultAsync(c => c.ID == id);
+            var category = await _db.Categories.Where(c => c.isActive == true).FirstOrDefaultAsync(c => c.ID == id);
             if (category == null)
             {
-                return null;
+                return new ResponseBase<Category>()
+                {
+                    msg = "Category not found",
+                    success = false
+                };
             }
             category.Exams = category.Exams.OrderBy(e => e.ExamName).ToList();
-            return category;
-        }
-        public async Task<List<Exam>> AdminGetExams(int categoryID)
-        {
-            var lstCategory = await _db.Categories.Where(c => c.ID == categoryID && c.isActive == true).ToListAsync();
-            if (lstCategory != null)
+            return new ResponseBase<Category>()
             {
-                var exams = _db.Exams.Where(e => e.CategoryID == categoryID && e.isActive == true).
-                    Include(e => e.Category).
-                    Include(e => e.Owner).
-                    Include(e => e.Questions).
-                    ToList();
-                return exams;
-            }
-            else
-            {
-                return null;
-            }
+                msg = "Category found",
+                success = true,
+                data = category
+            };
         }
     }
 }

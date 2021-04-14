@@ -20,13 +20,7 @@ namespace TN.BackendAPI.Services.Service
         }
 
         //======================================== ADMIN REGION =============================================
-        public async Task<List<Exam>> GetAll()
-        {
-            var list = await _db.Exams.Where(e => e.isActive == true && e.Owner.isActive == true).Include(e => e.Owner).Include(e => e.Questions).Include(e => e.Category).ToListAsync();
-            list.OrderBy(e => e.ExamName).ToList();
-            return list;
-        }
-        public async Task<PagedResult<Exam>> GetAllPaging(ExamPagingRequest model)
+        public async Task<ResponseBase<PagedResult<Exam>>> GetAllPaging(ExamPagingRequest model)
         {
             var allExam = await _db.Exams.Where(e => e.isActive == true && e.Owner.isActive == true).Include(e => e.Category).Include(e => e.Owner).Include(e => e.Questions).ToListAsync();
             // check keyword de xem co dang tim kiem hay phan loai ko
@@ -42,18 +36,18 @@ namespace TN.BackendAPI.Services.Service
                 ).ToList();
             }
             // get total row from query
-            int totalrecord = allExam.Count;
+            int totalRecords = allExam.Count;
             // get so trang
-            int soTrang = 0;
-            if (totalrecord > model.PageSize)
+            int totalPages = 0;
+            if (totalRecords > model.PageSize)
             {
-                if (totalrecord % model.PageSize == 0)
+                if (totalRecords % model.PageSize == 0)
                 {
-                    soTrang = totalrecord / model.PageSize;
+                    totalPages = totalRecords / model.PageSize;
                 }
                 else
                 {
-                    soTrang = totalrecord / model.PageSize + 1;
+                    totalPages = totalRecords / model.PageSize + 1;
                 }
             }
             // get data and paging
@@ -77,38 +71,81 @@ namespace TN.BackendAPI.Services.Service
                 })
                 .ToList();
             // return
-            return new PagedResult<Exam>()
+            return new ResponseBase<PagedResult<Exam>>()
             {
-                Items = data,
-                TotalRecords = totalrecord,
-                TotalPages = soTrang,
-                PageIndex = model.PageIndex,
-                PageSize = model.PageSize
+                data = new PagedResult<Exam>()
+                {
+                    Items = data,
+                    TotalRecords = totalRecords,
+                    TotalPages = totalPages,
+                    PageIndex = model.PageIndex,
+                    PageSize = model.PageSize
+                },
+                msg = "",
+                success = true
             };
         }
-        public async Task<Exam> GetByID(int id)
+        public async Task<ResponseBase<Exam>> GetOne(int id)
         {
             var exam = await _db.Exams.Where(e => e.isActive == true).Include(e => e.Owner).Include(e => e.Questions).Include(e => e.Category).FirstOrDefaultAsync(e => e.ID == id);
             if (exam == null)
-                throw new Exception("Exam not found");
+            {
+                return new ResponseBase<Exam>()
+                {
+                    data = null,
+                    success = false,
+                    msg = "Exam not found"
+                };
+            }
             exam.Questions.OrderBy(e => e.STT).ToList();
-            return exam;
+            return new ResponseBase<Exam>()
+            {
+                data = exam,
+                success = true,
+                msg = "An exam found"
+            };
         }
-        public async Task<bool> Update(ExamModel request)
+        public async Task<ResponseBase<Exam>> Update(ExamModel request)
         {
             var exam = await _db.Exams.FindAsync(request.ID);
-            if (exam == null) return false;
+            if (exam == null) return new ResponseBase<Exam>()
+            {
+                data = null,
+                success = false,
+                msg = "Update failed"
+            };
             exam.ExamName = request.ExamName;
             exam.isPrivate = request.isPrivate;
             exam.Time = request.Time * 60;
             exam.CategoryID = request.CategoryID;
-            await _db.SaveChangesAsync();
-            return true;
+            try
+            {
+                await _db.SaveChangesAsync();
+                return new ResponseBase<Exam>()
+                {
+                    data = exam,
+                    success = true,
+                    msg = "Updated"
+                };
+            }
+            catch (Exception e)
+            {
+                return new ResponseBase<Exam>()
+                {
+                    data = null,
+                    success = false,
+                    msg = e.Message
+                };
+            }
         }
-        public async Task<bool> Delete(int examID)
+        public async Task<ResponseBase<bool>> Delete(int examID)
         {
             var exam = await _db.Exams.FindAsync(examID);
-            if (exam == null) return false;
+            if (exam == null) return new ResponseBase<bool>()
+            {
+                success = false,
+                msg = "Exam not found"
+            };
             if (exam.Questions != null)
             {
                 foreach (var q in exam.Questions)
@@ -117,10 +154,25 @@ namespace TN.BackendAPI.Services.Service
                 }
             }
             exam.isActive = false;
-            await _db.SaveChangesAsync();
-            return true;
+            try
+            {
+                await _db.SaveChangesAsync();
+                return new ResponseBase<bool>()
+                {
+                    success = true,
+                    msg = "Deleted"
+                };
+            }
+            catch (Exception e)
+            {
+                return new ResponseBase<bool>()
+                {
+                    success = false,
+                    msg = e.Message
+                };
+            }
         }
-        public async Task<bool> DeleteMany(DeleteRangeModel<int> lstExamId)
+        public async Task<ResponseBase<bool>> DeleteMany(DeleteRangeModel<int> lstExamId)
         {
             try
             {
@@ -138,24 +190,25 @@ namespace TN.BackendAPI.Services.Service
                     e.isActive = false;
                 }
                 await _db.SaveChangesAsync();
-                return true;
+                return new ResponseBase<bool>()
+                {
+                    success = true,
+                    msg = "Deleted"
+                };
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return false;
+                return new ResponseBase<bool>()
+                {
+                    success = false,
+                    msg = e.Message
+                };
             }
         }
         //===================================================================================================
 
         //======================================== USER REGION ==============================================
-        public async Task<List<Exam>> GetAll(int userID)
-        {
-            var list = await _db.Exams.Where(e => e.isActive == true).Include(e => e.Owner).Include(e => e.Questions).Include(e => e.Category).ToListAsync();
-            list = list.Where(e => (e.isPrivate == false && e.OwnerID != userID) || (e.OwnerID == userID)).ToList();
-            list.OrderBy(e => e.ExamName).ToList();
-            return list;
-        }
-        public async Task<PagedResult<Exam>> GetAllPaging(ExamPagingRequest model, int userID)
+        public async Task<ResponseBase<PagedResult<Exam>>> GetAllPaging(ExamPagingRequest model, int userID)
         {
             var allExam = await _db.Exams.Where(e => e.isActive == true).Include(e => e.Category).Include(e => e.Owner).Include(e => e.Questions).ToListAsync();
             allExam = allExam.Where(e => (e.isPrivate == false && e.OwnerID != userID) || (e.OwnerID == userID)).ToList();
@@ -173,18 +226,18 @@ namespace TN.BackendAPI.Services.Service
                 ).ToList();
             }
             // get total row from query
-            int totalrecord = allExam.Count;
+            int totalRecords = allExam.Count;
             // get so trang
-            int soTrang = 0;
-            if (totalrecord > model.PageSize)
+            int totalPages = 0;
+            if (totalRecords > model.PageSize)
             {
-                if (totalrecord % model.PageSize == 0)
+                if (totalRecords % model.PageSize == 0)
                 {
-                    soTrang = totalrecord / model.PageSize;
+                    totalPages = totalRecords / model.PageSize;
                 }
                 else
                 {
-                    soTrang = totalrecord / model.PageSize + 1;
+                    totalPages = totalRecords / model.PageSize + 1;
                 }
             }
             // get data and paging
@@ -208,16 +261,21 @@ namespace TN.BackendAPI.Services.Service
                 })
                 .ToList();
             // return
-            return new PagedResult<Exam>()
+            return new ResponseBase<PagedResult<Exam>>()
             {
-                Items = data,
-                TotalRecords = totalrecord,
-                TotalPages = soTrang,
-                PageIndex = model.PageIndex,
-                PageSize = model.PageSize
+                data = new PagedResult<Exam>()
+                {
+                    Items = data,
+                    TotalRecords = totalRecords,
+                    TotalPages = totalPages,
+                    PageIndex = model.PageIndex,
+                    PageSize = model.PageSize
+                },
+                msg = "",
+                success = true
             };
         }
-        public async Task<PagedResult<Exam>> GetOwnedPaging(ExamPagingRequest model, int userID)
+        public async Task<ResponseBase<PagedResult<Exam>>> GetOwnedPaging(ExamPagingRequest model, int userID)
         {
             var allExam = await _db.Exams.Where(e => e.isActive == true).Include(e => e.Category).Include(e => e.Owner).Include(e => e.Questions).ToListAsync();
             allExam = allExam.Where(e => e.OwnerID == userID).ToList();
@@ -234,18 +292,18 @@ namespace TN.BackendAPI.Services.Service
                 ).ToList();
             }
             // get total row from query
-            int totalrecord = allExam.Count;
+            int totalRecords = allExam.Count;
             // get so trang
-            int soTrang = 0;
-            if (totalrecord > model.PageSize)
+            int totalPages = 0;
+            if (totalRecords > model.PageSize)
             {
-                if (totalrecord % model.PageSize == 0)
+                if (totalRecords % model.PageSize == 0)
                 {
-                    soTrang = totalrecord / model.PageSize;
+                    totalPages = totalRecords / model.PageSize;
                 }
                 else
                 {
-                    soTrang = totalrecord / model.PageSize + 1;
+                    totalPages = totalRecords / model.PageSize + 1;
                 }
             }
             // get data and paging
@@ -269,99 +327,209 @@ namespace TN.BackendAPI.Services.Service
                 })
                 .ToList();
             // return
-            return new PagedResult<Exam>()
+            return new ResponseBase<PagedResult<Exam>>()
             {
-                Items = data,
-                TotalRecords = totalrecord,
-                TotalPages = soTrang,
-                PageIndex = model.PageIndex,
-                PageSize = model.PageSize
+                data = new PagedResult<Exam>()
+                {
+                    Items = data,
+                    TotalRecords = totalRecords,
+                    TotalPages = totalPages,
+                    PageIndex = model.PageIndex,
+                    PageSize = model.PageSize
+                },
+                success = true
             };
         }
-        public async Task<List<Exam>> GetOwned(int userID)
+        public async Task<ResponseBase<List<Exam>>> GetOwned(int userID)
         {
             var allExam = await _db.Exams.Where(e => e.isActive == true).Include(e => e.Category).Include(e => e.Owner).Include(e => e.Questions).ToListAsync();
             allExam = allExam.Where(e => e.OwnerID == userID).ToList();
-            return allExam;
+            return new ResponseBase<List<Exam>>()
+            {
+                data = allExam,
+                success = true
+            };
         }
-        public async Task<Exam> GetByID(int id, int userID)
+        public async Task<ResponseBase<Exam>> GetOne(int id, int userID)
         {
             var exam = await _db.Exams.Where(e => e.isActive == true && (e.OwnerID == userID || (e.OwnerID!=userID && e.isPrivate==false))).Include(e => e.Owner).Include(e => e.Questions).Include(e => e.Category).FirstOrDefaultAsync(e => e.ID == id);
             if (exam == null)
-                return null;
+            {
+                return new ResponseBase<Exam>()
+                {
+                    success = false,
+                    msg = "Exam not found"
+                };
+            }
             exam.Questions.OrderBy(e => e.STT).ToList();
-            return exam;
+            return new ResponseBase<Exam>()
+            {
+                success = true,
+                msg = "An exam found",
+                data = exam
+            };
         }
-        public async Task<bool> Update(ExamModel request, int userID)
+        public async Task<ResponseBase<Exam>> Update(ExamModel request, int userID)
         {
             if (userID != request.OwnerID)
             {
-                return false;
+                return new ResponseBase<Exam>()
+                {
+                    data = null,
+                    success = false,
+                    msg = "Invalid owner"
+                };
             }
             var exam = await _db.Exams.FindAsync(request.ID);
-            if (exam == null) return false;
+            if (exam == null) return new ResponseBase<Exam>()
+            {
+                data = null,
+                success = false,
+                msg = "Update failed"
+            };
             exam.ExamName = request.ExamName;
             exam.isPrivate = request.isPrivate;
             exam.Time = request.Time * 60;
             exam.CategoryID = request.CategoryID;
-            await _db.SaveChangesAsync();
-            return true;
+            try
+            {
+                await _db.SaveChangesAsync();
+                return new ResponseBase<Exam>()
+                {
+                    data = exam,
+                    success = true,
+                    msg = "Updated"
+                };
+            }
+            catch (Exception e)
+            {
+                return new ResponseBase<Exam>()
+                {
+                    data = null,
+                    success = false,
+                    msg = e.Message
+                };
+            }
         }
-        public async Task<bool> Delete(int examID, int userID)
+        public async Task<ResponseBase<bool>> Delete(int examID, int userID)
         {
             var exam = await _db.Exams.FindAsync(examID);
-            if (exam == null) return false;
+            if (exam == null)
+            {
+                return new ResponseBase<bool>()
+                {
+                    success = false,
+                    msg = "Exam not found"
+                };
+            }
             if (exam.OwnerID != userID)
             {
-                return false;
-            }
-            if (exam.Questions != null)
-            {
-                foreach (var q in exam.Questions)
+                return new ResponseBase<bool>()
                 {
-                    _db.Questions.Remove(q);
-                }
+                    success = false,
+                    msg = "Invalid owner"
+                };
             }
-            exam.isActive = false;
-            await _db.SaveChangesAsync();
-            return true;
+            try
+            {
+                if (exam.Questions != null)
+                {
+                    foreach (var q in exam.Questions)
+                    {
+                        _db.Questions.Remove(q);
+                    }
+                }
+                exam.isActive = false;
+                await _db.SaveChangesAsync();
+                return new ResponseBase<bool>()
+                {
+                    success = true,
+                    msg = "Deleted"
+                };
+            }
+            catch (Exception e)
+            {
+                return new ResponseBase<bool>()
+                {
+                    success = false,
+                    msg = e.Message
+                };
+            }
         }
         //===================================================================================================
 
         //======================================== COMMON REGION ============================================
-        public async Task<Exam> Create(ExamModel request, int userID)
+        public async Task<ResponseBase<Exam>> Create(ExamModel request, int userID)
         {
             var owner = _db.Users.Where(u => u.Id == userID).FirstOrDefault();
             if(owner==null || owner.isActive == false)
             {
-                return null;
+                return new ResponseBase<Exam>()
+                {
+                    success = false,
+                    msg = "Invalid owner"
+                };
             }
-            var category = _db.Categories.Where(c => c.ID == request.CategoryID).FirstOrDefault();
-            var exam = new Exam()
+            try
             {
-                ExamName = request.ExamName,
-                isPrivate = request.isPrivate,
-                Time = request.Time * 60,
-                ImageURL = request.ImageURL,
-                TimeCreated = DateTime.Now,
-                NumOfAttemps = 0,
-                CategoryID = request.CategoryID,
-                Category = _db.Categories.Where(c => c.ID == request.CategoryID).FirstOrDefault(),
-                OwnerID = userID,
-                Owner = _db.Users.Where(u => u.Id == userID).FirstOrDefault(),
-                Questions = null,
-                isActive = true
-            };
-            _db.Exams.Add(exam);
-            await _db.SaveChangesAsync();
-            return exam;
+                var category = _db.Categories.Where(c => c.ID == request.CategoryID).FirstOrDefault();
+                var exam = new Exam()
+                {
+                    ExamName = request.ExamName,
+                    isPrivate = request.isPrivate,
+                    Time = request.Time * 60,
+                    ImageURL = request.ImageURL,
+                    TimeCreated = DateTime.Now,
+                    NumOfAttemps = 0,
+                    CategoryID = request.CategoryID,
+                    Category = _db.Categories.Where(c => c.ID == request.CategoryID).FirstOrDefault(),
+                    OwnerID = userID,
+                    Owner = _db.Users.Where(u => u.Id == userID).FirstOrDefault(),
+                    Questions = null,
+                    isActive = true
+                };
+                _db.Exams.Add(exam);
+                await _db.SaveChangesAsync();
+                return new ResponseBase<Exam>()
+                {
+                    success = true,
+                    data = exam,
+                    msg = "Created successfully"
+                };
+            }
+            catch (Exception e)
+            {
+                return new ResponseBase<Exam>()
+                {
+                    success = true,
+                    msg = e.Message
+                };
+            }
+            
+            
         }
-        public async Task<int> IncreaseAttemps(int examID)
+        public async Task<ResponseBase<int>> IncreaseAttemps(int examID)
         {
-            var exam = await _db.Exams.FindAsync(examID);
-            exam.NumOfAttemps += 1;
-            await _db.SaveChangesAsync();
-            return exam.NumOfAttemps;
+            try
+            {
+                var exam = await _db.Exams.FindAsync(examID);
+                exam.NumOfAttemps += 1;
+                await _db.SaveChangesAsync();
+                return new ResponseBase<int>()
+                {
+                    data = exam.NumOfAttemps,
+                    success = true
+                };
+            }
+            catch (Exception e)
+            {
+                return new ResponseBase<int>()
+                {
+                    success = false,
+                    msg = e.Message
+                };
+            }
+            
         }
         //===================================================================================================
     }
