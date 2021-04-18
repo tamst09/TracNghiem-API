@@ -17,6 +17,6 @@ namespace TN.ViewModels.FacebookAuth
         public string Email { get; set; }
 
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public string SocialID { get; set; }
     }
 }

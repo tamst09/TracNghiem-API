@@ -19,6 +19,6 @@ namespace TN.Data.Entities
         public int OwnerID { get; set; }
         public List<Question> Questions { get; set; }
         public bool isActive { get; set; }
-
+        public string Password { get; set; }
     }
 }

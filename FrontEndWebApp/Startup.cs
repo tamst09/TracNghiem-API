@@ -145,15 +145,15 @@ namespace FrontEndWebApp
                         {
                             var body = await responseMessage.Content.ReadAsStringAsync();
                             ResponseBase<RefreshToken> refreshTokenOfUser = JsonConvert.DeserializeObject<ResponseBase<RefreshToken>>(body);
-                            if (refreshTokenOfUser.data == null || string.IsNullOrEmpty(refreshTokenOfUser.data.Token))
+                            if (refreshTokenOfUser.data == null || string.IsNullOrEmpty(refreshTokenOfUser.data.Value))
                             {
                                 //context.Response.Cookies.Delete("access_token_cookie");
                                 context.Response.Cookies.Delete("Asp_Authentication");
                             }
                             else
                             {
-                                refreshToken = refreshTokenOfUser.data.Token;
-                                context.Response.Cookies.Append("refresh_token_cookie", CookieEncoder.EncodeToken(refreshTokenOfUser.data.Token), new CookieOptions() { Expires = DateTime.UtcNow.AddDays(8), HttpOnly = true, Secure = true });
+                                refreshToken = refreshTokenOfUser.data.Value;
+                                context.Response.Cookies.Append("refresh_token_cookie", CookieEncoder.EncodeToken(refreshTokenOfUser.data.Value), new CookieOptions() { Expires = DateTime.UtcNow.AddDays(8), HttpOnly = true, Secure = true });
                             }
                         }
                     }

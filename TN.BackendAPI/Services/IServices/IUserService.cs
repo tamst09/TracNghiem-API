@@ -9,25 +9,12 @@ namespace TN.BackendAPI.Services.IServices
 {
     public interface IUserService
     {
-        Task<JwtResponse> Register(RegisterModel model);
-        Task<List<AppUser>> GetAll();
-        Task<AppUser> GetByID(int id);
-        Task<JwtResponse> Login(LoginModel model);
-        Task<AppUser> EditProfile(int id, UserViewModel user);
-        Task<AppUser> EditUserInfo(int id, UserViewModel user);
-        Task<bool> DeleteUser(int id);
-        Task<bool> RestoreUser(int id);
-        Task<string> ResetPassword(ForgotPasswordModel model);
-        Task<bool> ResetPasswordConfirm(ResetPasswordModel model);
-        Task<AppUser> GetUserByAccessToken(string accessToken);
-        Task<AppUser> AddPassword(ResetPasswordModel model);
-        Task<string> ChangePassword(int userID, ChangePasswordModel model);
-        RefreshToken GenerateRefreshToken();
-        Task<RefreshToken> GetRefreshTokenByAccessToken(string accessToken);
-        bool ValidateRefreshToken(AppUser user, string refreshToken);
-        Task<string> GenerateAccessTokenWithRefressToken(RefreshAccessTokenRequest refreshRequest);
-        Task<JwtResponse> LoginWithFacebookToken(string accessToken);
-        Task<JwtResponse> LoginWithGoogleToken(string token, string email, string name, string avatar, string ggID);
-        Task<PagedResult<UserViewModel>> GetListUserPaged(UserPagingRequest model);
+        Task<ResponseBase<List<AppUser>>> GetAll();
+        Task<ResponseBase<AppUser>> GetByID(int id);
+        Task<ResponseBase<AppUser>> EditProfile(int id, UserViewModel user);
+        Task<ResponseBase<AppUser>> EditUserInfo(int id, UserViewModel user);
+        Task<ResponseBase<bool>> DeleteUser(int id);
+        Task<ResponseBase<bool>> RestoreUser(int id);
+        Task<ResponseBase<PagedResult<UserViewModel>>> GetListUserPaged(UserPagingRequest model);
     }
 }

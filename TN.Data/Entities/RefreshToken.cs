@@ -6,7 +6,7 @@ namespace TN.Data.Entities
 {
     public class RefreshToken
     {
-        public string Token { get; set; }
+        public string Value { get; set; }
         public DateTime ExpiryDate { get; set; }
         public AppUser User { get; set; }
     }

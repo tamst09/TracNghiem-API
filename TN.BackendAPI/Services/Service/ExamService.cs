@@ -102,7 +102,7 @@ namespace TN.BackendAPI.Services.Service
             {
                 data = exam,
                 success = true,
-                msg = "An exam found"
+                msg = "One exam found"
             };
         }
         public async Task<ResponseBase<Exam>> Update(ExamModel request)
@@ -365,7 +365,7 @@ namespace TN.BackendAPI.Services.Service
             return new ResponseBase<Exam>()
             {
                 success = true,
-                msg = "An exam found",
+                msg = "One exam found",
                 data = exam
             };
         }

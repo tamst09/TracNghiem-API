@@ -25,6 +25,6 @@ namespace TN.BackendAPI.Services.IServices
 
         //COMMON
         Task<ResponseBase<Exam>> Create(ExamModel request, int userID);
-        Task<ResponseBase<int>> IncreaseAttemps(int examID)
+        Task<ResponseBase<int>> IncreaseAttemps(int examID);
     }
 }

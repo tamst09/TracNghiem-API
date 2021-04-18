@@ -14,11 +14,10 @@ namespace TN.Data.Config
             builder.HasKey(u => u.Id);
             builder.Property(u => u.UserName).IsRequired().HasMaxLength(50);
             builder.Property(u => u.Name).IsRequired().HasMaxLength(50);
-            builder.Property(u => u.Email).IsRequired().HasMaxLength(50);
+            builder.Property(u => u.Email).IsRequired(false).HasMaxLength(50);
             builder.Property(u => u.PhoneNumber).IsRequired(false).HasMaxLength(50);
             builder.Property(u => u.DoB).IsRequired();
             builder.Property(u => u.PasswordHash).IsRequired(false);
-            builder.Property(u => u.isActive).HasDefaultValue(true);
             builder.Property(user => user.RefreshTokenValue).IsRequired(required: false);
             builder.HasOne(u => u.RefreshToken).WithOne(t => t.User).IsRequired(false);
         }

@@ -29,8 +29,7 @@ namespace TN.BackendAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetCategories()
         {
-            var allCategory = await _categoryService.GetAll();
-            return Ok(allCategory);
+            return Ok(await _categoryService.GetAll());
         }
 
         // GET: api/Categories/5
@@ -38,8 +37,7 @@ namespace TN.BackendAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetCategory(int id)
         {
-            var category = await _categoryService.GetOne(id);
-            return Ok(category);
+            return Ok(await _categoryService.GetOne(id));
         }
 
         // PUT: api/Categories/5
@@ -51,8 +49,7 @@ namespace TN.BackendAPI.Controllers
             {
                 return BadRequest();
             }
-            var updateResult = await _categoryService.Update(category);
-            return Ok(updateResult);
+            return Ok(await _categoryService.Update(category));
         }
 
         // POST: api/Categories
@@ -60,8 +57,7 @@ namespace TN.BackendAPI.Controllers
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> PostCategory([Bind("CategoryName")] Category category)
         {
-            var createResult = await _categoryService.Create(category);
-            return Ok(createResult);
+            return Ok(await _categoryService.Create(category));
         }
 
         // DELETE: api/Categories/5
@@ -69,8 +65,7 @@ namespace TN.BackendAPI.Controllers
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
-            var deleteResult = await _categoryService.Delete(id);
-            return Ok(deleteResult);
+            return Ok(await _categoryService.Delete(id));
         }
 
         // POST: api/Categories/DeleteMany
@@ -78,16 +73,14 @@ namespace TN.BackendAPI.Controllers
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteManyCategory(DeleteRangeModel<int> lstCategoryId)
         {
-            var deleteResult = await _categoryService.DeleteMany(lstCategoryId);
-            return Ok(deleteResult);
+            return Ok(await _categoryService.DeleteMany(lstCategoryId));
         }
 
         // GET: api/Categories/Exams/5
         [HttpGet("Exams/{id}")]
         public async Task<IActionResult> GetExams(int id)
         {
-            var exams = await _categoryService.GetOne(id);
-            return Ok(exams);
+            return Ok(await _categoryService.GetOne(id));
         }
     }
 }

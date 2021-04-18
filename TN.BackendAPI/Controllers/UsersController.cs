@@ -16,10 +16,12 @@ namespace TN.BackendAPI.Controllers
     [Authorize]
     public class UsersController : ControllerBase
     {
-        private readonly  IUserService _userService;
-        public UsersController(IUserService userService)
+        private readonly IUserService _userService;
+        private readonly IAuthService _authService;
+        public UsersController(IUserService userService, IAuthService authService)
         {
             _userService = userService;
+            _authService = authService;
         }
 
         // GET: api/Users
@@ -27,8 +29,7 @@ namespace TN.BackendAPI.Controllers
         [Authorize("admin")]
         public async Task<IActionResult> GetUsers()
         {
-            var lstUser = await _userService.GetAll();
-            return Ok(new ResponseBase<List<AppUser>>() { data=lstUser });
+            return Ok(await _userService.GetAll());
         }
 
         // POST: api/Users/Paged
@@ -36,24 +37,14 @@ namespace TN.BackendAPI.Controllers
         [Authorize("admin")]
         public async Task<IActionResult> GetUsersPaged(UserPagingRequest model)
         {
-            var result = await _userService.GetListUserPaged(model);
-            if (result == null)
-            {
-                return Ok(new ResponseBase<PagedResult<UserViewModel>>() { msg="Out of index"} );
-            }
-            return Ok(new ResponseBase<PagedResult<UserViewModel>>(){ data = result });
+            return Ok(await _userService.GetListUserPaged(model));
         }
 
         // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(int id)
         {
-            var user = await _userService.GetByID(id);
-            if (user == null)
-            {
-                return Ok(new ResponseBase<AppUser>() { msg = "User not found" });
-            }
-            return Ok(new ResponseBase<AppUser>() { data = user });
+            return Ok(await _userService.GetByID(id));
         }
 
         // GET: api/Users/GetNumber
@@ -65,8 +56,8 @@ namespace TN.BackendAPI.Controllers
             response.TotalActiveUser = 0;
             response.TotalInactiveUser = 0;
             var allUsers = await _userService.GetAll();
-            response.TotalUser = allUsers.Count;
-            foreach (var u in allUsers)
+            response.TotalUser = allUsers.data.Count;
+            foreach (var u in allUsers.data)
             {
                 if (u.isActive)
                     response.TotalActiveUser++;
@@ -79,27 +70,14 @@ namespace TN.BackendAPI.Controllers
         [HttpGet("GetStatus/{id}")]
         public async Task<IActionResult> GetStatus(int id)
         {
-            var user = await _userService.GetByID(id);
-            if (user!=null && user.isActive)
-            {
-                return Ok(new ResponseBase<AppUser>() { data = user });
-            }
-            else
-            {
-                return Ok(new ResponseBase<AppUser>() { msg = "User not found or is locked" });
-            }
+            return Ok(await _userService.GetByID(id));
         }
 
         // GET: api/Users/Detail/5
         [HttpGet("Detail/{id}")]
         public async Task<IActionResult> GetUserDetails(int id)
         {
-            var user = await _userService.GetByID(id);
-            if (user == null)
-            {
-                return Ok(new ResponseBase<AppUser>() { msg = "User not found" });
-            }
-            return Ok(new ResponseBase<AppUser>() { data = user });
+            return Ok(await _userService.GetByID(id));
         }
 
         // POST: api/Users/Login
@@ -107,12 +85,7 @@ namespace TN.BackendAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginModel request)
         {
-            var result = await _userService.Login(request);
-            if (result == null || result.Error != null)
-            {
-                return Ok(new ResponseBase<JwtResponse>() { msg = result.Error });
-            }
-            return Ok(new ResponseBase<JwtResponse>() { data = result });
+            return Ok(await _authService.Login(request));
         }
 
         // POST: api/Users/Register
@@ -120,12 +93,7 @@ namespace TN.BackendAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RegisterUser([FromBody] RegisterModel request)
         {
-            var result = await _userService.Register(request);
-            if (!string.IsNullOrEmpty(result.Error))
-            {
-                return Ok(new ResponseBase<JwtResponse>() { msg = result.Error });
-            }
-            return Ok(new ResponseBase<JwtResponse>() { data = result });
+            return Ok(await _authService.Register(request));
         }
 
         // POST: api/Users/GetResetCode
@@ -133,10 +101,7 @@ namespace TN.BackendAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel model)
         {
-            var resultStringCode = await _userService.ResetPassword(model);
-            if(resultStringCode!=null)
-                return Ok(new ResponseBase<string>() { data = resultStringCode });
-            return Ok(new ResponseBase<string>() { msg = "User not found" });
+            return Ok(await _authService.SendResetPasswordCode(model));
         }
 
         // POST: api/Users/ResetPass
@@ -144,20 +109,14 @@ namespace TN.BackendAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
         {
-            var result = await _userService.ResetPasswordConfirm(model);
-            if (result)
-            {
-                return Ok(new ResponseBase<string>() { data = "Password changed" });
-            }
-            return Ok(new ResponseBase<string>() { msg = "User not found" });
+            return Ok(await _authService.ResetPassword(model));
         }
 
         // POST: api/Users/ChangePass/1
         [HttpPost("ChangePass/{userID}")]
         public async Task<IActionResult> ChangePassword(int userID, [FromBody] ChangePasswordModel model)
         {
-            var result = await _userService.ChangePassword(userID, model);
-            return Ok(new ResponseBase<string>() { msg = result });
+            return Ok(await _authService.ChangePassword(userID, model));
         }
 
         //POST: api/Users/RefreshToken
@@ -165,48 +124,29 @@ namespace TN.BackendAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshAccessTokenRequest refreshRequest)
         {
-            string newAccessToken = await _userService.GenerateAccessTokenWithRefressToken(refreshRequest);
-            if (!String.IsNullOrEmpty(newAccessToken))
-            {
-                return Ok(new ResponseBase<string>() { data = newAccessToken } );
-            }
-            return Ok(new ResponseBase<string>() { msg = "User not found or Refresh Token is invalid" });
+            return Ok(await _authService.GenerateAccessTokenWithRefreshToken(refreshRequest));
         }
 
         //POST: api/Users/GetRefreshToken
         [HttpPost("GetRefreshToken")]
         public async Task<IActionResult> GetRefreshTokenByAccessToken([FromBody] RefreshAccessTokenRequest accessToken)
         {
-            var refreshToken = await _userService.GetRefreshTokenByAccessToken(accessToken.AccessToken);
-            if (refreshToken != null)
-                return Ok(new ResponseBase<RefreshToken>() { data = refreshToken });
-            return Ok(new ResponseBase<string>() { msg = "Invalid access token" });
+            return Ok(await _authService.GetRefreshTokenByAccessToken(accessToken.AccessToken));
         }
-
 
         // PUT: api/Users/EditUser
         [HttpPost("EditUser")]
         [Authorize("admin")]
         public async Task<IActionResult> UpdateUser([FromBody] UserViewModel model)
         {
-            var u = await _userService.EditUserInfo(model.Id, model);
-            if (u == null)
-            {
-                return Ok(new ResponseBase<AppUser>() { msg = "Invalid user info" });
-            }
-            return Ok(new ResponseBase<AppUser>() { data = u });
+            return Ok(await _userService.EditUserInfo(model.Id, model));
         }
 
         // PUT: api/Users/UpdateProfile/5
         [HttpPut("UpdateProfile/{userID}")]
         public async Task<IActionResult> EditProfile(int userID, [FromBody] UserViewModel user)
         {
-            var u = await _userService.EditProfile(userID, user);
-            if (u == null)
-            {
-                return Ok(new ResponseBase<AppUser>() { msg = "Invalid user info" });
-            }
-            return Ok(new ResponseBase<AppUser>() { data = u });
+            return Ok(await _userService.EditProfile(userID, user));
         }
 
         // POST: api/Users/CreateUser
@@ -214,12 +154,7 @@ namespace TN.BackendAPI.Controllers
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> PostUser([FromBody]RegisterModel user)
         {
-            var u = await _userService.Register(user);
-            if (u.Error != null)
-            {
-                return Ok(new ResponseBase<JwtResponse>() { msg = u.Error });
-            }
-            return Ok(new ResponseBase<JwtResponse>() { data = u });
+            return Ok(await _authService.Register(user));
         }
 
         // DELETE: api/Users/5
@@ -227,91 +162,42 @@ namespace TN.BackendAPI.Controllers
         [Authorize("admin")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var deleteResult = await _userService.DeleteUser(id);
-            if (deleteResult)
-            {
-                return Ok(new ResponseBase<JwtResponse>() { msg = "User not found" });
-            }
-            return Ok(new ResponseBase<JwtResponse>() { });
+            return Ok(await _userService.DeleteUser(id));
         }
 
         [HttpPost("LoginFb")]
         [AllowAnonymous]
         public async Task<IActionResult> LoginFacebook([FromBody]string accesstoken)
         {
-            var jwt = await _userService.LoginWithFacebookToken(accesstoken);
-            if (jwt == null)
-                return Ok(new ResponseBase<JwtResponse>() { msg = "Invalid token" });
-            return Ok(new ResponseBase<JwtResponse>() { data = jwt });
+            return Ok(await _authService.LoginWithFacebookToken(accesstoken));
         }
 
         [HttpPost("LoginGG")]
         [AllowAnonymous]
         public async Task<IActionResult> LoginGoogle([FromBody]string token)
         {
-            Payload payload;
-            try
-            {
-                payload = await ValidateAsync(token, new ValidationSettings
-                {
-                    Audience = new[] { "104872694801-4vdhqd2c8e32j65oqd50idd43dh08teo.apps.googleusercontent.com" }
-                });
-                var ggID = payload.Subject;
-                var email = payload.Email;
-                var name = payload.Name;
-                var avatar = payload.Picture;
-
-                var jwt = await _userService.LoginWithGoogleToken(token ,email, name, avatar, ggID);
-                if (jwt == null)
-                    return Ok(new ResponseBase<JwtResponse>() { msg = "Error" });
-                return Ok(new ResponseBase<JwtResponse>() { data = jwt });
-            }
-            catch (Exception e)
-            {
-                return Ok(new ResponseBase<JwtResponse>() { msg = e.Message });
-            }
+            return Ok(await _authService.LoginWithGoogleToken(token));
         }
 
         [HttpPut("AddPassword")]
         [AllowAnonymous]
-        public async Task<IActionResult> AddPasswordForNewUser(ResetPasswordModel model)
+        public async Task<IActionResult> AddPasswordForNewUser(AddPasswordModel model)
         {
-            var user = await _userService.AddPassword(model);
-            if (user == null)
-            {
-                return BadRequest();
-            }
-            return Ok(user);
+            return Ok(await _authService.AddPassword(model));
         }
 
         [HttpPost("LockUser/{id}")]
         [Authorize("admin")]
         public async Task<IActionResult> LockUser(int id)
         {
-            var lockUserResult = await _userService.DeleteUser(id);
-            if (lockUserResult)
-            {
-                return Ok(new ResponseBase<string>() { data = "Locked user - UID: " + id });
-            }
-            else
-            {
-                return Ok(new ResponseBase<string>() { msg = "Locked user failed" });
-            }
+            return Ok(await _userService.DeleteUser(id));   
         }
 
         [HttpPost("RestoreUser/{id}")]
         [Authorize("admin")]
         public async Task<IActionResult> RestoreUser(int id)
         {
-            var lockUserResult = await _userService.RestoreUser(id);
-            if (lockUserResult)
-            {
-                return Ok(new ResponseBase<string>() { data = "Unlocked user - UID: " + id });
-            }
-            else
-            {
-                return Ok(new ResponseBase<string>() { msg = "Unlocked user failed" });
-            }
+            return Ok(await _userService.RestoreUser(id));
         }
     }
 }

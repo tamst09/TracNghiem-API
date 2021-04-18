@@ -9,10 +9,10 @@ namespace TN.Data.Config
         public void Configure(EntityTypeBuilder<RefreshToken> builder)
         {
             builder.ToTable("RefreshTokens");
-            builder.HasKey(e => e.Token);
+            builder.HasKey(e => e.Value);
             builder.HasOne(e => e.User).WithOne(c => c.RefreshToken).HasForeignKey<AppUser>(u => u.RefreshTokenValue).IsRequired(false);
             builder.Property(e => e.ExpiryDate).IsRequired();
-            builder.Property(e => e.Token).IsRequired();
+            builder.Property(e => e.Value).IsRequired();
         }
     }
 }

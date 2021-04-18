@@ -47,6 +47,7 @@ namespace TN.BackendAPI
             services.AddTransient<IQuestionService, QuestionService>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IFacebookAuth, FacebookAuthService>();
+            services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<IEmailSender, EmailSender>(i =>
                 new EmailSender(
                     Configuration["EmailSender:Host"],
