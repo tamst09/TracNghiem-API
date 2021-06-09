@@ -182,20 +182,18 @@ namespace FrontEndWebApp.Controllers
             {
                 return View(model);
             }
-            if (model.AvatarFile != null)
+            if (model.AvatarPhoto != null)
             {
-                string folder = "images/cover/user/";
-                var extensions = model.AvatarFile.FileName.Split('.');
-                var extension = extensions[extensions.Length - 1];
-                folder += model.Id.ToString() + "." + extension;
-                model.AvatarPhotoURL = "/" + folder;
-                string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
-                var copyImageStream = new FileStream(serverFolder, FileMode.Create);
-                model.AvatarFile.CopyTo(copyImageStream);
-                copyImageStream.Close();
+                var filePath = Path.GetTempFileName();
+                using (var stream = System.IO.File.Create(filePath))
+                {
+                    await model.AvatarPhoto.CopyToAsync(stream);
+                }
+                model.AvatarURL = UploadImageService.Instance().Upload(model.UserName, filePath);
+                model.AvatarPhoto = null;
             }
-            model.AvatarFile = null;
-            string url = model.AvatarPhotoURL;
+            model.AvatarPhoto = null;
+            //string url = model.AvatarPhotoURL;
             var user = await _accountService.Register(model);
             if (user != null)
             {
@@ -327,6 +325,7 @@ namespace FrontEndWebApp.Controllers
             }
             return View(new UserViewModel());
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> OnPostUpdateProfile(int id, UserViewModel model)
@@ -340,24 +339,12 @@ namespace FrontEndWebApp.Controllers
             }
             if (model.AvatarPhoto != null)
             {
-                string folder = "images/cover/user/";
-                string[] extensions = null;
-                extensions = model.AvatarPhoto.FileName.Split('.');
-                var extension = extensions[extensions.Length - 1];
-                folder += model.Id.ToString() + "." + extension;
-                model.Avatar = "/"+folder;
-                string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
-                try
+                var filePath = Path.GetTempFileName();
+                using (var stream = System.IO.File.Create(filePath))
                 {
-                    var copyImageStream = new FileStream(serverFolder, FileMode.Create);
-                    model.AvatarPhoto.CopyTo(copyImageStream);
-                    copyImageStream.Close();
+                    await model.AvatarPhoto.CopyToAsync(stream);
                 }
-                catch (Exception)
-                {
-                    model.AvatarPhoto = null;
-                    model.Avatar = null;
-                }
+                model.AvatarURL = UploadImageService.Instance().Upload(model.UserName, filePath);
                 model.AvatarPhoto = null;
             }
             var userID = Int32.Parse(User.FindFirst("UserID").Value);
@@ -366,7 +353,7 @@ namespace FrontEndWebApp.Controllers
                 return Redirect("/Views/Account/AccessDenied.cshtml");
             }
             var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var result = await _accountService.UpdateProfile(id, model, access_token);
+            var result = await _accountService.UpdateProfile(model, access_token);
             // success
             if (result!=null && result.data != null)
                 return RedirectToAction(nameof(ShowProfile));

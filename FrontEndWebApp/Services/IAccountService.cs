@@ -14,7 +14,7 @@ namespace FrontEndWebApp.Services
     {
         Task<ResponseBase<JwtResponse>> Authenticate(LoginModel model);
         Task<ResponseBase<JwtResponse>> Register(RegisterModel model);
-        Task<ResponseBase<UserViewModel>> UpdateProfile(int uid, UserViewModel model, string access_token);
+        Task<ResponseBase<UserViewModel>> UpdateProfile(UserViewModel model, string access_token);
         Task<ResponseBase<JwtResponse>> LoginFacebook(string accesstoken);
         Task<ResponseBase<JwtResponse>> LoginGoogle(string accesstoken);
         ClaimsPrincipal ValidateToken(string token);

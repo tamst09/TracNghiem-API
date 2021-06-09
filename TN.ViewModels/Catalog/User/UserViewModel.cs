@@ -46,6 +46,6 @@ namespace TN.ViewModels.Catalog.User
         public bool isActive { get; set; }
 
         public IFormFile AvatarPhoto { get; set; }
-        public string Avatar { get; set; }
+        public string AvatarURL { get; set; }
     }
 }
