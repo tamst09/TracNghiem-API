@@ -84,19 +84,15 @@ namespace TN.BackendAPI.Services.Service
                     PhoneNumber = u.PhoneNumber,
                     UserName = u.UserName,
                     isActive = u.isActive,
-                    Avatar = u.Avatar
+                    AvatarURL = u.Avatar
                 })
                 .ToList();
             // return
             return new PagedResult<UserViewModel>() { Items = data, TotalRecords = totalrecord, TotalPages = soTrang, PageIndex = model.PageIndex, PageSize = model.PageSize };
         }
-        public async Task<AppUser> EditProfile(int id, UserViewModel model)
+        public async Task<AppUser> EditUserInfo(UserViewModel model)
         {
-            if (id != model.Id)
-            {
-                return null;
-            }
-            var user = await _dbContext.Users.FindAsync(id);
+            var user = await _dbContext.Users.FindAsync(model.Id);
             if (!string.IsNullOrEmpty(model.Name) && !string.IsNullOrEmpty(model.Name))
             {
                 user.Name = model.Name;
@@ -113,9 +109,9 @@ namespace TN.BackendAPI.Services.Service
             {
                 user.PhoneNumber = model.PhoneNumber;
             }
-            if (model.Avatar != null)
+            if (model.AvatarURL != null)
             {
-                user.Avatar = model.Avatar;
+                user.Avatar = model.AvatarURL;
             }
             try
             {
@@ -125,41 +121,7 @@ namespace TN.BackendAPI.Services.Service
             {
                 return null;
             }
-            var user2 = await _dbContext.Users.FindAsync(id);
-            return user2;
-        }
-        public async Task<AppUser> EditUserInfo(int id, UserViewModel model)
-        {
-            var user = await _dbContext.Users.FindAsync(id);
-            if (!string.IsNullOrEmpty(model.Name) && !string.IsNullOrEmpty(model.Name))
-            {
-                user.Name = model.Name;
-            }
-            if (model.DoB != null)
-            {
-                user.DoB = model.DoB;
-            }
-            if (model.Email != null)
-            {
-                user.Email = model.Email;
-            }
-            if (model.PhoneNumber != null)
-            {
-                user.PhoneNumber = model.PhoneNumber;
-            }
-            if (model.Avatar != null)
-            {
-                user.Avatar = model.Avatar;
-            }
-            try
-            {
-                await _dbContext.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                return null;
-            }
-            var user2 = await _dbContext.Users.FindAsync(id);
+            var user2 = await _dbContext.Users.FindAsync(model.Id);
             return user2;
         }
         public async Task<bool> DeleteUser(int id)
@@ -388,9 +350,9 @@ namespace TN.BackendAPI.Services.Service
         }
         public async Task<JwtResponse> Register(RegisterModel model)
         {
-            if (string.IsNullOrEmpty(model.AvatarPhotoURL))
+            if (string.IsNullOrEmpty(model.AvatarURL))
             {
-                model.AvatarPhotoURL = "/images/cover/user/default_avatar.png";
+                model.AvatarURL = "/images/cover/user/default_avatar.png";
             }
             var user = new AppUser()
             {
@@ -399,7 +361,7 @@ namespace TN.BackendAPI.Services.Service
                 Email = model.Email,
                 DoB = model.DoB,
                 PhoneNumber = model.PhoneNumber,
-                Avatar = model.AvatarPhotoURL
+                Avatar = model.AvatarURL
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)

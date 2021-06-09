@@ -113,16 +113,15 @@ namespace FrontEndWebApp.Services
             }
         }
 
-        public async Task<ResponseBase<UserViewModel>> UpdateProfile(int uid, UserViewModel model, string access_token)
+        public async Task<ResponseBase<UserViewModel>> UpdateProfile(UserViewModel model, string access_token)
         {
-            model.Id = uid;
             var json = JsonConvert.SerializeObject(model);
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
             if (!string.IsNullOrEmpty(access_token))
             {
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
             }
-            var response = await _client.PutAsync("/api/users/UpdateProfile/"+uid.ToString(), httpContent);
+            var response = await _client.PutAsync("/api/Users", httpContent);
 
             if (response.IsSuccessStatusCode)
             {

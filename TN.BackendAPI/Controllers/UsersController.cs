@@ -183,30 +183,16 @@ namespace TN.BackendAPI.Controllers
             return Ok(new ResponseBase<string>() { msg = "Invalid access token" });
         }
 
-
-        // PUT: api/Users/EditUser
-        [HttpPost("EditUser")]
-        [Authorize("admin")]
-        public async Task<IActionResult> UpdateUser([FromBody] UserViewModel model)
+        // POST: api/Users/UpdateProfile
+        [HttpPut]
+        public async Task<IActionResult> EditProfile([FromBody] UserViewModel user)
         {
-            var u = await _userService.EditUserInfo(model.Id, model);
-            if (u == null)
+            var editResult = await _userService.EditUserInfo(user);
+            if (editResult == null)
             {
                 return Ok(new ResponseBase<AppUser>() { msg = "Invalid user info" });
             }
-            return Ok(new ResponseBase<AppUser>() { data = u });
-        }
-
-        // PUT: api/Users/UpdateProfile/5
-        [HttpPut("UpdateProfile/{userID}")]
-        public async Task<IActionResult> EditProfile(int userID, [FromBody] UserViewModel user)
-        {
-            var u = await _userService.EditProfile(userID, user);
-            if (u == null)
-            {
-                return Ok(new ResponseBase<AppUser>() { msg = "Invalid user info" });
-            }
-            return Ok(new ResponseBase<AppUser>() { data = u });
+            return Ok(new ResponseBase<AppUser>() { success = true, data = editResult });
         }
 
         // POST: api/Users/CreateUser
