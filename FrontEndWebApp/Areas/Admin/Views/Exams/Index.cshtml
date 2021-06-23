@@ -39,32 +39,36 @@
                                 <th>Số lượng câu hỏi</th>
                                 <th>Người đăng</th>
                                 <th>Chủ đề</th>
+                                <th> </th>
                                 <th>Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var item in Model.Items)
                             {
-                                <tr>
-                                    <td><input onclick="addToSelected(@item.ID, this)" type="checkbox" value="" /></td>
-                                    <td>@item.ExamName</td>
-                                    <td>@item.TimeCreated</td>
-                                    <td>@item.NumOfAttemps</td>
-                                    @if (item.Time != 0)
-                                    {
-                                        <td>@(item.Time/60)m:@(item.Time%60)s</td>
-                                    }
-                                    else
-                                    {
-                                        <td>Không giới hạn</td>
-                                    }
-                                    <td>@item.Questions.Where(q => q.isActive == true).ToList().Count</td>
-                                    <td>@item.Owner.UserName</td>
-                                    <td>@item.Category.CategoryName</td>
-                                    <td>
-                                        <a asp-action="ShowQuestions" asp-route-id="@item.ID">Xem câu hỏi <i class="fa fa-arrow-circle-right"></i></a>
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td><input onclick="addToSelected(@item.ID, this)" type="checkbox" value="" /></td>
+                                <td>@item.ExamName</td>
+                                <td>@item.TimeCreated</td>
+                                <td>@item.NumOfAttemps</td>
+                                @if (item.Time != 0)
+                                {
+                                    <td>@(item.Time/60)m:@(item.Time%60)s</td>
+                                }
+                                else
+                                {
+                                    <td>Không giới hạn</td>
+                                }
+                                <td>@item.Questions.Where(q => q.isActive == true).ToList().Count</td>
+                                <td>@item.Owner.UserName</td>
+                                <td>@item.Category.CategoryName</td>
+                                <td>
+                                    @Html.ActionLink("Sửa", "Edit", new { id = item.ID })
+                                </td>
+                                <td>
+                                    <a asp-action="ShowQuestions" asp-route-id="@item.ID">Xem câu hỏi <i class="fa fa-arrow-circle-right"></i></a>
+                                </td>
+                            </tr>
                             }
                         </tbody>
                     </table>

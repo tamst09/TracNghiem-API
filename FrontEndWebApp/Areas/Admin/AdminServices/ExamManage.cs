@@ -71,7 +71,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             }
-            var response = await _httpClient.GetAsync("/api/exams/User/"+id.ToString());
+            var response = await _httpClient.GetAsync("/api/exams/Admin/"+id.ToString());
             if (response.IsSuccessStatusCode)
             {
                 var resultContent = await response.Content.ReadAsStringAsync();

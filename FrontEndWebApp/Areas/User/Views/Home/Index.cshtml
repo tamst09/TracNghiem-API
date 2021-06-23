@@ -38,6 +38,7 @@
                                         </div>
                                         <div class="btn_main">
                                             <div class="buy_bt"><a href="#" onclick="openAttempOptionForm(@exam.ID)" data-toggle="modal" data-target="#attempOptionModal">Attemps</a></div>
+                                            <div><i class="far fa-heart" style="color :crimson"></i></div>
                                             <div class="seemore_bt"><a asp-action="PreviewExam" asp-controller="Home" asp-route-examID="@exam.ID">Preview</a></div>
                                         </div>
                                     </div>
@@ -80,6 +81,7 @@
                                                 }
                                             </p>
                                             <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">@exam.Owner.UserName</span></p>
+                                            <div class="seemore_bt"><a>Add to favorite exams</a><i class='fas fa-heart' style="color :crimson"></i></div>
                                         </div>
                                         <div class="btn_main">
                                             <div class="buy_bt"><a href="#" onclick="openAttempOptionForm(@exam.ID)" data-toggle="modal" data-target="#attempOptionModal">Attemps</a></div>
@@ -127,6 +129,7 @@
                                                 }
                                             </p>
                                             <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">@exam.Owner.UserName</span></p>
+                                            <div class="seemore_bt"><a>Add to favorite exams</a><i class='fas fa-heart' style="color :crimson"></i></div>
                                         </div>
                                         <div class="btn_main">
                                             <div class="buy_bt"><a href="#" onclick="openAttempOptionForm(@exam.ID)" data-toggle="modal" data-target="#attempOptionModal">Attemps</a></div>
