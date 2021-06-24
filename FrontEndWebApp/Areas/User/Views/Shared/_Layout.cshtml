@@ -1,6 +1,6 @@
-﻿@inject FrontEndWebApp.Areas.Admin.AdminServices.ICategoryManage categoryManager
+﻿@using TN.Data.Entities;
 @{
-    var lstCategory = categoryManager.GetAll().Result;
+    List<Category> lstCategory = ViewBag.Categories;
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -81,8 +81,11 @@
                         </button>
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                             <a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-route-categoryId="0">All</a>
-                            @foreach (var categoryItem in lstCategory.data)
-                            {<a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-route-categoryId="@categoryItem.ID">@categoryItem.CategoryName</a>}
+                            @if (lstCategory != null)
+                            {
+                                @foreach (var categoryItem in lstCategory)
+                                {<a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-route-categoryId="@categoryItem.ID">@categoryItem.CategoryName</a>}
+                            }
                         </div>
                     </div>
                     <div class="main">
@@ -118,43 +121,43 @@
                                 </li>
                             </ul>
                         </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <!-- header section end -->
-    <!-- banner section start -->
-    <div class="banner_section layout_padding">
-        <div class="container">
-            <div id="my_slider" class="carousel slide" data-ride="carousel">
-                <div class="carousel-inner">
-                    <div class="carousel-item active">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <h1 class="banner_taital">English quizzes</h1>
-                                <div class="buynow_bt"><a href="#common-header">Go Now</a></div>
+        <!-- header section end -->
+        <!-- banner section start -->
+        <div class="banner_section layout_padding">
+            <div class="container">
+                <div id="my_slider" class="carousel slide" data-ride="carousel">
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <h1 class="banner_taital">English quizzes</h1>
+                                    <div class="buynow_bt"><a href="#common-header">Go Now</a></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <h1 class="banner_taital">Try your best</h1>
+                                    <div class="buynow_bt"><a href="#common-header">Go Now</a></div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="carousel-item">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <h1 class="banner_taital">Try your best</h1>
-                                <div class="buynow_bt"><a href="#common-header">Go Now</a></div>
-                            </div>
-                        </div>
-                    </div>
+                    <a class="carousel-control-prev" href="#my_slider" role="button" data-slide="prev">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                    <a class="carousel-control-next" href="#my_slider" role="button" data-slide="next">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
                 </div>
-                <a class="carousel-control-prev" href="#my_slider" role="button" data-slide="prev">
-                    <i class="fa fa-angle-left"></i>
-                </a>
-                <a class="carousel-control-next" href="#my_slider" role="button" data-slide="next">
-                    <i class="fa fa-angle-right"></i>
-                </a>
             </div>
         </div>
-    </div>
-    <!-- banner section end -->
+        <!-- banner section end -->
     </div>
     <div class="row p-3 justify-content-lg-center">
         <div class="col-10">
@@ -177,7 +180,7 @@
     </div>
     <!-- copyright section end -->
     <!-- Javascript files-->
-    
+
     @RenderSection("Scripts", required: false)
 </body>
 </html>

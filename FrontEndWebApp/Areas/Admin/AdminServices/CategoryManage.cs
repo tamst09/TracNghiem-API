@@ -60,7 +60,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
             }
         }
 
-        public async Task<ResponseBase<string>> DeleteRange(DeleteRangeModel<int> lstId, string accessToken)
+        public async Task<ResponseBase<string>> DeleteRange(DeleteManyModel<int> lstId, string accessToken)
         {
             if (accessToken != null)
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);

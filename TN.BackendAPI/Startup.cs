@@ -33,9 +33,9 @@ namespace TN.BackendAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContextPool<TNDbContext>(options => 
-                options.UseSqlServer(Configuration.GetConnectionString("TNDatabase")));
-            services.AddIdentity<AppUser, AppRole>()
+            services.AddDbContextPool<TNDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("TNDatabase")));
+            services
+                .AddIdentity<AppUser, AppRole>()
                 .AddEntityFrameworkStores<TNDbContext>()
                 .AddDefaultTokenProviders();
             //Declare DI
@@ -43,7 +43,9 @@ namespace TN.BackendAPI
             services.AddTransient<SignInManager<AppUser>, SignInManager<AppUser>>();
             services.AddTransient<RoleManager<AppRole>, RoleManager<AppRole>>();
             services.AddTransient<ICategoryService, CategoryService>();
-            services.AddTransient<IExamService, ExamService>();
+            services.AddTransient<IExamAdminService, ExamAdminService>();
+            services.AddTransient<IExamUserService, ExamUserService>();
+            services.AddTransient<IFavoriteExamService, FavoriteExamService>();
             services.AddTransient<IQuestionService, QuestionService>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IFacebookAuth, FacebookAuthService>();
@@ -65,16 +67,15 @@ namespace TN.BackendAPI
                 options.Password.RequiredLength = 8;
                 options.Password.RequiredUniqueChars = 0;
             });
-            
-            services.AddAuthentication(opt => 
+            services.AddAuthentication(opt =>
             {
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options => 
+            }).AddJwtBearer(options =>
             {
                 options.RequireHttpsMetadata = false;
-                options.SaveToken = false;
+                options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ClockSkew = TimeSpan.FromSeconds(5),
@@ -93,18 +94,22 @@ namespace TN.BackendAPI
             Configuration.Bind(nameof(FBAuthSettings), fbAuthSettings);
             services.AddSingleton(fbAuthSettings);
             services.AddHttpClient();
-            services.AddAuthorization(options => {
+            services.AddAuthorization(options =>
+            {
                 options.AddPolicy("admin",
-                    authBuilder => {
+                    authBuilder =>
+                    {
                         authBuilder.RequireRole("admin");
                     });
                 options.AddPolicy("user",
-                    authBuilder => {
+                    authBuilder =>
+                    {
                         authBuilder.RequireRole("user");
                     });
             });
             services.AddControllersWithViews().AddNewtonsoftJson(
-                options => {
+                options =>
+                {
                     options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                     options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                 }
@@ -117,7 +122,7 @@ namespace TN.BackendAPI
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Swagger", Version = "v1" });
             });
-            
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -132,9 +137,7 @@ namespace TN.BackendAPI
             app.UseRouting();
             app.UseCors();
             app.UseAuthorization();
-                        app.UseCors(
-                options => options.AllowAnyOrigin().AllowAnyMethod()
-            );
+            app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod());
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {

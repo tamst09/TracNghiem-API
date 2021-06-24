@@ -18,7 +18,6 @@ namespace TN.Data.Config
             builder.Property(u => u.PhoneNumber).IsRequired(false).HasMaxLength(50);
             builder.Property(u => u.DoB).IsRequired();
             builder.Property(u => u.PasswordHash).IsRequired(false);
-            builder.Property(u => u.isActive).HasDefaultValue(true);
             builder.Property(user => user.RefreshTokenValue).IsRequired(required: false);
             builder.HasOne(u => u.RefreshToken).WithOne(t => t.User).IsRequired(false);
         }

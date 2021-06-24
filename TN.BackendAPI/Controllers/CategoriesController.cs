@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
-using TN.Data.DataContext;
 using TN.Data.Entities;
 using TN.ViewModels.Common;
 
@@ -17,15 +14,16 @@ namespace TN.BackendAPI.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
+        private readonly IExamAdminService _examService;
 
-        public CategoriesController(ICategoryService categoryService)
+        public CategoriesController(ICategoryService categoryService, IExamAdminService examService)
         {
             _categoryService = categoryService;
+            _examService = examService;
         }
 
         // GET: api/Categories
         [HttpGet]
-        [AllowAnonymous]
         public async Task<IActionResult> GetCategories()
         {
             var allCategory = await _categoryService.GetAll();
@@ -34,7 +32,6 @@ namespace TN.BackendAPI.Controllers
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
-        [AllowAnonymous]
         public async Task<IActionResult> GetCategory(int id)
         {
             var category = await _categoryService.GetByID(id);
@@ -45,10 +42,25 @@ namespace TN.BackendAPI.Controllers
             return Ok(new ResponseBase<Category>() { msg = "Không tìm thấy" });
         }
 
+        // GET: api/Categories/Exams/5
+        [HttpGet("Exams/{id}")]
+        public async Task<IActionResult> GetExams(int id)
+        {
+            var exams = await _examService.GetByCategory(id);
+            if (exams != null)
+            {
+                return Ok(new ResponseBase<List<Exam>>() { data = exams });
+            }
+            else
+            {
+                return Ok(new ResponseBase<List<Exam>>() { msg = "Đề thi không có sẵn" });
+            }
+        }
+
         // PUT: api/Categories/5
         [HttpPut("{id}")]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> PutCategory(int id, Category category)
+        public async Task<IActionResult> Edit(int id, Category category)
         {
             if (id != category.ID)
             {
@@ -65,7 +77,7 @@ namespace TN.BackendAPI.Controllers
         // POST: api/Categories
         [HttpPost]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> PostCategory([Bind("CategoryName")] Category category)
+        public async Task<IActionResult> Add([Bind("CategoryName")] Category category)
         {
             var createResult = await _categoryService.Create(category);
             return Ok(new ResponseBase<Category>() { data = createResult });
@@ -74,7 +86,7 @@ namespace TN.BackendAPI.Controllers
         // DELETE: api/Categories/5
         [HttpDelete("{id}")]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> DeleteCategory(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var deleteResult = await _categoryService.Delete(id);
             if (deleteResult)
@@ -86,28 +98,13 @@ namespace TN.BackendAPI.Controllers
         // DELETE: api/Categories/DeleteRange
         [HttpPost("DeleteRange")]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> DeleteManyCategory(DeleteRangeModel<int> lstCategoryId)
+        public async Task<IActionResult> DeleteMany(DeleteManyModel<int> lstCategoryId)
         {
-            var deleteResult = await _categoryService.DeleteListCategory(lstCategoryId);
+            var deleteResult = await _categoryService.DeleteMany(lstCategoryId);
             if (deleteResult)
                 return Ok(new ResponseBase<Category>() { });
             else
                 return Ok(new ResponseBase<Category>() { msg = "Xoá thất bại" });
-        }
-
-        // GET: api/Categories/Exams/5
-        [HttpGet("Exams/{id}")]
-        public async Task<IActionResult> GetExams(int id)
-        {
-            var exams = await _categoryService.AdminGetExams(id);
-            if (exams != null)
-            {
-                return Ok(new ResponseBase<List<Exam>>() { data = exams });
-            }
-            else
-            {
-                return Ok(new ResponseBase<List<Exam>>() { msg = "Đề thi không có sẵn" });
-            }
         }
     }
 }

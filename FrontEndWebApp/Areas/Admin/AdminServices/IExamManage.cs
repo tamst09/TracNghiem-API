@@ -15,7 +15,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
         Task<ResponseBase<Exam>> GetByID(int id, string accessToken);
         Task<ResponseBase<Exam>> Update(int id, ExamModel model, string accessToken);
         Task<ResponseBase<Exam>> Delete(int id, string accessToken);
-        Task<ResponseBase<string>> DeleteMany(DeleteRangeModel<int> lstId, string accessToken);
+        Task<ResponseBase<string>> DeleteMany(DeleteManyModel<int> lstId, string accessToken);
         Task<ResponseBase<Exam>> Create(ExamModel model, int userID, string accessToken);
         Task<ResponseBase<int>> IncreaseAttemps(int id, string accessToken);
     }

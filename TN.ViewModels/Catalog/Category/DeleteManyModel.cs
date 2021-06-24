@@ -4,7 +4,7 @@ using System.Text;
 
 namespace TN.ViewModels.Common
 {
-    public class DeleteRangeModel<T>
+    public class DeleteManyModel<T>
     {
         public List<T> ListItem { get; set; }
     }

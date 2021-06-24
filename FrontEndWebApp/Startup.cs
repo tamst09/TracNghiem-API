@@ -71,7 +71,7 @@ namespace FrontEndWebApp
                 .AddJwtBearer(jwtOptions =>
                 {
                     jwtOptions.RequireHttpsMetadata = false;
-                    jwtOptions.SaveToken = false;
+                    jwtOptions.SaveToken = true;
                     jwtOptions.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,

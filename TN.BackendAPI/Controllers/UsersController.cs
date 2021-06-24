@@ -108,11 +108,7 @@ namespace TN.BackendAPI.Controllers
         public async Task<IActionResult> Login([FromBody] LoginModel request)
         {
             var result = await _userService.Login(request);
-            if (result == null || result.Error != null)
-            {
-                return Ok(new ResponseBase<JwtResponse>() { msg = result.Error });
-            }
-            return Ok(new ResponseBase<JwtResponse>() { data = result });
+            return Ok(result);
         }
 
         // POST: api/Users/Register
@@ -121,11 +117,7 @@ namespace TN.BackendAPI.Controllers
         public async Task<IActionResult> RegisterUser([FromBody] RegisterModel request)
         {
             var result = await _userService.Register(request);
-            if (!string.IsNullOrEmpty(result.Error))
-            {
-                return Ok(new ResponseBase<JwtResponse>() { msg = result.Error });
-            }
-            return Ok(new ResponseBase<JwtResponse>() { data = result });
+            return Ok(result);
         }
 
         // POST: api/Users/GetResetCode
@@ -162,7 +154,6 @@ namespace TN.BackendAPI.Controllers
 
         //POST: api/Users/RefreshToken
         [HttpPost("RefreshToken")]
-        [AllowAnonymous]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshAccessTokenRequest refreshRequest)
         {
             string newAccessToken = await _userService.GenerateAccessTokenWithRefressToken(refreshRequest);
@@ -200,12 +191,8 @@ namespace TN.BackendAPI.Controllers
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> PostUser([FromBody]RegisterModel user)
         {
-            var u = await _userService.Register(user);
-            if (u.Error != null)
-            {
-                return Ok(new ResponseBase<JwtResponse>() { msg = u.Error });
-            }
-            return Ok(new ResponseBase<JwtResponse>() { data = u });
+            var result = await _userService.Register(user);
+            return Ok(result);
         }
 
         // DELETE: api/Users/5

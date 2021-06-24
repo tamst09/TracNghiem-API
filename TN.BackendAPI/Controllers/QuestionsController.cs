@@ -95,7 +95,7 @@ namespace TN.BackendAPI.Controllers
         }
         // POST: api/Questions/DeleteMany
         [HttpPost("DeleteMany")]
-        public async Task<IActionResult> AdminDeleteMany(DeleteRangeModel<int> lstId)
+        public async Task<IActionResult> AdminDeleteMany(DeleteManyModel<int> lstId)
         {
             var ok = await _questionService.DeleteMany(lstId);
             if (ok)

@@ -11,18 +11,13 @@ namespace TN.BackendAPI.Services.IServices
 {
     public interface IQuestionService
     {
-        // ADMIN
         Task<List<Question>> GetAll();
         Task<PagedResult<Question>> GetAllPaging(QuestionPagingRequest model);
         Task<Question> GetByID(int id);
         Task<bool> Update(QuestionModel model);
         Task<bool> Delete(int id);
-        Task<bool> DeleteMany(DeleteRangeModel<int> lstId);
-
-        //USER
-        Task<List<Question>> GetAllByExamID(int examID);
-
-        //COMMON
+        Task<bool> DeleteMany(DeleteManyModel<int> lstId);
+        Task<List<Question>> GetByExam(int examID);
         Task<Question> Create(QuestionModel model);
     }
 }
