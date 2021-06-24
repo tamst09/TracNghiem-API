@@ -24,6 +24,9 @@ namespace TN.BackendAPI.Services.IServices
         Task<Exam> GetByID(int id, int userID);
         Task<bool> Update(ExamModel request, int userID);
         Task<bool> Delete(int examID, int userID);
+        Task<List<Exam>> GetFavoritedExams(int userId);
+        Task<bool> AddFavoritedExam(int userId, int examId);
+        Task<bool> DeleteFavoritedExam(int userId, int examId);
 
         //COMMON
         Task<Exam> Create(ExamModel request, int userID);

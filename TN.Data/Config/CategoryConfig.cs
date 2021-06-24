@@ -17,7 +17,6 @@ namespace TN.Data.Config
             builder.Property(c => c.ID).UseIdentityColumn();
             builder.Property(c => c.CategoryName).HasMaxLength(100);
             builder.Property(c => c.CategoryName).IsRequired();
-            builder.Property(c => c.isActive).HasDefaultValue(true);
         }
     }
 }

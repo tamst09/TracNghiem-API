@@ -24,7 +24,6 @@ namespace TN.Data.Config
             builder.Property(q => q.Answer).IsRequired();
             builder.Property(q => q.STT).IsRequired();
             builder.Property(q => q.ExamID).IsRequired();
-            builder.Property(c => c.isActive).HasDefaultValue(true);
         }
     }
 }

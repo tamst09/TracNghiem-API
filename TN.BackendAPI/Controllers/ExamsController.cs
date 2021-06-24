@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Exam;
 using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Common;
 
@@ -25,28 +26,25 @@ namespace TN.BackendAPI.Controllers
         }
 
         //=============================== ADMIN ===================================
-        // GET: api/Exams/Admin/
         [Authorize(Roles = "admin")]
         [HttpGet("Admin")]
-        public async Task<IActionResult> AdminGetAll()
+        public async Task<IActionResult> AdminGetExams()
         {
             var exams = await _examService.GetAll();
             return Ok(new ResponseBase<List<Exam>>() { data = exams });
         }
 
-        // POST: api/Exams/Admin/Paged
         [Authorize(Roles = "admin")]
         [HttpPost("Admin/Paged")]
-        public async Task<IActionResult> AdminGetAllPaging(ExamPagingRequest model)
+        public async Task<IActionResult> AdminGetExamsPaged(ExamPagingRequest model)
         {
             var exams = await _examService.GetAllPaging(model);
             return Ok(new ResponseBase<PagedResult<Exam>>() { data = exams });
         }
 
-        // GET: api/Exams/Admin/1
         [Authorize(Roles = "admin")]
         [HttpGet("Admin/{id}")]
-        public async Task<IActionResult> AdminGetOne(int id)
+        public async Task<IActionResult> AdminGetExam(int id)
         {
             var exam = await _examService.GetByID(id);
             if (exam != null)
@@ -56,10 +54,9 @@ namespace TN.BackendAPI.Controllers
             return Ok(new ResponseBase<Exam>() { msg = "Đề thi không có sẵn" });
         }
 
-        // DELETE: api/Exams/Admin/1
         [Authorize(Roles = "admin")]
         [HttpDelete("Admin/{id}")]
-        public async Task<IActionResult> AdminDeleteOne(int id)
+        public async Task<IActionResult> AdminDeleteExam(int id)
         {
             var isDeleted = await _examService.Delete(id);
             if (isDeleted)
@@ -69,10 +66,9 @@ namespace TN.BackendAPI.Controllers
             return Ok(new ResponseBase<string>() { msg = "Đề thi không có sẵn" });
         }
 
-        // POST: api/Exams/Admin/DeleteMany
         [Authorize(Roles = "admin")]
         [HttpPost("Admin/DeleteMany")]
-        public async Task<IActionResult> AdminDeleteMany(DeleteRangeModel<int> lstExamId)
+        public async Task<IActionResult> AdminDeleteExams(DeleteRangeModel<int> lstExamId)
         {
             var isDeleted = await _examService.DeleteMany(lstExamId);
             if (isDeleted)
@@ -82,10 +78,9 @@ namespace TN.BackendAPI.Controllers
             return Ok(new ResponseBase<string>() { msg = "Xoá thất bại" });
         }
 
-        // PUT: api/Exams/Admin/1
         [Authorize(Roles = "admin")]
         [HttpPut("Admin/{id}")]
-        public async Task<IActionResult> AdminUpdateOne(int id, ExamModel model)
+        public async Task<IActionResult> AdminUpdate(int id, ExamModel model)
         {
             if(id != model.ID)
             {
@@ -158,6 +153,34 @@ namespace TN.BackendAPI.Controllers
             }
             return Ok(new ResponseBase<Exam>() { });
         }
+
+        [HttpGet("favorite/{userId}")]
+        public async Task<IActionResult> GetFavoriteExams(int userId)
+        {
+            var exams = await _examService.GetFavoritedExams(userId);
+            return Ok(exams);
+        }
+
+        [HttpPost("favorite")]
+        public async Task<IActionResult> AddFavoriteExam([FromBody] FavoriteExamVM favoriteExam)
+        {
+            var result = await _examService.AddFavoritedExam(favoriteExam.UserId, favoriteExam.ExamId);
+            if (result)
+                return Ok(new ResponseBase<bool> { success = true, msg = "Added" });
+            else
+                return Ok(new ResponseBase<bool> { success = false, msg = "Some errors happened" });
+        }
+
+        [HttpPost("favorite/remove")]
+        public async Task<IActionResult> RemoveFavoriteExam([FromBody] FavoriteExamVM favoriteExam)
+        {
+            var result = await _examService.DeleteFavoritedExam(favoriteExam.UserId, favoriteExam.ExamId);
+            if (result)
+                return Ok(new ResponseBase<bool> { success = true, msg = "Added" });
+            else
+                return Ok(new ResponseBase<bool> { success = false, msg = "Some errors happened" });
+        }
+
         //----------------------------------
         //================================== COMMON =====================================
         [HttpPost]
