@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Exam;
 using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Common;
 
