@@ -94,8 +94,14 @@ namespace TN.BackendAPI.Services.Service
 
         public async Task<List<Question>> GetAll()
         {
-            var lstQuestion = await _db.Questions.Where(q => q.isActive == true && q.Exam.isActive == true).ToListAsync();
+            var lstQuestion = await _db.Questions.Where(q => q.isActive == true).ToListAsync();
             return lstQuestion;
+        }
+
+        public async Task<int> CountQuestions()
+        {
+            var countQuestions = await _db.Questions.Where(q => q.isActive == true).CountAsync();
+            return countQuestions;
         }
 
         public async Task<List<Question>> GetByExam(int examID)

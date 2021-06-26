@@ -292,67 +292,6 @@ namespace TN.BackendAPI.Services.Service
             exam.Questions.OrderBy(e => e.STT).ToList();
             return exam;
         }
-        public async Task<List<Exam>> GetFavoritedExams(int userId)
-        {
-            List<Exam> exams = new List<Exam>();
-            var favoritedExams = await _db.FavoriteExams.Where(e => e.UserID == userId).ToListAsync();
-            foreach (var exam in favoritedExams)
-            {
-                var e = await _db.Exams.FindAsync(exam.ExamID);
-                if (e != null)
-                {
-                    exams.Add(e);
-                }
-            }
-            return exams;
-        }
-        public async Task<bool> AddFavoritedExam(int userId, int examId)
-        {
-            
-            var favoriteExam = await _db.FavoriteExams.Where(e => e.ExamID == examId && e.UserID == userId).FirstOrDefaultAsync();
-            if (favoriteExam == null)
-            {
-                var exam = await _db.Exams.FindAsync(examId);
-                var user = await _db.Users.FindAsync(userId);
-                if (exam != null && user != null)
-                {
-                    favoriteExam.AppUser = user;
-                    favoriteExam.Exam = exam;
-                    _db.FavoriteExams.Add(favoriteExam);
-                    try
-                    {
-                        _db.SaveChanges();
-                        return true;
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                        return false;
-                    }
-                }
-                else return false;
-            }
-            return true;
-        }
-        public async Task<bool> DeleteFavoritedExam(int userId, int examId)
-        {
-            var exam = await _db.FavoriteExams.Where(e => e.ExamID == examId && e.UserID == userId).FirstOrDefaultAsync();
-            if (exam != null)
-            {
-                try
-                {
-                    _db.FavoriteExams.Remove(exam);
-                    _db.SaveChanges();
-                    return true;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                    return false;
-                }
-            }
-            return true;
-        }
         public async Task<bool> Update(ExamModel request, int userID)
         {
             if (userID != request.OwnerID)

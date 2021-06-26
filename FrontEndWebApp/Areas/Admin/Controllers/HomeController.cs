@@ -18,39 +18,34 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
     {
         private readonly IUserManage _userManage;
         private readonly ICategoryManage _cateManage;
+        private readonly IExamManage _examManage;
         private readonly IQuestionManage _quesManage;
 
-        public HomeController(IUserManage userManage, ICategoryManage cateManage, IQuestionManage quesManage)
+        public HomeController(IUserManage userManage, ICategoryManage cateManage, IQuestionManage quesManage, IExamManage examManage)
         {
             _userManage = userManage;
             _cateManage = cateManage;
             _quesManage = quesManage;
+            _examManage = examManage;
         }
 
         public async Task<IActionResult> Index()
         {
             var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var totalUser = await _userManage.GetNumberOfUsers(access_token);
-            var totalCategory = await _cateManage.GetAll();
-            var totalExam = 0;
-            foreach(var category in totalCategory.data)
+            var users = await _userManage.GetNumberOfUsers(access_token);
+            var categories = await _cateManage.GetAll();
+            var exams = await _examManage.GetAll(access_token);
+            var questions = await _quesManage.GetNumberQuestion(access_token);
+            ViewBag.TotalExam = exams.data.Count();
+            ViewBag.TotalQuestion = questions.data;
+            if (users != null && categories !=null)
             {
-                totalExam += category.Exams.Where(e => e.isActive == true).ToList().Count;
-            }
-            var totalQuestion = await _quesManage.GetNumberQuestion(access_token);
-            ViewData["Error"] = "";
-            ViewData["TotalUser"] = null;
-            ViewData["TotalCategory"] = null;
-            ViewData["TotalExam"] = totalExam;
-            ViewData["TotalQuestion"] = totalQuestion.data;
-            if (totalUser != null && totalCategory !=null)
-            {
-                if (totalUser.msg!=null)
+                if (users.msg!=null)
                 {
-                    ViewData["Error"] = totalUser.msg;
+                    ViewBag.Error = users.msg;
                 }
-                ViewData["TotalUser"] = totalUser.data;
-                ViewData["TotalCategory"] = totalCategory.data.Count;
+                ViewBag.TotalUser = users.data;
+                ViewBag.TotalCategory = categories.data.Count;
             }
             return View();
         }

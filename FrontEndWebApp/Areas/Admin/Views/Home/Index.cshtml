@@ -1,15 +1,15 @@
 ﻿@{
-    TN.ViewModels.Common.NumberUserInfo numberUserInfo = (TN.ViewModels.Common.NumberUserInfo)ViewData["TotalUser"];
-    ViewData["Title"] = "Trang chủ";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    TN.ViewModels.Common.NumberUserInfo numberUserInfo = ViewBag.TotalUser;
+    ViewData["Title"] = "Trang chủ";
 }
 
 <h1 class="text-center">THỐNG KÊ</h1>
 <hr />
 
-<h3>@ViewData["Error"]</h3>
+<h3>@ViewBag.Error</h3>
 <div class="row">
-    @if (ViewData["TotalUser"] != null)
+    @if (ViewBag.TotalUser != null)
     {
         <div class="col-lg-6">
             <div class="panel panel-default">
@@ -44,7 +44,7 @@
             </div>
         </div>
     }
-    @if (ViewData["TotalCategory"] != null)
+    @if (ViewBag.TotalCategory != null)
     {
         <div class="col-lg-6">
             <div class="panel panel-default">
@@ -63,7 +63,7 @@
                             <tbody>
                                 <tr>
                                     <td>Số lượng</td>
-                                    <td>@ViewData["TotalCategory"]</td>
+                                    <td>@ViewBag.TotalCategory</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -75,7 +75,7 @@
             </div>
         </div>
     }
-    @if (ViewData["TotalExam"] != null)
+    @if (ViewBag.TotalExam != null)
     {
         <div class="col-lg-6">
             <div class="panel panel-default">
@@ -94,7 +94,7 @@
                             <tbody>
                                 <tr>
                                     <td>Số lượng</td>
-                                    <td>@ViewData["TotalExam"]</td>
+                                    <td>@ViewBag.TotalExam</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -106,7 +106,7 @@
             </div>
         </div>
     }
-    @if (ViewData["TotalQuestion"] != null)
+    @if (ViewBag.TotalQuestion != null)
     {
         <div class="col-lg-6">
             <div class="panel panel-default">
@@ -125,7 +125,7 @@
                             <tbody>
                                 <tr>
                                     <td>Số lượng</td>
-                                    <td>@ViewData["TotalQuestion"]</td>
+                                    <td>@ViewBag.TotalQuestion</td>
                                 </tr>
                             </tbody>
                         </table>

@@ -37,10 +37,8 @@ namespace TN.BackendAPI.Controllers
         [HttpGet("GetNumber")]
         public async Task<IActionResult> GetNumberQuestion()
         {
-            var allQuestions = await _questionService.GetAll();
-            if (allQuestions != null)
-                return Ok(new ResponseBase<string>() { data = allQuestions.Count.ToString() });
-            return Ok(new ResponseBase<string>() { msg = "Lỗi hệ thống" });
+            var result = await _questionService.CountQuestions();
+            return Ok(new ResponseBase<string>() { data = result.ToString() });
         }
         // POST: api/Questions
         [HttpPost]
