@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -11,6 +12,13 @@ using TN.ViewModels.Settings;
 
 namespace FrontEndWebApp.Services
 {
+    public class Response
+    {
+        public bool Success { get; set; }
+        public HttpStatusCode StatusCode { get; set; }
+        public string ContentBody { get; set; }
+    }
+
     public class CallApiService
     {
         private readonly HttpClient _httpClient;
@@ -21,22 +29,28 @@ namespace FrontEndWebApp.Services
             _httpClient.BaseAddress = new Uri(ConstStrings.BASE_URL_API);
         }
 
-        public async Task<string> GetAsync(string url, string accessToken)
+        public async Task<Response> GetAsync(string url, string accessToken)
         {
             var response = await _httpClient.GetAsync(url);
             if (!string.IsNullOrEmpty(accessToken))
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             }
-            if (response.IsSuccessStatusCode)
+            var body = await response.Content.ReadAsStringAsync();
+            var result = new Response()
             {
-                var body = await response.Content.ReadAsStringAsync();
-                return body;
+                StatusCode = response.StatusCode,
+                ContentBody = body,
+                Success = true
+            };
+            if (!response.IsSuccessStatusCode)
+            {
+                result.Success = false;
             }
-            return null;
+            return result;
         }
 
-        public async Task<string> PostAsync(string url, string accessToken, string modelJson)
+        public async Task<Response> PostAsync(string url, string accessToken, string modelJson)
         {
             if (!string.IsNullOrEmpty(accessToken))
             {
@@ -48,12 +62,18 @@ namespace FrontEndWebApp.Services
                 httpContent = new StringContent(modelJson, Encoding.UTF8, "application/json");
             }
             var response = await _httpClient.PostAsync(url, httpContent);
-            if (response.IsSuccessStatusCode)
+            var body = await response.Content.ReadAsStringAsync();
+            var result = new Response()
             {
-                var body = await response.Content.ReadAsStringAsync();
-                return body;
+                StatusCode = response.StatusCode,
+                ContentBody = body,
+                Success = true
+            };
+            if (!response.IsSuccessStatusCode)
+            {
+                result.Success = false;
             }
-            return null;
+            return result;
         }
     }
 }

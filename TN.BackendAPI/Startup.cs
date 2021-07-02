@@ -33,7 +33,7 @@ namespace TN.BackendAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContextPool<TNDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("TNDatabase")));
+            services.AddDbContext<TNDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("TNDatabase")));
             services
                 .AddIdentity<AppUser, AppRole>()
                 .AddEntityFrameworkStores<TNDbContext>()

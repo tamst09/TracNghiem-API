@@ -35,19 +35,20 @@ namespace FrontEndWebApp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //services.AddHttpContextAccessor();
             services.AddSession();
             // Dependency Injection
             // DI of Admin
-            services.AddTransient<IAccountService, AccountService>();
-            services.AddTransient<IUserManage, UserManage>();
-            services.AddTransient<ICategoryManage, CategoryManage>();
-            services.AddTransient<IExamManage, ExamManage>();
-            services.AddTransient<IQuestionManage, QuestionManage>();
+            services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IUserManage, UserManage>();
+            services.AddScoped<ICategoryManage, CategoryManage>();
+            services.AddScoped<IExamManage, ExamManage>();
+            services.AddScoped<IQuestionManage, QuestionManage>();
             // DI of User
-            services.AddTransient<ICategoryService, CategoryService>();
-            services.AddTransient<IExamService, ExamService>();
-            services.AddTransient<IQuestionService, QuestionService>();
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IExamService, ExamService>();
+            services.AddScoped<IQuestionService, QuestionService>();
+            services.AddScoped<IFavoriteExamService, FavoriteExamService>();
+            services.AddScoped<CallApiService>();
 
             services.AddAuthentication(options =>
             {
@@ -249,10 +250,6 @@ namespace FrontEndWebApp
 
             app.UseEndpoints(endpoints =>
             {
-                //endpoints.MapAreaControllerRoute(
-                //    name: "PublicArea",
-                //    areaName: "Public",
-                //    pattern: "{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapAreaControllerRoute(
                     name: "AdminArea",
                     areaName: "Admin",
