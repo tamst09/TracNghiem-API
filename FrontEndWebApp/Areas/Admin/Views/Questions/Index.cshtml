@@ -60,9 +60,7 @@
                         @Html.DisplayFor(modelItem => item.STT)
                     </td>
                     <td class="align-middle">
-                        @Html.ActionLink("Sửa", "Edit", new { id = item.ID }) |
-                        @Html.ActionLink("Chi tiết", "Details", new { id = item.ID })
-
+                        <a class="btn btn-success" onclick="openEditForm(@item.ID)" data-toggle="modal" data-target="#updateQuesModal">Sửa</a> 
                     </td>
                 </tr>
             }
@@ -104,6 +102,68 @@ else
 }
 @section Scripts
 {
+    
+    <script>
+        function openEditForm(id) {
+                console.log(id);
+                var route2 = '@Url.Action("Update", "Questions")?ID=' + id;
+                $('#partial2').load(route2);
+        };
+        $(function () {
+            $('#btnADD').click(function () {
+                var id = $(this).data('exam-id');
+                console.log(id);
+                var route = '@Url.Action("Create", "Questions")?examID=' + id;
+                $('#partial').load(route);
+            });
+        });
+        $(document).ready(function () {
+            // This WILL work because we are listening on the 'document',
+            // for a click on an element with an ID of #test-element
+            $(document).on("click", "#btnSave", function () {
+                var form = $(this).parents('.modal').find('form');
+                var actionUrl = form.attr('action');
+                var d = form.serialize();
+                var jsond = JSON.stringify(d)
+                console.log(actionUrl);
+                console.log(jsond);
+                $.ajax({
+                    type: "POST",
+                    url: "https://localhost:44363/Admin/Questions/Create/?" + d,
+                    contentType: 'application/json',
+                    data: JSON.stringify(d),
+                    success: function (res) {
+                        if (res.msg)
+                            console.log(res.msg);
+                        else
+                            console.log('None');
+                        window.location.reload();
+                    }
+                });
+            });
+            $(document).on("click", "#btnUpdate", function () {
+                var form = $(this).parents('.modal').find('form');
+                var actionUrl = form.attr('action');
+                var d = form.serialize();
+                var jsond = JSON.stringify(d)
+                console.log(actionUrl);
+                console.log(jsond);
+                $.ajax({
+                    type: "POST",
+                    url: "https://localhost:44363/Admin/Questions/Update/?" + d,
+                    contentType: 'application/json',
+                    data: JSON.stringify(d),
+                    success: function (res) {
+                        if (res.msg)
+                            console.log(res.msg);
+                        else
+                            console.log('None');
+                        window.location.reload();
+                    }
+                });
+            });
+        });
+    </script>
     <script>
         let s = []
         var msgTxt = document.getElementById("warning");
