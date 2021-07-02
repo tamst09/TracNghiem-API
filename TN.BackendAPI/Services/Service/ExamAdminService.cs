@@ -70,26 +70,21 @@ namespace TN.BackendAPI.Services.Service
 
         public async Task<PagedResult<Exam>> GetAllPaging(ExamPagingRequest model)
         {
-            var allExams = await _db.Exams
-                .Where(e => e.isActive == true && e.Owner.isActive == true)
-                .Include(e => e.Category)
-                .Include(e => e.Owner)
-                .Include(e => e.Questions)
-                .ToListAsync();
+            var allExams =  _db.Exams
+                .Where(e => e.isActive == true && e.Owner.isActive == true);
             // check keyword de xem co dang tim kiem hay phan loai ko
             // sau do gan vao Query o tren
             if (model.CategoryID > 0)
             {
-                allExams = allExams.Where(e => e.CategoryID == model.CategoryID).ToList();
+                allExams = allExams.Where(e => e.CategoryID == model.CategoryID);
             }
             if (!string.IsNullOrEmpty(model.keyword))
             {
                 allExams = allExams
-                    .Where(e => e.ExamName.ToLower().Contains(model.keyword.ToLower()) || e.Owner.UserName.ToLower().Contains(model.keyword.ToLower()))
-                    .ToList();
+                    .Where(e => e.ExamName.ToLower().Contains(model.keyword.ToLower()) || e.Owner.UserName.ToLower().Contains(model.keyword.ToLower()));
             }
             // get total row from query
-            int totalrecord = allExams.Count;
+            int totalrecord = allExams.Count();
             // get so trang
             int pageCount = 0;
             if (totalrecord > model.PageSize)
@@ -104,7 +99,9 @@ namespace TN.BackendAPI.Services.Service
                 }
             }
             // get data and paging
-            var data = allExams.Skip((model.PageIndex - 1) * model.PageSize)
+            var data = await allExams
+                .OrderBy(e => e.ID)
+                .Skip((model.PageIndex - 1) * model.PageSize)
                 .Take(model.PageSize)
                 .Select(u => new Exam()
                 {
@@ -122,7 +119,10 @@ namespace TN.BackendAPI.Services.Service
                     Owner = u.Owner,
                     Questions = u.Questions
                 })
-                .ToList();
+                .Include(e => e.Category)
+                .Include(e => e.Owner)
+                .Include(e => e.Questions)
+                .ToListAsync();
             // return
             return new PagedResult<Exam>()
             {

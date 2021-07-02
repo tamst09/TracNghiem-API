@@ -23,6 +23,7 @@ namespace TN.BackendAPI.Services.Service
             var favoriteExam = await _db.FavoriteExams.Where(e => e.ExamID == examId && e.UserID == userId).FirstOrDefaultAsync();
             if (favoriteExam == null)
             {
+                favoriteExam = new FavoriteExam();
                 var exam = await _db.Exams.FindAsync(examId);
                 var user = await _db.Users.FindAsync(userId);
                 if (exam != null && user != null)

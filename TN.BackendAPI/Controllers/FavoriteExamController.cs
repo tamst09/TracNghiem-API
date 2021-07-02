@@ -13,7 +13,6 @@ namespace TN.BackendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class FavoriteExamController : ControllerBase
     {
         private readonly IFavoriteExamService _examService;
@@ -35,9 +34,9 @@ namespace TN.BackendAPI.Controllers
         {
             var result = await _examService.Add(favoriteExam.UserId, favoriteExam.ExamId);
             if (result)
-                return Ok(new ResponseBase<bool> { success = true, msg = "Added" });
+                return Ok(new ResponseBase<bool> { success = true, msg = "Added", data = result });
             else
-                return Ok(new ResponseBase<bool> { success = false, msg = "Some errors happened" });
+                return Ok(new ResponseBase<bool> { success = false, msg = "Some errors happened", data = result });
         }
 
         [HttpPost("remove")]
@@ -45,9 +44,9 @@ namespace TN.BackendAPI.Controllers
         {
             var result = await _examService.Delete(favoriteExam.UserId, favoriteExam.ExamId);
             if (result)
-                return Ok(new ResponseBase<bool> { success = true, msg = "Added" });
+                return Ok(new ResponseBase<bool> { success = true, msg = "Deleted", data = result });
             else
-                return Ok(new ResponseBase<bool> { success = false, msg = "Some errors happened" });
+                return Ok(new ResponseBase<bool> { success = false, msg = "Some errors happened", data = result });
         }
     }
 }

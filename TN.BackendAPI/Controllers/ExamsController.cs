@@ -27,6 +27,7 @@ namespace TN.BackendAPI.Controllers
         //=============================== ADMIN ===================================
         [Authorize(Roles = "admin")]
         [HttpGet("Admin")]
+        [AllowAnonymous]
         public async Task<IActionResult> AdminGetExams()
         {
             var exams = await _examAdminService.GetAll();
