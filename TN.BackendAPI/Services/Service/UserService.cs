@@ -84,19 +84,15 @@ namespace TN.BackendAPI.Services.Service
                     PhoneNumber = u.PhoneNumber,
                     UserName = u.UserName,
                     isActive = u.isActive,
-                    Avatar = u.Avatar
+                    AvatarURL = u.Avatar
                 })
                 .ToList();
             // return
             return new PagedResult<UserViewModel>() { Items = data, TotalRecords = totalrecord, TotalPages = soTrang, PageIndex = model.PageIndex, PageSize = model.PageSize };
         }
-        public async Task<AppUser> EditProfile(int id, UserViewModel model)
+        public async Task<AppUser> EditUserInfo(UserViewModel model)
         {
-            if (id != model.Id)
-            {
-                return null;
-            }
-            var user = await _dbContext.Users.FindAsync(id);
+            var user = await _dbContext.Users.FindAsync(model.Id);
             if (!string.IsNullOrEmpty(model.Name) && !string.IsNullOrEmpty(model.Name))
             {
                 user.Name = model.Name;
@@ -113,9 +109,9 @@ namespace TN.BackendAPI.Services.Service
             {
                 user.PhoneNumber = model.PhoneNumber;
             }
-            if (model.Avatar != null)
+            if (model.AvatarURL != null)
             {
-                user.Avatar = model.Avatar;
+                user.Avatar = model.AvatarURL;
             }
             try
             {
@@ -125,41 +121,7 @@ namespace TN.BackendAPI.Services.Service
             {
                 return null;
             }
-            var user2 = await _dbContext.Users.FindAsync(id);
-            return user2;
-        }
-        public async Task<AppUser> EditUserInfo(int id, UserViewModel model)
-        {
-            var user = await _dbContext.Users.FindAsync(id);
-            if (!string.IsNullOrEmpty(model.Name) && !string.IsNullOrEmpty(model.Name))
-            {
-                user.Name = model.Name;
-            }
-            if (model.DoB != null)
-            {
-                user.DoB = model.DoB;
-            }
-            if (model.Email != null)
-            {
-                user.Email = model.Email;
-            }
-            if (model.PhoneNumber != null)
-            {
-                user.PhoneNumber = model.PhoneNumber;
-            }
-            if (model.Avatar != null)
-            {
-                user.Avatar = model.Avatar;
-            }
-            try
-            {
-                await _dbContext.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                return null;
-            }
-            var user2 = await _dbContext.Users.FindAsync(id);
+            var user2 = await _dbContext.Users.FindAsync(model.Id);
             return user2;
         }
         public async Task<bool> DeleteUser(int id)
@@ -192,20 +154,33 @@ namespace TN.BackendAPI.Services.Service
 
 
         //=============================== AUTHENTICATION =======================================
-        public async Task<JwtResponse> Login(LoginModel model)
+        public async Task<ResponseBase<JwtResponse>> Login(LoginModel model)
         {
             //var user = await _userManager.FindByNameAsync(request.UserName);
             var userlogin = await _dbContext.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.UserName == model.UserName);
 
-            if (userlogin == null) return new JwtResponse() { Error = "Invalid account" };
+            if (userlogin == null) 
+                return new ResponseBase<JwtResponse>()
+                {
+                    success = false,
+                    msg = "Invalid account"
+                };
 
-            if (userlogin.isActive == false) return new JwtResponse() { Error = "This account was locked" };
+            if (userlogin.isActive == false) 
+                return new ResponseBase<JwtResponse>() 
+                { 
+                    success = false,
+                    msg = "This account was locked" 
+                };
 
             var passwordvalid = await _userManager.CheckPasswordAsync(userlogin, model.Password);
             if (!passwordvalid)
-            {
-                return new JwtResponse() { Error = "Wrong password" }; ;
-            }
+                return new ResponseBase<JwtResponse>()
+                { 
+                    success = false,
+                    msg = "Wrong password" 
+                };
+
             // generate new access_token
             string access_token = GenerateAccessToken(userlogin);
             // access_token is available
@@ -213,7 +188,16 @@ namespace TN.BackendAPI.Services.Service
             {
                 userlogin.RefreshToken.ExpiryDate = DateTime.UtcNow.AddDays(7);
                 await _dbContext.SaveChangesAsync();
-                return new JwtResponse() { Access_Token = access_token, Refresh_Token = userlogin.RefreshToken.Token }; // return access_token with refresh_token
+                return new ResponseBase<JwtResponse>() 
+                {
+                    success = true,
+                    msg = "Login success",
+                    data = new JwtResponse()
+                    {
+                        Access_Token = access_token,
+                        Refresh_Token = userlogin.RefreshToken.Token
+                    }
+                };
             }
             // new user
             else
@@ -223,7 +207,16 @@ namespace TN.BackendAPI.Services.Service
                 userlogin.RefreshToken = refreshToken;
                 _dbContext.RefreshTokens.Add(refreshToken);
                 await _dbContext.SaveChangesAsync();
-                return new JwtResponse() { Access_Token = access_token, Refresh_Token = refreshToken.Token }; // return access_token with refresh_token
+                return new ResponseBase<JwtResponse>()
+                {
+                    success = true,
+                    msg = "Login success",
+                    data = new JwtResponse()
+                    {
+                        Access_Token = access_token,
+                        Refresh_Token = userlogin.RefreshToken.Token
+                    }
+                };
             }
         }
         public async Task<JwtResponse> LoginWithFacebookToken(string accessToken)
@@ -386,11 +379,11 @@ namespace TN.BackendAPI.Services.Service
 
             }
         }
-        public async Task<JwtResponse> Register(RegisterModel model)
+        public async Task<ResponseBase<JwtResponse>> Register(RegisterModel model)
         {
-            if (string.IsNullOrEmpty(model.AvatarPhotoURL))
+            if (string.IsNullOrEmpty(model.AvatarURL))
             {
-                model.AvatarPhotoURL = "/images/cover/user/default_avatar.png";
+                model.AvatarURL = "/images/cover/user/default_avatar.png";
             }
             var user = new AppUser()
             {
@@ -399,7 +392,7 @@ namespace TN.BackendAPI.Services.Service
                 Email = model.Email,
                 DoB = model.DoB,
                 PhoneNumber = model.PhoneNumber,
-                Avatar = model.AvatarPhotoURL
+                Avatar = model.AvatarURL
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
@@ -408,15 +401,27 @@ namespace TN.BackendAPI.Services.Service
                 RefreshToken refresh_token = GenerateRefreshToken();
                 user.RefreshToken = refresh_token;
                 await _dbContext.SaveChangesAsync();
-                return new JwtResponse() { Access_Token = GenerateAccessToken(user), Refresh_Token = refresh_token.Token };
+                return new ResponseBase<JwtResponse>()
+                {
+                    success = true,
+                    msg = "Register successfully",
+                    data = new JwtResponse()
+                    {
+                        Access_Token = GenerateAccessToken(user),
+                        Refresh_Token = refresh_token.Token
+                    }
+                };
             }
             var error = result.Errors.First();
-            return new JwtResponse() { Error = error.Description };
+            return new ResponseBase<JwtResponse>()
+            {
+                success = false,
+                msg = result.Errors.First().Description
+            };
         }
         //--------------------------------------------------------------------------------------
 
         //=================================  TOKEN  ============================================
-        // tao access token
         private string GenerateAccessToken(AppUser user)
         {
             var roles = _userManager.GetRolesAsync(user).Result.FirstOrDefault();
@@ -441,7 +446,6 @@ namespace TN.BackendAPI.Services.Service
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-        // tao refresh token
         public RefreshToken GenerateRefreshToken()
         {
             RefreshToken refreshToken = new RefreshToken();
@@ -455,7 +459,6 @@ namespace TN.BackendAPI.Services.Service
             refreshToken.ExpiryDate = DateTime.UtcNow.AddDays(7);
             return refreshToken;
         }
-        // Xac thuc han su dung refreshToken
         public bool ValidateRefreshToken(AppUser user, string refreshToken)
         {
 
@@ -466,7 +469,6 @@ namespace TN.BackendAPI.Services.Service
             }
             return false;
         }
-        // lay ra user tu access_token gui len
         public async Task<AppUser> GetUserByAccessToken(string accessToken)
         {
             try
@@ -496,7 +498,6 @@ namespace TN.BackendAPI.Services.Service
                 return null;
             }
         }
-        //gia han access_token va tra ve client
         public async Task<string> GenerateAccessTokenWithRefressToken(RefreshAccessTokenRequest refreshRequest)
         {
             AppUser user = await GetUserByAccessToken(refreshRequest.AccessToken);
@@ -511,7 +512,6 @@ namespace TN.BackendAPI.Services.Service
             }
             return null;
         }
-        // lay refresh token bang accessToken
         public async Task<RefreshToken> GetRefreshTokenByAccessToken(string accessToken)
         {
             var user = await GetUserByAccessToken(accessToken);

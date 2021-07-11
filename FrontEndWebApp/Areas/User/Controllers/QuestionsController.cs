@@ -12,7 +12,7 @@ using TN.ViewModels.Common;
 namespace FrontEndWebApp.Areas.User.Controllers
 {
     [Area("User")]
-    [Authorize(Roles = "admin,user")]
+    [Authorize]
     public class QuestionsController : Controller
     {
         private readonly IQuestionService _questionService;
@@ -68,7 +68,7 @@ namespace FrontEndWebApp.Areas.User.Controllers
                 {
                     return Json(new { deleteResult = false });
                 }
-                DeleteRangeModel<int> temp = new DeleteRangeModel<int>();
+                DeleteManyModel<int> temp = new DeleteManyModel<int>();
                 temp.ListItem = new List<int>();
                 temp.ListItem.AddRange(s);
                 var result = await _questionService.DeleteMany(temp, token);

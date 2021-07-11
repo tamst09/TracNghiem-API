@@ -14,7 +14,7 @@ using TN.ViewModels.Catalog.Question;
 namespace FrontEndWebApp.Areas.User.Controllers
 {
     [Area("User")]
-    [Authorize(Roles = "admin,user")]
+    [Authorize]
     public class ExamsController : Controller
     {
         public IExamService _examService;
@@ -32,7 +32,7 @@ namespace FrontEndWebApp.Areas.User.Controllers
         {
             var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
 
-            var examResponse = await _examService.GetOwnedExams(token, User.FindFirst("UserID").Value);
+            var examResponse = await _examService.GetOwned(token, User.FindFirst("UserID").Value);
             if (examResponse != null && examResponse.data != null)
             {
                 return View(examResponse.data);

@@ -89,7 +89,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                     var extensions = model.AvatarPhoto.FileName.Split('.');
                     var extension = extensions[extensions.Length - 1];
                     folder += model.Id.ToString() + "." + extension;
-                    model.Avatar = "/" + folder;
+                    model.AvatarURL = "/" + folder;
                     string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
                     var copyImageStream = new FileStream(serverFolder, FileMode.Create);
                     model.AvatarPhoto.CopyTo(copyImageStream);
@@ -146,7 +146,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                     var extensions = model.AvatarPhoto.FileName.Split('.');
                     var extension = extensions[extensions.Length - 1];
                     folder += model.Id.ToString()+"."+extension;
-                    model.Avatar = "/" + folder;
+                    model.AvatarURL = "/" + folder;
                     string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
                     var copyImageStream = new FileStream(serverFolder, FileMode.Create);
                     model.AvatarPhoto.CopyTo(copyImageStream);

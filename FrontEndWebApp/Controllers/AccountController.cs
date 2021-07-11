@@ -1,5 +1,6 @@
 ﻿using FrontEndWebApp.Services;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,7 @@ using TN.ViewModels.Catalog.User;
 
 namespace FrontEndWebApp.Controllers
 {
+    [Authorize]
     public class AccountController : Controller
     {
         private readonly IAccountService _accountService;
@@ -23,12 +25,11 @@ namespace FrontEndWebApp.Controllers
             _accountService = authClient;
             _webHostEnvironment = webHostEnvironment;
         }
-        // ========================== COMMON ==========================
+
         public IActionResult Index()
         {
             return RedirectToAction(nameof(Login));
         }
-
 
         public IActionResult Logout()
         {
@@ -42,6 +43,7 @@ namespace FrontEndWebApp.Controllers
         {
             return View();
         }
+        [AllowAnonymous]
         [HttpPost]
         public async Task<ActionResult> ForgotPassword(ForgotPasswordModel model)
         {
@@ -55,10 +57,13 @@ namespace FrontEndWebApp.Controllers
             ViewData["msg"] = "Your email is invalid. Please try again.";
             return View(model);
         }
+
+        [AllowAnonymous]
         public ActionResult ForgotPasswordConfirm(ResetPasswordModel model)
         {
             return View(model);
         }
+        [AllowAnonymous]
         [HttpPost]
         public async Task<ActionResult> ForgotPasswordConfirmOnPost(ResetPasswordModel model)
         {
@@ -111,9 +116,8 @@ namespace FrontEndWebApp.Controllers
                 return View();
             }
         }
-        //====================================================
 
-        //========================== NORMAL LOGIN ==========================
+        [AllowAnonymous]
         public IActionResult Login(string username, string ReturnUrl)
         {
 
@@ -121,6 +125,7 @@ namespace FrontEndWebApp.Controllers
             ViewData["ReturnUrl"] = ReturnUrl;
             return View(new LoginModel() { UserName = username });
         }
+        [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginModel model, string ReturnUrl)
@@ -133,7 +138,7 @@ namespace FrontEndWebApp.Controllers
             // jwt got from authentication API
             var result = await _accountService.Authenticate(model);
 
-            if (!string.IsNullOrEmpty(result.msg))
+            if (!result.success)
             {
                 ViewData["msg"] = result.msg;
                 return View(model);
@@ -147,13 +152,14 @@ namespace FrontEndWebApp.Controllers
                     // set true -> cookie có thời hạn đc set trong Startup.cs và ko bị mất khi thoát
                     IsPersistent = model.Rememberme
                 };
+
                 await HttpContext.SignInAsync(userPrincipal, authProperties);
                 
                 if (model.Rememberme)
                 {
                     HttpContext.Session.SetInt32("IsPersistent", 1);
-                    HttpContext.Response.Cookies.Append("access_token_cookie", CookieEncoder.EncodeToken(result.data.Access_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(4), HttpOnly = true, Secure = true });
-                    HttpContext.Response.Cookies.Append("refresh_token_cookie", CookieEncoder.EncodeToken(result.data.Refresh_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(8), HttpOnly = true, Secure = true });
+                    HttpContext.Response.Cookies.Append("access_token_cookie", CookieEncoder.EncodeToken(result.data.Access_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(3), HttpOnly = true, Secure = true });
+                    HttpContext.Response.Cookies.Append("refresh_token_cookie", CookieEncoder.EncodeToken(result.data.Refresh_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(7), HttpOnly = true, Secure = true });
                 }
                 else
                 {
@@ -170,10 +176,12 @@ namespace FrontEndWebApp.Controllers
             }
         }
 
+        [AllowAnonymous]
         public IActionResult Register()
         {
             return View();
         }
+        [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterModel model)
@@ -182,20 +190,18 @@ namespace FrontEndWebApp.Controllers
             {
                 return View(model);
             }
-            if (model.AvatarFile != null)
+            if (model.AvatarPhoto != null)
             {
-                string folder = "images/cover/user/";
-                var extensions = model.AvatarFile.FileName.Split('.');
-                var extension = extensions[extensions.Length - 1];
-                folder += model.Id.ToString() + "." + extension;
-                model.AvatarPhotoURL = "/" + folder;
-                string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
-                var copyImageStream = new FileStream(serverFolder, FileMode.Create);
-                model.AvatarFile.CopyTo(copyImageStream);
-                copyImageStream.Close();
+                var filePath = Path.GetTempFileName();
+                using (var stream = System.IO.File.Create(filePath))
+                {
+                    await model.AvatarPhoto.CopyToAsync(stream);
+                }
+                model.AvatarURL = UploadImageService.Instance().Upload(model.UserName, filePath);
+                model.AvatarPhoto = null;
             }
-            model.AvatarFile = null;
-            string url = model.AvatarPhotoURL;
+            model.AvatarPhoto = null;
+            //string url = model.AvatarPhotoURL;
             var user = await _accountService.Register(model);
             if (user != null)
             {
@@ -211,9 +217,7 @@ namespace FrontEndWebApp.Controllers
             return View(model);
         }
 
-        //====================================================
-
-        //========================== EXTERNAL LOGIN ==========================
+        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> ExternalLogin(string provider, string token)
         {
@@ -296,9 +300,7 @@ namespace FrontEndWebApp.Controllers
                 return RedirectToAction(nameof(Login));
             }
         }
-        //====================================================
 
-        //========================== PROFILE ==========================
         public async Task<IActionResult> ShowProfile()
         {
             var id = User.FindFirst("UserID");
@@ -327,6 +329,7 @@ namespace FrontEndWebApp.Controllers
             }
             return View(new UserViewModel());
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> OnPostUpdateProfile(int id, UserViewModel model)
@@ -340,24 +343,12 @@ namespace FrontEndWebApp.Controllers
             }
             if (model.AvatarPhoto != null)
             {
-                string folder = "images/cover/user/";
-                string[] extensions = null;
-                extensions = model.AvatarPhoto.FileName.Split('.');
-                var extension = extensions[extensions.Length - 1];
-                folder += model.Id.ToString() + "." + extension;
-                model.Avatar = "/"+folder;
-                string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
-                try
+                var filePath = Path.GetTempFileName();
+                using (var stream = System.IO.File.Create(filePath))
                 {
-                    var copyImageStream = new FileStream(serverFolder, FileMode.Create);
-                    model.AvatarPhoto.CopyTo(copyImageStream);
-                    copyImageStream.Close();
+                    await model.AvatarPhoto.CopyToAsync(stream);
                 }
-                catch (Exception)
-                {
-                    model.AvatarPhoto = null;
-                    model.Avatar = null;
-                }
+                model.AvatarURL = UploadImageService.Instance().Upload(model.UserName, filePath);
                 model.AvatarPhoto = null;
             }
             var userID = Int32.Parse(User.FindFirst("UserID").Value);
@@ -366,7 +357,7 @@ namespace FrontEndWebApp.Controllers
                 return Redirect("/Views/Account/AccessDenied.cshtml");
             }
             var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var result = await _accountService.UpdateProfile(id, model, access_token);
+            var result = await _accountService.UpdateProfile(model, access_token);
             // success
             if (result!=null && result.data != null)
                 return RedirectToAction(nameof(ShowProfile));
@@ -377,34 +368,5 @@ namespace FrontEndWebApp.Controllers
                 id = id
             });
         }
-        //public async Task<IActionResult> AddPassword(int id)
-        //{
-        //    var user = await _userClient.GetUserInfo(id);
-        //    if (user != null)
-        //    {
-        //        ViewData["email"] = user.Email;
-        //        return View(new ResetPasswordModel() { Email = user.Email });
-        //    }
-        //    return View();
-        //}
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> AddPassword(ResetPasswordModel request)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return View(request);
-        //    }
-        //    var result = await _userClient.AddPassword(request);
-        //    if (result != null)
-        //        return RedirectToAction(nameof(UpdateProfile), new { id = result.Id });
-        //    return View(request);
-        //}
-        //==============================================================================
-
-
-
-
-
     }
 }

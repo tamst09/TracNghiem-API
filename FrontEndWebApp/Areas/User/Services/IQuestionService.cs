@@ -18,6 +18,6 @@ namespace FrontEndWebApp.Areas.User.Services
         // CRUD
         Task<ResponseBase<Question>> Create(QuestionModel model, string accessToken);
         Task<ResponseBase<string>> Update(QuestionModel model, string accessToken);
-        Task<ResponseBase<string>> DeleteMany(DeleteRangeModel<int> lstId, string accessToken);
+        Task<ResponseBase<string>> DeleteMany(DeleteManyModel<int> lstId, string accessToken);
     }
 }

@@ -11,7 +11,7 @@ namespace TN.Data.DataContext
     {
         public TNDbContext(DbContextOptions options) : base(options)
         {
-            
+            this.Database.Migrate();
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

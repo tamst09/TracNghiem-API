@@ -22,7 +22,6 @@ namespace TN.Data.Config
             builder.Property(e => e.NumOfAttemps).HasDefaultValue(0);
             builder.Property(e => e.CategoryID).IsRequired();
             builder.Property(e => e.TimeCreated).IsRequired();
-            builder.Property(c => c.isActive).HasDefaultValue(true);
         }
     }
 }

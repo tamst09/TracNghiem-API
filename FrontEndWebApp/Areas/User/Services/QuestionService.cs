@@ -44,7 +44,7 @@ namespace FrontEndWebApp.Areas.User.Services
             }
         }
 
-        public async Task<ResponseBase<string>> DeleteMany(DeleteRangeModel<int> lstId, string accessToken)
+        public async Task<ResponseBase<string>> DeleteMany(DeleteManyModel<int> lstId, string accessToken)
         {
             //api / Questions / DeleteMany
             if (accessToken != null)

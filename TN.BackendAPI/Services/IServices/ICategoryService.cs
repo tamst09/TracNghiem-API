@@ -12,9 +12,8 @@ namespace TN.BackendAPI.Services.IServices
         Task<Category> Create(Category request);
         Task<Category> Update(Category request);
         Task<bool> Delete(int id);
-        Task<bool> DeleteListCategory(DeleteRangeModel<int> lstCategoryId);
+        Task<bool> DeleteMany(DeleteManyModel<int> lstCategoryId);
         Task<List<Category>> GetAll();
         Task<Category> GetByID(int id);
-        Task<List<Exam>> AdminGetExams(int categoryID);
     }
 }

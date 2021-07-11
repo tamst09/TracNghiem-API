@@ -9,12 +9,11 @@ namespace TN.BackendAPI.Services.IServices
 {
     public interface IUserService
     {
-        Task<JwtResponse> Register(RegisterModel model);
+        Task<ResponseBase<JwtResponse>> Register(RegisterModel model);
         Task<List<AppUser>> GetAll();
         Task<AppUser> GetByID(int id);
-        Task<JwtResponse> Login(LoginModel model);
-        Task<AppUser> EditProfile(int id, UserViewModel user);
-        Task<AppUser> EditUserInfo(int id, UserViewModel user);
+        Task<ResponseBase<JwtResponse>> Login(LoginModel model);
+        Task<AppUser> EditUserInfo(UserViewModel user);
         Task<bool> DeleteUser(int id);
         Task<bool> RestoreUser(int id);
         Task<string> ResetPassword(ForgotPasswordModel model);

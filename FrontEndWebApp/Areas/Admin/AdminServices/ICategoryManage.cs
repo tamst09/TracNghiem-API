@@ -13,7 +13,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
         Task<ResponseBase<Category>> GetByID(int id);
         Task<ResponseBase<Category>> Create(Category model, string accessToken);
         Task<ResponseBase<string>> Delete(int id, string accessToken);
-        Task<ResponseBase<string>> DeleteRange(DeleteRangeModel<int> lstId, string accessToken);
+        Task<ResponseBase<string>> DeleteRange(DeleteManyModel<int> lstId, string accessToken);
         Task<ResponseBase<Category>> Update(int id, Category model, string accessToken);
         Task<ResponseBase<List<Exam>>> GetAllExams(int id, string accessToken);
     }

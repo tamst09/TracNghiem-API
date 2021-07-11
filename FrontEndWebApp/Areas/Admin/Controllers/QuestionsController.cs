@@ -136,7 +136,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                 {
                     return Json(new { deleteResult = false });
                 }
-                DeleteRangeModel<int> temp = new DeleteRangeModel<int>();
+                DeleteManyModel<int> temp = new DeleteManyModel<int>();
                 temp.ListItem = new List<int>();
                 temp.ListItem.AddRange(s);
                 var result = await _questionManage.DeleteMany(temp, token);

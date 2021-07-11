@@ -42,7 +42,7 @@ namespace TN.ViewModels.Catalog.User
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
 
-        public IFormFile AvatarFile { get; set; }
-        public string AvatarPhotoURL { get; set; }
+        public IFormFile AvatarPhoto { get; set; }
+        public string AvatarURL { get; set; }
     }
 }

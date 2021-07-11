@@ -49,7 +49,6 @@ namespace FrontEndWebApp.Areas.User.Services
             {
                 var body = await response.Content.ReadAsStringAsync();
                 ResponseBase<List<Exam>> lstExam = JsonConvert.DeserializeObject<ResponseBase<List<Exam>>>(body);
-                lstExam.success = true;
                 return lstExam;
             }
             else

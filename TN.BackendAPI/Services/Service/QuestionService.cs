@@ -67,7 +67,7 @@ namespace TN.BackendAPI.Services.Service
             return false;
         }
 
-        public async Task<bool> DeleteMany(DeleteRangeModel<int> lstId)
+        public async Task<bool> DeleteMany(DeleteManyModel<int> lstId)
         {
             try
             {
@@ -94,11 +94,17 @@ namespace TN.BackendAPI.Services.Service
 
         public async Task<List<Question>> GetAll()
         {
-            var lstQuestion = await _db.Questions.Where(q => q.isActive == true && q.Exam.isActive == true).ToListAsync();
+            var lstQuestion = await _db.Questions.Where(q => q.isActive == true).ToListAsync();
             return lstQuestion;
         }
 
-        public async Task<List<Question>> GetAllByExamID(int examID)
+        public async Task<int> CountQuestions()
+        {
+            var countQuestions = await _db.Questions.Where(q => q.isActive == true).CountAsync();
+            return countQuestions;
+        }
+
+        public async Task<List<Question>> GetByExam(int examID)
         {
             var exam = await _db.Exams.Where(e => e.ID == examID && e.isActive == true).FirstOrDefaultAsync();
             if (exam == null)

@@ -76,11 +76,11 @@ namespace TN.BackendAPI.Services.Service
             return true;
         }
 
-        public async Task<bool> DeleteListCategory(DeleteRangeModel<int> lstCategoryId)
+        public async Task<bool> DeleteMany(DeleteManyModel<int> lstCategoryId)
         {
             try
             {
-                IEnumerable<Category> lstCategory = new List<Category>();
+                List<Category> lstCategory = new List<Category>();
                 foreach (var cID in lstCategoryId.ListItem)
                 {
                     var category = await _db.Categories.FindAsync(cID);
@@ -121,23 +121,6 @@ namespace TN.BackendAPI.Services.Service
             }
             category.Exams = category.Exams.OrderBy(e => e.ExamName).ToList();
             return category;
-        }
-        public async Task<List<Exam>> AdminGetExams(int categoryID)
-        {
-            var lstCategory = await _db.Categories.Where(c => c.ID == categoryID && c.isActive == true).ToListAsync();
-            if (lstCategory != null)
-            {
-                var exams = _db.Exams.Where(e => e.CategoryID == categoryID && e.isActive == true).
-                    Include(e => e.Category).
-                    Include(e => e.Owner).
-                    Include(e => e.Questions).
-                    ToList();
-                return exams;
-            }
-            else
-            {
-                return null;
-            }
         }
     }
 }

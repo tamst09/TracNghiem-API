@@ -108,11 +108,7 @@ namespace TN.BackendAPI.Controllers
         public async Task<IActionResult> Login([FromBody] LoginModel request)
         {
             var result = await _userService.Login(request);
-            if (result == null || result.Error != null)
-            {
-                return Ok(new ResponseBase<JwtResponse>() { msg = result.Error });
-            }
-            return Ok(new ResponseBase<JwtResponse>() { data = result });
+            return Ok(result);
         }
 
         // POST: api/Users/Register
@@ -121,11 +117,7 @@ namespace TN.BackendAPI.Controllers
         public async Task<IActionResult> RegisterUser([FromBody] RegisterModel request)
         {
             var result = await _userService.Register(request);
-            if (!string.IsNullOrEmpty(result.Error))
-            {
-                return Ok(new ResponseBase<JwtResponse>() { msg = result.Error });
-            }
-            return Ok(new ResponseBase<JwtResponse>() { data = result });
+            return Ok(result);
         }
 
         // POST: api/Users/GetResetCode
@@ -162,7 +154,6 @@ namespace TN.BackendAPI.Controllers
 
         //POST: api/Users/RefreshToken
         [HttpPost("RefreshToken")]
-        [AllowAnonymous]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshAccessTokenRequest refreshRequest)
         {
             string newAccessToken = await _userService.GenerateAccessTokenWithRefressToken(refreshRequest);
@@ -183,30 +174,16 @@ namespace TN.BackendAPI.Controllers
             return Ok(new ResponseBase<string>() { msg = "Invalid access token" });
         }
 
-
-        // PUT: api/Users/EditUser
-        [HttpPost("EditUser")]
-        [Authorize("admin")]
-        public async Task<IActionResult> UpdateUser([FromBody] UserViewModel model)
+        // POST: api/Users/UpdateProfile
+        [HttpPut]
+        public async Task<IActionResult> EditProfile([FromBody] UserViewModel user)
         {
-            var u = await _userService.EditUserInfo(model.Id, model);
-            if (u == null)
+            var editResult = await _userService.EditUserInfo(user);
+            if (editResult == null)
             {
                 return Ok(new ResponseBase<AppUser>() { msg = "Invalid user info" });
             }
-            return Ok(new ResponseBase<AppUser>() { data = u });
-        }
-
-        // PUT: api/Users/UpdateProfile/5
-        [HttpPut("UpdateProfile/{userID}")]
-        public async Task<IActionResult> EditProfile(int userID, [FromBody] UserViewModel user)
-        {
-            var u = await _userService.EditProfile(userID, user);
-            if (u == null)
-            {
-                return Ok(new ResponseBase<AppUser>() { msg = "Invalid user info" });
-            }
-            return Ok(new ResponseBase<AppUser>() { data = u });
+            return Ok(new ResponseBase<AppUser>() { success = true, data = editResult });
         }
 
         // POST: api/Users/CreateUser
@@ -214,12 +191,8 @@ namespace TN.BackendAPI.Controllers
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> PostUser([FromBody]RegisterModel user)
         {
-            var u = await _userService.Register(user);
-            if (u.Error != null)
-            {
-                return Ok(new ResponseBase<JwtResponse>() { msg = u.Error });
-            }
-            return Ok(new ResponseBase<JwtResponse>() { data = u });
+            var result = await _userService.Register(user);
+            return Ok(result);
         }
 
         // DELETE: api/Users/5

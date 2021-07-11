@@ -11,7 +11,7 @@ using TN.ViewModels.Catalog.Exams;
 namespace FrontEndWebApp.Areas.User.Controllers
 {
     [Area("User")]
-    [Authorize(Roles = "admin,user")]
+    [Authorize]
     public class HomeController : Controller
     {
         public ICategoryService _categoryService;
@@ -37,7 +37,7 @@ namespace FrontEndWebApp.Areas.User.Controllers
             {
                 examPagingRequest.CategoryID = Int32.Parse(categoryId);
             }
-            var allExams = await _examService.GetAllExams(examPagingRequest, token, User.FindFirst("UserID").Value);
+            var allExams = await _examService.GetAllPaging(examPagingRequest, token, User.FindFirst("UserID").Value);
             // get all exams paged - about 8 exams per page
             var allExamsNotPaged = await _examService.GetAll(token, User.FindFirst("UserID").Value);
             var commonExams = allExamsNotPaged.data.OrderByDescending(e => e.NumOfAttemps).Take(8).ToList();
@@ -48,6 +48,7 @@ namespace FrontEndWebApp.Areas.User.Controllers
             ViewData["newestExams"] = newestExams;
             ViewData["allExams"] = allExams.data;
             ViewData["Title"] = "HOME";
+            ViewBag.Categories = allcategory;
             return View();
         }
         [HttpGet("PreviewExam")]
