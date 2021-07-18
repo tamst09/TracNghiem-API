@@ -21,12 +21,12 @@ namespace TN.BackendAPI.Services.Service
             _db = db;
         }
 
-        public async Task<Question> Create(QuestionModel model)
+        public async Task<bool> Create(QuestionModel model)
         {
-            var exam = await _db.Exams.Where(e => e.isActive == true && e.ID == model.ExamID).Include(e=>e.Questions).FirstAsync();
+            var exam = _db.Exams.Include(e => e.Questions).FirstOrDefault(e => e.isActive == true && e.ID == model.ExamID);
             if (exam == null)
             {
-                return null;
+                return false;
             }
             var newQuestion = new Question()
             {
@@ -39,49 +39,47 @@ namespace TN.BackendAPI.Services.Service
                 isActive = true,
                 ExamID = model.ExamID,
                 ImgURL = model.ImgURL,
-                Exam = exam
+                STT = model.STT
             };
-            if(exam.Questions == null)
-            {
-                newQuestion.STT = 1;
-            }
-            else
-            {
-                newQuestion.STT = exam.Questions.Count + 1;
-            }
             _db.Questions.Add(newQuestion);
-            await _db.SaveChangesAsync();
-            return newQuestion;
+            try
+            {
+                await _db.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public async Task<bool> Delete(int id)
         {
-            var question = await _db.Questions.Where(q => q.isActive == true).FirstOrDefaultAsync();
-            if (question != null)
+            var question = await _db.Questions.FirstOrDefaultAsync(q => q.ID == id);
+            if (question == null)
             {
-                question.Results = null;
+                return false;
+            }
+            try
+            {
                 question.isActive = false;
                 await _db.SaveChangesAsync();
                 return true;
             }
-            return false;
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public async Task<bool> DeleteMany(DeleteManyModel<int> lstId)
         {
             try
             {
-                foreach (var id in lstId.ListItem)
+                var questions = await _db.Questions.Where(q => lstId.ListItem.Contains(q.ID)).ToListAsync();
+                foreach (var question in questions)
                 {
-                    var q = await _db.Questions.FindAsync(id);
-                    if (q.Results != null)
-                    {
-                        foreach (var record in q.Results)
-                        {
-                            _db.Results.Remove(record);
-                        }
-                    }
-                    _db.Questions.Remove(q);
+                    question.isActive = false;
                 }
                 await _db.SaveChangesAsync();
                 return true;
@@ -98,44 +96,45 @@ namespace TN.BackendAPI.Services.Service
             return lstQuestion;
         }
 
+        public async Task<ResponseBase<List<Question>>> GetByExam(GetQuestionsByExamRequest request)
+        {
+            var exam = await _db.Exams.FirstOrDefaultAsync(e => e.isActive == true && e.ID == request.ExamId);
+            if(exam == null)
+            {
+                return new ResponseBase<List<Question>>(success: false, msg: "Invalid exam ID.", data: null);
+            }
+            var questions = new List<Question>();
+            questions = _db.Questions.Where(q => q.ExamID == request.ExamId && q.isActive == true).OrderBy(q => q.STT).ToList();
+            return new ResponseBase<List<Question>>(data: questions);
+        }
+
         public async Task<int> CountQuestions()
         {
             var countQuestions = await _db.Questions.Where(q => q.isActive == true).CountAsync();
             return countQuestions;
         }
 
-        public async Task<List<Question>> GetByExam(int examID)
-        {
-            var exam = await _db.Exams.Where(e => e.ID == examID && e.isActive == true).FirstOrDefaultAsync();
-            if (exam == null)
-            {
-                return null;
-            }
-            return exam.Questions;
-        }
-
         public async Task<PagedResult<Question>> GetAllPaging(QuestionPagingRequest model)
         {
-            var allQuestions = await _db.Questions.Where(q => q.isActive == true && q.Exam.isActive == true).Include(q => q.Results).Include(q => q.Exam).ToListAsync();
+            var allQuestions = _db.Questions.Where(q => q.isActive == true && q.Exam.isActive == true);
             // check keyword de xem co dang tim kiem hay phan loai ko
             // sau do gan vao Query o tren
             if (!string.IsNullOrEmpty(model.keyword))
             {
-                allQuestions = allQuestions.Where(q => q.QuesContent.Contains(model.keyword) ||
-                q.Exam.ExamName.Contains(model.keyword)
-                ).ToList();
+                allQuestions = allQuestions
+                    .Where(q => q.QuesContent.Contains(model.keyword) || q.Exam.ExamName.Contains(model.keyword));
             }
             if (model.ExamID > 0)
             {
-                allQuestions = allQuestions.Where(q => q.ExamID == model.ExamID).ToList();
+                allQuestions = allQuestions.Where(q => q.ExamID == model.ExamID);
             }
             // get total row from query
-            int totalrecord = allQuestions.Count;
+            int totalrecord = allQuestions.Count();
             // get so trang
             int soTrang = 0;
-            if(totalrecord > model.PageSize)
+            if (totalrecord > model.PageSize)
             {
-                if(totalrecord % model.PageSize == 0)
+                if (totalrecord % model.PageSize == 0)
                 {
                     soTrang = totalrecord / model.PageSize;
                 }
@@ -177,37 +176,34 @@ namespace TN.BackendAPI.Services.Service
 
         public async Task<Question> GetByID(int id)
         {
-            var question = await _db.Questions.Where(q => q.isActive == true && q.ID == id && q.Exam.isActive == true).Include(q => q.Exam).Include(q => q.Results).FirstOrDefaultAsync();
+            var question = await _db.Questions
+                .FirstOrDefaultAsync(q => q.isActive == true && q.ID == id && q.Exam.isActive == true);
             return question;
         }
 
         public async Task<bool> Update(QuestionModel model)
         {
-            var question = await _db.Questions.Where(q => q.isActive == true && q.ID == model.ID).FirstOrDefaultAsync();
-            if(question != null)
+            var question = await _db.Questions.FirstOrDefaultAsync(q => q.isActive == true && q.ID == model.ID);     
+            if (question == null)
             {
-                if (string.IsNullOrEmpty(question.QuesContent))
-                {
-                    return false;
-                }
-                question.QuesContent = model.QuesContent;
-                question.Option1 = model.Option1;
-                question.Option2 = model.Option2;
-                question.Option3 = model.Option3;
-                question.Option4 = model.Option4;
-                question.Answer = model.Answer;
-                question.ImgURL = model.ImgURL;
-                try
-                {
-                    await _db.SaveChangesAsync();
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
+                return false;                
+            }
+            question.QuesContent = model.QuesContent;
+            question.Option1 = model.Option1;
+            question.Option2 = model.Option2;
+            question.Option3 = model.Option3;
+            question.Option4 = model.Option4;
+            question.Answer = model.Answer;
+            question.ImgURL = model.ImgURL;
+            try
+            {
+                await _db.SaveChangesAsync();
                 return true;
             }
-            return false;
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

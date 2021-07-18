@@ -5,6 +5,11 @@ namespace TN.Data.Entities
 {
     public class AppUser : IdentityUser<int>
     {
+        public AppUser()
+        {
+            isActive = true;
+        }
+
         public string Name { get; set; }
         public string Avatar { get; set; }
         public DateTime DoB { get; set; }

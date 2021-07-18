@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.Entities;
@@ -14,12 +15,14 @@ namespace TN.BackendAPI.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
-        private readonly IExamAdminService _examService;
+        private readonly IExamAdminService _examAdminService;
+        private readonly IExamUserService _examUserService;
 
-        public CategoriesController(ICategoryService categoryService, IExamAdminService examService)
+        public CategoriesController(ICategoryService categoryService, IExamAdminService examAdminService, IExamUserService examUserService)
         {
             _categoryService = categoryService;
-            _examService = examService;
+            _examAdminService = examAdminService;
+            _examUserService = examUserService;
         }
 
         // GET: api/Categories
@@ -27,7 +30,7 @@ namespace TN.BackendAPI.Controllers
         public async Task<IActionResult> GetCategories()
         {
             var categories = await _categoryService.GetAll();
-            return Ok(new ResponseBase<List<Category>>() { data = categories });
+            return Ok(new ResponseBase<List<Category>>(data: categories));
         }
 
         // GET: api/Categories/5
@@ -37,27 +40,27 @@ namespace TN.BackendAPI.Controllers
             var category = await _categoryService.GetByID(id);
             if (category != null)
             {
-                return Ok(new ResponseBase<Category>() { data = category });
+                return Ok(new ResponseBase<Category>(data: category));
             }
-            return Ok(new ResponseBase(msg: "Not found", success: false));
+            return Ok(new ResponseBase(msg: "Not found.", success: false));
         }
 
         // GET: api/Categories/Exams/5
         [HttpGet("Exams/{id}")]
         public async Task<IActionResult> GetExams(int id)
         {
-            var exams = await _examService.GetByCategory(id);
-            if (exams != null)
+            var exams = new List<Exam>();
+            if (User.IsInRole("admin"))
             {
-                return Ok(new ResponseBase<List<Exam>>() { data = exams });
-            }
-            else
-            {
-                return Ok(new ResponseBase(msg: "Exam not available", success: false));
-            }
+                exams = await _examAdminService.GetByCategory(id);
+                return Ok(new ResponseBase<List<Exam>>(data: exams));
+            };
+            exams = await _examUserService.GetByCategory(id, GetCurrentUserId());
+            return Ok(new ResponseBase<List<Exam>>(data: exams));
         }
 
         [HttpGet("Count")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> CountCategory()
         {
             return Ok(new ResponseBase<int>(data: await _categoryService.CountCategory()));
@@ -66,18 +69,14 @@ namespace TN.BackendAPI.Controllers
         // PUT: api/Categories/5
         [HttpPut("{id}")]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> Edit(int id, Category category)
+        public async Task<IActionResult> Edit(Category category)
         {
-            if (id != category.ID)
-            {
-                return Ok(new ResponseBase(success: false, msg: "Category not fount"));
-            }
             var updateResult = await _categoryService.Update(category);
-            if (updateResult == null)
+            if (!updateResult)
             {
-                return Ok(new ResponseBase(success: false, msg: "Update failed"));
+                return Ok(new ResponseBase(success: false, msg: "Update failed."));
             }
-            return Ok(new ResponseBase<Category>() { data = updateResult });
+            return Ok(new ResponseBase());
         }
 
         // POST: api/Categories
@@ -86,7 +85,11 @@ namespace TN.BackendAPI.Controllers
         public async Task<IActionResult> Add([Bind("CategoryName")] Category category)
         {
             var createResult = await _categoryService.Create(category);
-            return Ok(new ResponseBase<Category>() { data = createResult });
+            if (!createResult)
+            {
+                return Ok(new ResponseBase(success: false, msg: "Failed."));
+            }
+            return Ok(new ResponseBase());
         }
 
         // DELETE: api/Categories/5
@@ -98,7 +101,7 @@ namespace TN.BackendAPI.Controllers
             if (deleteResult)
                 return Ok(new ResponseBase());
             else
-                return Ok(new ResponseBase(msg: "Delete failed"));
+                return Ok(new ResponseBase(msg: "Failed."));
         }
 
         // DELETE: api/Categories/DeleteRange
@@ -110,7 +113,15 @@ namespace TN.BackendAPI.Controllers
             if (deleteResult)
                 return Ok(new ResponseBase());
             else
-                return Ok(new ResponseBase(msg: "Delete failed"));
+                return Ok(new ResponseBase(msg: "Failed."));
+        }
+
+        private int GetCurrentUserId()
+        {
+            var check = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId);
+            if (check)
+                return userId;
+            return -1;
         }
     }
 }

@@ -5,53 +5,46 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
+using TN.Data.Entities;
 using TN.ViewModels.Catalog.FavoriteExam;
 
 namespace FrontEndWebApp.Areas.User.Controllers
 {
     [Area("User")]
-    [Authorize]
     public class FavoriteExamsController : Controller
     {
-        private readonly IFavoriteExamService _favoriteExamService;
+        private readonly IApiHelper _apiHelper;
 
-        public FavoriteExamsController(IFavoriteExamService favoriteExamService)
+        public FavoriteExamsController(IApiHelper apiHelper)
         {
-            _favoriteExamService = favoriteExamService;
-            var getAllRequest = new GetAllFavoriteRequest()
-            {
-                userId = 1
-            };
-            _favoriteExamService.GetExams(getAllRequest);
+            _apiHelper = apiHelper;
         }
 
         public async Task<IActionResult> GetAll()
         {
-            var getAllRequest = new GetAllFavoriteRequest() { userId = int.Parse(User.FindFirst("UserID").Value) };
-            var result = await _favoriteExamService.GetExams(getAllRequest);
+            var result = await _apiHelper.NonBodyQueryAsync<List<Exam>>(HttpMethod.Get, "/api/FavoriteExam");
             return Ok(result);
         }
 
-        public async Task<IActionResult> Add([FromBody]int examId)
+        public async Task<IActionResult> Add([FromQuery]int examId)
         {
             var addFavoriteRequest = new AddFavoriteExamRequest()
             {
-                examId = examId,
-                userId = int.Parse(User.FindFirst("UserID").Value)
+                ExamId = examId,
             };
-            var result = await _favoriteExamService.Add(addFavoriteRequest);
+            var result = await _apiHelper.CommandAsync(HttpMethod.Post,"/api/FavoriteExam", addFavoriteRequest);
             return Json(result);
         }
 
-        public async Task<IActionResult> Delete([FromBody]int examId)
+        public async Task<IActionResult> Delete([FromQuery]int examId)
         {
             var deleteFavoriteRequest = new DeleteFavoriteExamRequest()
             {
                 examId = examId,
-                userId = int.Parse(User.FindFirst("UserID").Value)
             };
-            var result = await _favoriteExamService.Delete(deleteFavoriteRequest);
+            var result= await _apiHelper.CommandAsync(HttpMethod.Post, "/api/FavoriteExam/Remove", deleteFavoriteRequest);
             return Json(result);
         }
     }

@@ -26,9 +26,5 @@ namespace TN.ViewModels.Common
             this.msg = msg;
             this.data = data;
         }
-
-        public ResponseBase()
-        {
-        }
     }
 }

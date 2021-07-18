@@ -6,77 +6,80 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TN.Data.Entities;
 using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Common;
 
 namespace FrontEndWebApp.Areas.User.Controllers
 {
     [Area("User")]
-    [Authorize]
     public class HomeController : Controller
     {
         public ICategoryService _categoryService;
         public IExamService _examService;
+        public IQuestionService _questionService;
 
-        public HomeController(ICategoryService categoryService, IExamService examService)
+        public HomeController(ICategoryService categoryService, IExamService examService, IQuestionService questionService)
         {
             _categoryService = categoryService;
             _examService = examService;
+            _questionService = questionService;
         }
 
         public async Task<IActionResult> Index(string keyword, string categoryId, int pageIndex = 1, int pageSize = 20)
         {
-            var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var allcategory = await _categoryService.GetAll();  // to show categories
+            var getAllCategoriesResponse = await _categoryService.GetAll();  // to show categories
+            
             var examPagingRequest = new ExamPagingRequest()
             {
                 keyword = keyword,
                 PageIndex = pageIndex,
                 PageSize = pageSize
             };
-            if(categoryId != null)
+            if(!string.IsNullOrWhiteSpace(categoryId))
             {
-                examPagingRequest.CategoryID = Int32.Parse(categoryId);
+                examPagingRequest.CategoryID = int.Parse(categoryId);
             }
-            var allPagedExams = await _examService.GetAllPaging(examPagingRequest, token, User.FindFirst("UserID").Value);
-            // get all exams paged - about 8 exams per page
-            var allExams = await _examService.GetAll(token, User.FindFirst("UserID").Value);
-            if(allExams == null)
+            var getAllExamsPagedResponse = await _examService.GetAllPaging(examPagingRequest);
+
+            var getAllExamsResponse = await _examService.GetAll();
+
+            ViewBag.CommonExams = new List<Exam>();
+            ViewBag.NewestExams = new List<Exam>();
+            ViewBag.AllExams = new PagedResult<Exam>();
+            ViewBag.Categories = new List<Category>();
+
+            if (getAllExamsResponse.success)
             {
-                allExams = new TN.ViewModels.Common.ResponseBase<List<TN.Data.Entities.Exam>>()
-                {
-                    data = new List<TN.Data.Entities.Exam>(),
-                    msg = "",
-                    success = true
-                };
+                var commonExams = getAllExamsResponse.data.OrderByDescending(e => e.NumOfAttemps).Take(8).ToList();
+                var newestExams = getAllExamsResponse.data.OrderByDescending(e => e.TimeCreated).Take(8).ToList();
+                ViewBag.CommonExams = commonExams;
+                ViewBag.NewestExams = newestExams;
+                
             }
-            var commonExams = allExams.data.OrderByDescending(e => e.NumOfAttemps).Take(8).ToList();
-            var newestExams = allExams.data.OrderByDescending(e => e.TimeCreated).Take(8).ToList();
-            // about 8 exams having most attemp
-            //var allNewExams = // about 8 exams that time created newest
+            if (getAllExamsPagedResponse.success)
+            {
+                ViewBag.AllExams = getAllExamsPagedResponse.data;
+            }
+            if (getAllCategoriesResponse.success)
+            {
+                ViewBag.Categories = getAllCategoriesResponse.data;
+            }
+
             ViewData["Title"] = "HOME";
-            ViewBag.CommonExams = commonExams;
-            ViewBag.NewestExams = newestExams;
-            ViewBag.AllExams = new PagedResult<TN.Data.Entities.Exam>()
-            {
-                Items = allExams.data,
-                PageIndex = 1,
-                PageSize = 10,
-                TotalPages = allExams.data.Count()/10,
-                TotalRecords = allExams.data.Count()
-            };
-            ViewBag.Categories = allcategory;
             return View();
         }
+
         [HttpGet("PreviewExam")]
-        public async Task<IActionResult> PreviewExam(string examID)
+        public async Task<IActionResult> PreviewExam(int examID)
         {
-            var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var exam = await _examService.GetByID(Int32.Parse(examID), token, User.FindFirst("UserID").Value);
-            if (exam != null && exam.msg == null && exam.data != null)
+            var exam = await _examService.GetByID(examID);
+            if (exam.success)
             {
                 ViewData["examName"] = exam.data.ExamName;
-                return View(exam.data.Questions.Where(q=>q.isActive).ToList());
+                var getQuestionsRes = await _questionService.GetByExamID(examID);
+                if(getQuestionsRes.success)
+                    return View(getQuestionsRes.data);
             }
             return View();
         }

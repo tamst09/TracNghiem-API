@@ -12,22 +12,21 @@ namespace FrontEndWebApp.Controllers
     {
         public IActionResult Index()
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                if (User.IsInRole("admin"))
-                {
-                    return RedirectToAction("Index", "Home", new { Area = "Admin" });
-                }
-                else
-                {
-                    return RedirectToAction("Index", "Home", new { Area = "User" });
-                }
-            }
+            //if (User.Identity.IsAuthenticated)
+            //{
+            //    if (User.IsInRole("admin"))
+            //    {
+            //        return RedirectToAction("Index", "Home", new { Area = "Admin" });
+            //    }
+            //    else
+            //    {
+            //        return RedirectToAction("Index", "Home", new { Area = "User" });
+            //    }
+            //}
             return View();
         }
         public IActionResult Error()
         {
-            var exception = HttpContext.Features.Get<IExceptionHandlerFeature>();
 
             ViewData["statusCode"] = HttpContext.Response.StatusCode;
             switch (HttpContext.Response.StatusCode)
@@ -48,7 +47,6 @@ namespace FrontEndWebApp.Controllers
                     ViewData["message"] = "Something went wrong";
                     break;
             }
-            ViewData["stackTrace"] = exception.Error.StackTrace;
 
             return View();
         }

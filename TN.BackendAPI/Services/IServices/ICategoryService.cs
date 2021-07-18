@@ -9,8 +9,8 @@ namespace TN.BackendAPI.Services.IServices
 {
     public interface ICategoryService
     {
-        Task<Category> Create(Category request);
-        Task<Category> Update(Category request);
+        Task<bool> Create(Category request);
+        Task<bool> Update(Category request);
         Task<bool> Delete(int id);
         Task<bool> DeleteMany(DeleteManyModel<int> lstCategoryId);
         Task<List<Category>> GetAll();

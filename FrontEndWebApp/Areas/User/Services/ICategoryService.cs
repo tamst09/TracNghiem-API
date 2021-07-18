@@ -10,6 +10,6 @@ namespace FrontEndWebApp.Areas.User.Services
     public interface ICategoryService
     {
         Task<ResponseBase<List<Category>>> GetAll();
-        Task<ResponseBase<List<Exam>>> GetAllExams(int id, string accessToken);
+        Task<ResponseBase<List<Exam>>> GetAllExams(int id);
     }
 }

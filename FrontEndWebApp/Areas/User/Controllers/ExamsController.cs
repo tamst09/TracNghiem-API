@@ -14,7 +14,6 @@ using TN.ViewModels.Catalog.Question;
 namespace FrontEndWebApp.Areas.User.Controllers
 {
     [Area("User")]
-    [Authorize]
     public class ExamsController : Controller
     {
         public IExamService _examService;
@@ -30,69 +29,71 @@ namespace FrontEndWebApp.Areas.User.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-
-            var examResponse = await _examService.GetOwned(token, User.FindFirst("UserID").Value);
-            if (examResponse != null && examResponse.data != null)
+            var examResponse = await _examService.GetOwned();
+            if (examResponse.success)
             {
                 return View(examResponse.data);
             }
-            ViewData["msg"] = "Oh sorry!! Something went wrong";
+            ViewData["msg"] = examResponse.msg;
             return View();
         }
 
         public async Task<IActionResult> Create()
         {
-            var lstCategory = await _categoryService.GetAll();
-            ViewData["lstCategory"] = lstCategory.data;
+            var getCategoriesRes = await _categoryService.GetAll();
+            ViewData["lstCategory"] = getCategoriesRes.data;
             return View();
         }
         [HttpPost]
         public async Task<IActionResult> Create(ExamModel model)
         {
-            var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var lstCategory = await _categoryService.GetAll();
-            ViewData["lstCategory"] = lstCategory.data;
+            var getCategoriesRes = await _categoryService.GetAll();
+            ViewData["lstCategory"] = getCategoriesRes.data;
+
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
-            var newExam = await _examService.Create(model, Int32.Parse(User.FindFirst("UserID").Value), token);
-            if (newExam != null && newExam.data != null)
-            {
-                ViewData["msg"] = "Successfully";
-                return View();
-            }
-            ViewData["msg"] = "Create failed";
+
+            var createResponse = await _examService.Create(model);
+            ViewData["msg"] = createResponse.msg;
             return View();
         }
         [HttpGet("{examID}")]
         public async Task<IActionResult> ManageQuestions(int examID)
         {
+            ViewData["msg"] = string.Empty;
             var lstCategory = await _categoryService.GetAll();
             ViewData["lstCategory"] = lstCategory.data;
-            var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var exam = await _examService.GetByID(examID, token, User.FindFirst("UserID").Value);
-            if (exam != null && exam.msg == null && exam.data != null)
+
+            var getExamRes = await _examService.GetByID(examID);
+            if (getExamRes.success)
             {
-                ViewData["examID"] = exam.data.ID;
-                ViewData["examName"] = exam.data.ExamName.ToUpper();
-                return View(exam.data.Questions.Where(q => q.isActive).ToList());
+                ViewData["examID"] = getExamRes.data.ID;
+                ViewData["examName"] = getExamRes.data.ExamName.ToUpper();
+                var questions = await _questionService.GetByExamID(examID);
+                if(questions.success)
+                    return View(questions.data);
+                else
+                {
+                    ViewData["msg"] = questions.msg;
+                    return View();
+                }
             }
-            ViewData["msg"] = "Sorry!! Something went wrong. Please try again.";
+            ViewData["msg"] = getExamRes.msg;
             return View();
         }
 
         public async Task<IActionResult> AttempQuizOptions([FromQuery]int examID)
         {
-            var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var exam = await _examService.GetByID(examID, token, User.FindFirst("UserID").Value);
-            if(exam!=null && exam.data != null)
+            var getExamResponse = await _examService.GetByID(examID);
+            if(getExamResponse.success)
             {
-                return PartialView(exam.data);
+                return PartialView(getExamResponse.data);
             }
             return PartialView();
         }
+
         [HttpPost]
         public IActionResult AttempQuiz([FromQuery]ExamModel model,[FromQuery] bool countdown = false)
         {
@@ -107,16 +108,16 @@ namespace FrontEndWebApp.Areas.User.Controllers
             //}
             return Json(new { });
         }
+
         public async Task<IActionResult> DoingQuiz([FromQuery] int examID, int pageIndex = 1)
         {
-            var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
             var pagingRequest = new QuestionPagingRequest()
             {
                 ExamID = examID,
                 PageIndex = pageIndex,
                 PageSize = 5
             };
-            var res = await _questionService.GetByExamPaging(pagingRequest, token);
+            var res = await _questionService.GetPagedQuestion(pagingRequest);
             
 
             if (res != null && res.data != null)
@@ -148,6 +149,7 @@ namespace FrontEndWebApp.Areas.User.Controllers
             }
             return View();
         }
+
         [HttpPost]
         public void SubmitOne(Result form)
         {

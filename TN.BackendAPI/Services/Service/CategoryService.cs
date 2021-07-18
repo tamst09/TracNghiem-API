@@ -18,28 +18,35 @@ namespace TN.BackendAPI.Services.Service
         {
             _db = db;
         }
-        public async Task<Category> Create(Category request)
+        public async Task<bool> Create(Category request)
         {
             var findResult = _db.Categories.Where(c => c.CategoryName == request.CategoryName).FirstOrDefault();
             if (findResult!=null && !findResult.isActive)
             {
-                findResult.Exams = null;
                 findResult.isActive = true;
-                await _db.SaveChangesAsync();
-                return findResult;
             }
-            var newCategory = new Category()
+            else
             {
-                CategoryName = request.CategoryName,
-                isActive = true,
-                Exams = null
-            };
-            _db.Categories.Add(newCategory);
-            await _db.SaveChangesAsync();
-            return newCategory;
+                var newCategory = new Category()
+                {
+                    CategoryName = request.CategoryName,
+                    isActive = true
+                };
+                _db.Categories.Add(newCategory);
+            }
+            try
+            {
+                await _db.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return true;
+            }
+
         }
 
-        public async Task<Category> Update(Category request)
+        public async Task<bool> Update(Category request)
         {
             try
             {
@@ -48,29 +55,26 @@ namespace TN.BackendAPI.Services.Service
                 {
                     findResult.CategoryName = request.CategoryName;
                     await _db.SaveChangesAsync();
-                    return findResult;
+                    return true;
                 }
-                return null;
+                return false;
             }
             catch (Exception)
             {
-                return null;
+                return false;
             }
         }
 
         public async Task<bool> Delete(int categoryID)
         {
             var category = await _db.Categories.FindAsync(categoryID);
-            if (category == null) return false;
-            if (category.Exams != null)
+            var exams = await _db.Exams.Where(e => e.CategoryID == categoryID).ToListAsync();
+            foreach (var exam in exams)
             {
-                foreach (var exam in category.Exams)
-                {
-                    exam.CategoryID = 0;
-                    exam.Category = null;
-                }
+                exam.CategoryID = 0;
+                exam.Category = null;
             }
-            
+            if (category == null) return false;            
             category.isActive = false;
             await _db.SaveChangesAsync();
             return true;
@@ -80,17 +84,15 @@ namespace TN.BackendAPI.Services.Service
         {
             try
             {
-                List<Category> lstCategory = new List<Category>();
-                foreach (var cID in lstCategoryId.ListItem)
+                var exams = await _db.Exams.Where(e => lstCategoryId.ListItem.Contains(e.CategoryID)).ToListAsync();
+                var categories = await _db.Categories.Where(c => lstCategoryId.ListItem.Contains(c.ID)).ToListAsync();
+                foreach (var exam in exams)
                 {
-                    var category = await _db.Categories.FindAsync(cID);
-                    if (category.Exams != null)
-                    {
-                        foreach (var exam in category.Exams)
-                        {
-                            exam.isActive = false;
-                        }
-                    }
+                    exam.CategoryID = 0;
+                    exam.Category = null;
+                }
+                foreach (var category in categories)
+                {
                     category.isActive = false;
                 }
                 await _db.SaveChangesAsync();

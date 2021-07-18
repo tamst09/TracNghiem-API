@@ -14,14 +14,14 @@ namespace FrontEndWebApp.Services
     {
         Task<ResponseBase<JwtResponse>> Authenticate(LoginModel model);
         Task<ResponseBase<JwtResponse>> Register(RegisterModel model);
-        Task<ResponseBase<UserViewModel>> UpdateProfile(UserViewModel model, string access_token);
+        Task<ResponseBase> UpdateProfile(UserViewModel model);
         Task<ResponseBase<JwtResponse>> LoginFacebook(string accesstoken);
         Task<ResponseBase<JwtResponse>> LoginGoogle(string accesstoken);
-        ClaimsPrincipal ValidateToken(string token);
-        Task<ResponseBase<UserViewModel>> GetUserInfo(int userId, string access_token);
-        Task<ResponseBase<UserViewModel>> AddPassword(ResetPasswordModel model);
+        Task<ResponseBase<UserViewModel>> GetUserInfo(int userId);
+        Task<ResponseBase> AddPassword(ResetPasswordModel model);
         Task<ResponseBase<string>> GetResetPasswordCode(ForgotPasswordModel model);
-        Task<ResponseBase<string>> ResetPassword(string resetCode, ResetPasswordModel model);
-        Task<ResponseBase<string>> ChangePassword(string userID, ChangePasswordModel model, string accessToken);
+        Task<ResponseBase<string>> ResetPassword(ResetPasswordModel model);
+        Task<ResponseBase<string>> ChangePassword(int userID, ChangePasswordModel model);
+        Task<ResponseBase<UserInfo>> GetUserInfoByToken();
     }
 }

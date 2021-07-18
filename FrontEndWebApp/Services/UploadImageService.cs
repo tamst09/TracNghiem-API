@@ -29,7 +29,6 @@ namespace FrontEndWebApp.Services
             Cloudinary _cloudinary = new Cloudinary(_acc);
             var uploadParams = new ImageUploadParams()
             {
-                //File = new FileDescription(@"c:\my_image.jpg"),
                 File = new FileDescription(filePath),
                 Overwrite = true,
                 PublicId = $"englishQuiz/avatarUser/{userName}"

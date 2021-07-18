@@ -6,6 +6,12 @@ namespace TN.Data.Entities
 {
     public class Exam
     {
+        public Exam()
+        {
+            Questions = new List<Question>();
+            isActive = true;
+        }
+
         public int ID { get; set; }
         public string ExamName { get; set; }
         public bool isPrivate { get; set; }  //trạng thái public hay private
@@ -19,6 +25,5 @@ namespace TN.Data.Entities
         public int OwnerID { get; set; }
         public List<Question> Questions { get; set; }
         public bool isActive { get; set; }
-
     }
 }

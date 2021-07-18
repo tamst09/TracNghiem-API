@@ -7,10 +7,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
@@ -47,6 +51,7 @@ namespace TN.BackendAPI
             services.AddScoped<IExamUserService, ExamUserService>();
             services.AddScoped<IFavoriteExamService, FavoriteExamService>();
             services.AddScoped<IQuestionService, QuestionService>();
+            services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IFacebookAuth, FacebookAuthService>();
             services.AddScoped<IEmailSender, EmailSender>(i =>

@@ -16,11 +16,12 @@ namespace TN.BackendAPI.Services.IServices
         Task<PagedResult<Exam>> GetOwnedPaging(ExamPagingRequest model, int userID);
         
         Task<Exam> GetByID(int id, int userID);
+        Task<List<Exam>> GetByCategory(int categoryId, int userId);
         Task<bool> Update(ExamModel model, int userID);
         Task<bool> Delete(int examID, int userID);
         Task<bool> DeleteMany(DeleteManyModel<int> lstExamId);
 
-        Task<Exam> Create(ExamModel request, int userID);
+        Task<bool> Create(ExamModel request, int userID);
         Task<int> IncreaseAttemps(int examID);
     }
 }

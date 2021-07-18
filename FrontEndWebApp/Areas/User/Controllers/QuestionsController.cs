@@ -12,7 +12,7 @@ using TN.ViewModels.Common;
 namespace FrontEndWebApp.Areas.User.Controllers
 {
     [Area("User")]
-    [Authorize]
+    //[Authorize]
     public class QuestionsController : Controller
     {
         private readonly IQuestionService _questionService;
@@ -29,32 +29,17 @@ namespace FrontEndWebApp.Areas.User.Controllers
 
         public IActionResult Create(int examID)
         {
-            ViewData["msg"] = "";
+            ViewData["msg"] = string.Empty;
             return PartialView(new QuestionModel() { ExamID = examID });
         }
         [HttpPost]
         public async Task<IActionResult> Create([FromQuery] QuestionModel model)
         {
-            ViewData["msg"] = "";
-            if (!ModelState.IsValid)
-            {
-                return RedirectToAction("ManageQuestions", "Exams", new { id = model.ExamID });
-            }
-            string accessToken = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var newQuestion = await _questionService.Create(model, accessToken);
-            if (newQuestion != null && newQuestion.msg != null)
-            {
-                ViewData["msg"] = newQuestion.msg;
-            }
-            else if (newQuestion == null)
-            {
-                ViewData["msg"] = "Created unsuccessfully";
-            }
-            else
-            {
-                ViewData["msg"] = "Created successfully";
-            }
-            //return Json(new { msg = "OK" });
+            ViewData["msg"] = string.Empty;
+
+            var createResponse = await _questionService.Create(model);
+            ViewData["msg"] = createResponse.msg;
+
             return RedirectToAction("ManageQuestions", "Exams", new { examID = model.ExamID });
         }
 
@@ -63,69 +48,54 @@ namespace FrontEndWebApp.Areas.User.Controllers
         {
             try
             {
-                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
                 if (s.Length == 0)
                 {
                     return Json(new { deleteResult = false });
                 }
-                DeleteManyModel<int> temp = new DeleteManyModel<int>();
-                temp.ListItem = new List<int>();
-                temp.ListItem.AddRange(s);
-                var result = await _questionService.DeleteMany(temp, token);
-                if (result.msg != null)
-                {
-                    return Json(new { deleteResult = false });
-                }
-                return Json(new { deleteResult = true });
+                DeleteManyModel<int> questionIDs = new DeleteManyModel<int>();
+                questionIDs.ListItem.AddRange(s);
+                var result = await _questionService.DeleteMany(questionIDs);
+                return Json(new { deleteResult = result.success });
             }
             catch
             {
-                //return RedirectToAction("Index");
                 return Json(new { deleteResult = false });
             }
         }
 
         public async Task<IActionResult> Update(int ID)
         {
-            ViewData["msg"] = "";
-            string accessToken = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var res = await _questionService.GetByID(ID, accessToken);
-            if (res == null)
+            ViewData["msg"] = string.Empty;
+
+            var res = await _questionService.GetByID(ID);
+            if (!res.success)
             {
-                ViewData["msg"] = "Lỗi không thể tìm thấy";
+                ViewData["msg"] = res.msg;
                 return PartialView(new QuestionModel());
             }
             else
             {
-                if (res.msg != null)
+                var model = new QuestionModel()
                 {
-                    ViewData["msg"] = res.msg;
-                    return PartialView(new QuestionModel());
-                }
-                else
-                {
-                    var model = new QuestionModel()
-                    {
-                        ID = res.data.ID,
-                        QuesContent = res.data.QuesContent,
-                        Option1 = res.data.Option1,
-                        Option2 = res.data.Option2,
-                        Option3 = res.data.Option3,
-                        Option4 = res.data.Option4,
-                        Answer = res.data.Answer,
-                        ExamID = res.data.ExamID,
-                        STT = res.data.STT
-                    };
-                    return PartialView(model);
-                }
+                    ID = res.data.ID,
+                    QuesContent = res.data.QuesContent,
+                    Option1 = res.data.Option1,
+                    Option2 = res.data.Option2,
+                    Option3 = res.data.Option3,
+                    Option4 = res.data.Option4,
+                    Answer = res.data.Answer,
+                    ExamID = res.data.ExamID,
+                    STT = res.data.STT
+                };
+                return PartialView(model);
             }
         }
+
         [HttpPost]
         public async Task<IActionResult> Update([FromQuery] QuestionModel model)
         {
-            ViewData["msg"] = "";
-            string accessToken = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var updateResult = await _questionService.Update(model, accessToken);
+            ViewData["msg"] = string.Empty;
+            var updateResult = await _questionService.Update(model);
             return RedirectToAction("ManageQuestions", "Exams", new { id = model.ExamID });
         }
     }

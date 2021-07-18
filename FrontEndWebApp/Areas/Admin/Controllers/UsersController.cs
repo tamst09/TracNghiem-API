@@ -56,7 +56,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             try
             {
                 var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                var user = await _accountService.GetUserInfo(id, access_token);
+                var user = await _accountService.GetUserInfo(id);
                 return View(user.data);
             }
             catch (Exception)
@@ -121,7 +121,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             try
             {
                 var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                var user = await _accountService.GetUserInfo(id, access_token);
+                var user = await _accountService.GetUserInfo(id);
                 if(user.data!=null)
                     return View(user.data);
                 else

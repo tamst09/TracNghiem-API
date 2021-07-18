@@ -10,7 +10,7 @@ namespace FrontEndWebApp.Areas.User.Services
     public interface IFavoriteExamService
     {
         Task<ResponseBase<List<Exam>>> GetExams(GetAllFavoriteRequest getAllFavoriteRequest);
-        Task<ResponseBase<bool>> Add(AddFavoriteExamRequest addFavoriteExamRequest);
-        Task<ResponseBase<bool>> Delete(DeleteFavoriteExamRequest deleteFavoriteExamRequest);
+        Task<ResponseBase> Add(AddFavoriteExamRequest addFavoriteExamRequest);
+        Task<ResponseBase> Delete(DeleteFavoriteExamRequest deleteFavoriteExamRequest);
     }
 }

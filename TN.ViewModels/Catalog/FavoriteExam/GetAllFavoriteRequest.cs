@@ -6,6 +6,5 @@ namespace TN.ViewModels.Catalog.FavoriteExam
 {
     public class GetAllFavoriteRequest
     {
-        public int userId { get; set; }
     }
 }

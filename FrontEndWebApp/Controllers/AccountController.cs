@@ -14,7 +14,6 @@ using TN.ViewModels.Catalog.User;
 
 namespace FrontEndWebApp.Controllers
 {
-    [Authorize]
     public class AccountController : Controller
     {
         private readonly IAccountService _accountService;
@@ -35,7 +34,7 @@ namespace FrontEndWebApp.Controllers
         {
             HttpContext.Response.Cookies.Delete("access_token_cookie");
             HttpContext.Response.Cookies.Delete("refresh_token_cookie");
-            HttpContext.SignOutAsync();
+            //HttpContext.SignOutAsync();
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
 
@@ -43,13 +42,13 @@ namespace FrontEndWebApp.Controllers
         {
             return View();
         }
-        [AllowAnonymous]
+
         [HttpPost]
         public async Task<ActionResult> ForgotPassword(ForgotPasswordModel model)
         {
             // send this to user email
             var resetCode = await _accountService.GetResetPasswordCode(model);
-            if(resetCode != null)
+            if (resetCode.success && resetCode.data != null)
             {
                 ViewData["msg"] = "Check your email to complete changing your password";
                 return View("/Views/Account/ForgotPasswordOnPost.cshtml");
@@ -58,26 +57,17 @@ namespace FrontEndWebApp.Controllers
             return View(model);
         }
 
-        [AllowAnonymous]
         public ActionResult ForgotPasswordConfirm(ResetPasswordModel model)
         {
             return View(model);
         }
-        [AllowAnonymous]
+
         [HttpPost]
         public async Task<ActionResult> ForgotPasswordConfirmOnPost(ResetPasswordModel model)
         {
-            var changePasswordResult = await _accountService.ResetPassword(model.ResetCode, model);
-            if (changePasswordResult.msg==null)
-            {
-                ViewData["IsResetSuccessfully"] = true;
-                return View();
-            }
-            else
-            {
-                ViewData["IsResetSuccessfully"] = false;
-                return View();
-            }
+            var changePasswordResult = await _accountService.ResetPassword(model);
+            ViewData["IsResetSuccessfully"] = changePasswordResult.msg == null ? true : false;
+            return View();
         }
 
         public IActionResult ChangePassword()
@@ -85,6 +75,7 @@ namespace FrontEndWebApp.Controllers
             ViewData["success"] = false;
             return View();
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(ChangePasswordModel model)
@@ -94,30 +85,23 @@ namespace FrontEndWebApp.Controllers
             {
                 return View();
             }
-            var userID = User.FindFirst("UserID").Value;
-            var accessToken = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var changeResult = await _accountService.ChangePassword(userID, model, accessToken);
-            if (changeResult != null)
+            var getProfileRes = await _accountService.GetUserInfoByToken();
+            if (!getProfileRes.success)
             {
-                if (changeResult.msg != null)
-                {
-                    ViewData["msg"] = changeResult.msg;
-                }
-                ViewData["msg"] = "Đổi mật khẩu thành công";
-                ViewData["success"] = true;
+                ViewData["msg"] = "Cannot get user info. Login again.";
+                return View();
+            }
+            var changeResult = await _accountService.ChangePassword(getProfileRes.data.UserId, model);
+            ViewData["success"] = changeResult.success;
+            ViewData["msg"] = changeResult.msg;
+            if (changeResult.success)
+            {
                 HttpContext.Response.Cookies.Delete("access_token_cookie");
                 HttpContext.Response.Cookies.Delete("refresh_token_cookie");
-                await HttpContext.SignOutAsync();
-                return View();
             }
-            else
-            {
-                ViewData["msg"] = "Lỗi máy chủ. Vui lòng thử lại.";
-                return View();
-            }
+            return View();
         }
 
-        [AllowAnonymous]
         public IActionResult Login(string username, string ReturnUrl)
         {
 
@@ -125,7 +109,7 @@ namespace FrontEndWebApp.Controllers
             ViewData["ReturnUrl"] = ReturnUrl;
             return View(new LoginModel() { UserName = username });
         }
-        [AllowAnonymous]
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginModel model, string ReturnUrl)
@@ -134,18 +118,18 @@ namespace FrontEndWebApp.Controllers
             {
                 return View(model);
             }
-            
-            // jwt got from authentication API
-            var result = await _accountService.Authenticate(model);
 
-            if (!result.success)
+            // jwt got from authentication API
+            var response = await _accountService.Authenticate(model);
+
+            if (!response.success)
             {
-                ViewData["msg"] = result.msg;
+                ViewData["msg"] = response.msg;
                 return View(model);
             }
             else
             {
-                var userPrincipal = _accountService.ValidateToken(result.data.Access_Token);
+                //var userPrincipal = _accountService.ValidateToken(response.data.Access_Token);
                 var authProperties = new AuthenticationProperties
                 {
                     // set false -> tạo ra cookie phiên -> thoát trình duyệt cookie bị xoá
@@ -153,21 +137,37 @@ namespace FrontEndWebApp.Controllers
                     IsPersistent = model.Rememberme
                 };
 
-                await HttpContext.SignInAsync(userPrincipal, authProperties);
-                
+                //await HttpContext.SignInAsync(userPrincipal, authProperties);
+
                 if (model.Rememberme)
                 {
-                    HttpContext.Session.SetInt32("IsPersistent", 1);
-                    HttpContext.Response.Cookies.Append("access_token_cookie", CookieEncoder.EncodeToken(result.data.Access_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(3), HttpOnly = true, Secure = true });
-                    HttpContext.Response.Cookies.Append("refresh_token_cookie", CookieEncoder.EncodeToken(result.data.Refresh_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(7), HttpOnly = true, Secure = true });
+                    HttpContext.Response.Cookies.Append("access_token_cookie",
+                        CookieEncoder.EncodeToken(response.data.Access_Token),
+                        new CookieOptions
+                        {
+                            Expires = DateTime.UtcNow.AddDays(3),
+                            HttpOnly = true,
+                            Secure = true
+                        });
+                    HttpContext.Response.Cookies.Append("refresh_token_cookie",
+                        CookieEncoder.EncodeToken(response.data.Refresh_Token),
+                        new CookieOptions
+                        {
+                            Expires = DateTime.UtcNow.AddDays(7),
+                            HttpOnly = true,
+                            Secure = true
+                        });
                 }
                 else
                 {
-                    HttpContext.Session.SetInt32("IsPersistent", 0);
-                    HttpContext.Response.Cookies.Append("access_token_cookie", CookieEncoder.EncodeToken(result.data.Access_Token), new CookieOptions { HttpOnly = true, Secure = true });
-                    HttpContext.Response.Cookies.Append("refresh_token_cookie", CookieEncoder.EncodeToken(result.data.Refresh_Token), new CookieOptions { HttpOnly = true, Secure = true });
+                    HttpContext.Response.Cookies.Append("access_token_cookie",
+                        CookieEncoder.EncodeToken(response.data.Access_Token),
+                        new CookieOptions { HttpOnly = true, Secure = true });
+                    HttpContext.Response.Cookies.Append("refresh_token_cookie",
+                        CookieEncoder.EncodeToken(response.data.Refresh_Token),
+                        new CookieOptions { HttpOnly = true, Secure = true });
                 }
-                
+
                 if (!string.IsNullOrEmpty(ReturnUrl))
                 {
                     return Redirect(ReturnUrl);
@@ -176,12 +176,11 @@ namespace FrontEndWebApp.Controllers
             }
         }
 
-        [AllowAnonymous]
         public IActionResult Register()
         {
             return View();
         }
-        [AllowAnonymous]
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterModel model)
@@ -201,19 +200,15 @@ namespace FrontEndWebApp.Controllers
                 model.AvatarPhoto = null;
             }
             model.AvatarPhoto = null;
-            //string url = model.AvatarPhotoURL;
             var user = await _accountService.Register(model);
-            if (user != null)
+            if (user.success)
             {
                 if (!string.IsNullOrEmpty(user.msg))
                 {
                     ViewData["msg"] = user.msg;
-                    return View(model);
                 }
-                ViewData["IsRegisterSuccess"] = true;
-                return View(new RegisterModel());
             }
-            ViewData["IsRegisterSuccess"] = false;
+            ViewData["IsRegisterSuccess"] = user.success;
             return View(model);
         }
 
@@ -235,21 +230,19 @@ namespace FrontEndWebApp.Controllers
                     var jwttokenResponse = await _accountService.LoginFacebook(token);
                     if (jwttokenResponse != null)
                     {
-                        var userPrincipal = _accountService.ValidateToken(jwttokenResponse.data.Access_Token);
-                        var authProperties = new AuthenticationProperties
-                        {
-                            // set false -> tạo ra cookie phiên -> thoát trình duyệt cookie bị xoá
-                            // set true -> cookie có thời hạn đc set trong Startup.cs và ko bị mất khi thoát
-                            IsPersistent = true
-                        };
-                        await HttpContext.SignInAsync(userPrincipal, authProperties);
-                        HttpContext.Session.SetInt32("IsPersistent", 1);
-                        HttpContext.Response.Cookies.Append("access_token_cookie",CookieEncoder.EncodeToken(jwttokenResponse.data.Access_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(4), HttpOnly = true, Secure = true });
-                        HttpContext.Response.Cookies.Append("refresh_token_cookie",CookieEncoder.EncodeToken(jwttokenResponse.data.Refresh_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(8), HttpOnly = true, Secure = true });
+                        //var userPrincipal = _accountService.ValidateToken(jwttokenResponse.data.Access_Token);
+                        //var authProperties = new AuthenticationProperties
+                        //{
+                        //    IsPersistent = true
+                        //};
+                        //await HttpContext.SignInAsync(userPrincipal, authProperties);
+                        //HttpContext.Session.SetInt32("IsPersistent", 1);
+                        HttpContext.Response.Cookies.Append("access_token_cookie", CookieEncoder.EncodeToken(jwttokenResponse.data.Access_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(3), HttpOnly = true, Secure = true });
+                        HttpContext.Response.Cookies.Append("refresh_token_cookie", CookieEncoder.EncodeToken(jwttokenResponse.data.Refresh_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(7), HttpOnly = true, Secure = true });
                         if (jwttokenResponse.data.isNewLogin)
                         {
-                            int uid = Convert.ToInt32(userPrincipal.FindFirst("UserID").Value);
-                            return RedirectToAction(nameof(UpdateProfile), new { id = uid });
+                            //int uid = Convert.ToInt32(userPrincipal.FindFirst("UserID").Value);
+                            //return RedirectToAction(nameof(UpdateProfile), new { id = uid });
                         }
                         return RedirectToAction(nameof(HomeController.Index), "Home");
                     }
@@ -259,7 +252,7 @@ namespace FrontEndWebApp.Controllers
                     }
                 }
             }
-            else if(provider == "Google")
+            else if (provider == "Google")
             {
                 if (string.IsNullOrEmpty(token))
                 {
@@ -269,23 +262,23 @@ namespace FrontEndWebApp.Controllers
                 {
                     // get jwt from api
                     var jwttokenResponse = await _accountService.LoginGoogle(token);
-                    if (jwttokenResponse != null && jwttokenResponse.data!=null)
+                    if (jwttokenResponse != null && jwttokenResponse.data != null)
                     {
-                        var userPrincipal = _accountService.ValidateToken(jwttokenResponse.data.Access_Token);
-                        var authProperties = new AuthenticationProperties
-                        {
-                            // set false -> tạo ra cookie phiên -> thoát trình duyệt cookie bị xoá
-                            // set true -> cookie có thời hạn đc set trong Startup.cs và ko bị mất khi thoát
-                            IsPersistent = true
-                        };
-                        await HttpContext.SignInAsync(userPrincipal, authProperties);
-                        HttpContext.Session.SetInt32("IsPersistent", 1);
+                        //var userPrincipal = _accountService.ValidateToken(jwttokenResponse.data.Access_Token);
+                        //var authProperties = new AuthenticationProperties
+                        //{
+                        // set false -> tạo ra cookie phiên -> thoát trình duyệt cookie bị xoá
+                        // set true -> cookie có thời hạn đc set trong Startup.cs và ko bị mất khi thoát
+                        //IsPersistent = true
+                        //};
+                        //await HttpContext.SignInAsync(userPrincipal, authProperties);
+                        // HttpContext.Session.SetInt32("IsPersistent", 1);
                         HttpContext.Response.Cookies.Append("access_token_cookie", CookieEncoder.EncodeToken(jwttokenResponse.data.Access_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(4), HttpOnly = true, Secure = true });
                         HttpContext.Response.Cookies.Append("refresh_token_cookie", CookieEncoder.EncodeToken(jwttokenResponse.data.Refresh_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(8), HttpOnly = true, Secure = true });
                         if (jwttokenResponse.data.isNewLogin)
                         {
-                            int uid = Convert.ToInt32(userPrincipal.FindFirst("UserID").Value);
-                            return RedirectToAction(nameof(UpdateProfile), new { id = uid });
+                            //int uid = Convert.ToInt32(userPrincipal.FindFirst("UserID").Value);
+                            //return RedirectToAction(nameof(UpdateProfile), new { id = uid });
                         }
                         return RedirectToAction(nameof(HomeController.Index), "Home");
                     }
@@ -303,44 +296,41 @@ namespace FrontEndWebApp.Controllers
 
         public async Task<IActionResult> ShowProfile()
         {
-            var id = User.FindFirst("UserID");
-            var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var user = await _accountService.GetUserInfo(Int32.Parse(id.Value), access_token);
-            if (user.data != null)
+            var getProfile = await _accountService.GetUserInfoByToken();
+            if (!getProfile.success)
+            {
+                return View();
+            }
+            var user = await _accountService.GetUserInfo(getProfile.data.UserId);
+            if (user.success)
                 return View(user.data);
             return View();
         }
 
-        public async Task<IActionResult> UpdateProfile(int id)
+        public async Task<IActionResult> UpdateProfile()
         {
-            var userID = Int32.Parse(User.FindFirst("UserID").Value);
-            
-            if (id != userID)
+            var getProfile = await _accountService.GetUserInfoByToken();
+            ViewData["msg"] = "";
+            if (!getProfile.success)
             {
-                // access denied
-                return View("Views/Account/AccessDenied.cshtml");
+                ViewData["msg"] = getProfile.msg;
+                return View(new UserViewModel());
             }
-            var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var user = await _accountService.GetUserInfo(userID, access_token);
-            if (user != null)
+            var getUserResponse = await _accountService.GetUserInfo(getProfile.data.UserId);
+            if (getUserResponse.success)
             {
-                ViewData["uid"] = userID;
-                return View(user.data);
+                ViewData["msg"] = getUserResponse.msg;
+                ViewData["uid"] = getProfile.data.UserId;
+                return View(getUserResponse.data);
             }
+
             return View(new UserViewModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> OnPostUpdateProfile(int id, UserViewModel model)
+        public async Task<IActionResult> OnPostUpdateProfile(UserViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                return RedirectToAction(nameof(UpdateProfile), new
-                {
-                    id
-                });
-            }
             if (model.AvatarPhoto != null)
             {
                 var filePath = Path.GetTempFileName();
@@ -351,22 +341,13 @@ namespace FrontEndWebApp.Controllers
                 model.AvatarURL = UploadImageService.Instance().Upload(model.UserName, filePath);
                 model.AvatarPhoto = null;
             }
-            var userID = Int32.Parse(User.FindFirst("UserID").Value);
-            if(id != userID)
-            {
-                return Redirect("/Views/Account/AccessDenied.cshtml");
-            }
-            var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var result = await _accountService.UpdateProfile(model, access_token);
+            var updateResponse = await _accountService.UpdateProfile(model);
             // success
-            if (result!=null && result.data != null)
+            if (updateResponse.success)
                 return RedirectToAction(nameof(ShowProfile));
             // fail
-            ViewData["msg"] = "Update failed";
-            return RedirectToAction(nameof(UpdateProfile), new
-            {
-                id = id
-            });
+            ViewData["msg"] = updateResponse.msg;
+            return RedirectToAction(nameof(UpdateProfile), new { id = model.Id });
         }
     }
 }

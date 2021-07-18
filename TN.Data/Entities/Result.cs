@@ -12,6 +12,5 @@ namespace TN.Data.Entities
 
         public AppUser AppUser { get; set; }
         public Question Question { get; set; }
-        
     }
 }

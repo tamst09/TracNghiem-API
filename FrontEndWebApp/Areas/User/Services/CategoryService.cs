@@ -1,60 +1,31 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using FrontEndWebApp.Services;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using TN.Data.Entities;
 using TN.ViewModels.Common;
-using TN.ViewModels.Settings;
 
 namespace FrontEndWebApp.Areas.User.Services
 {
     public class CategoryService : ICategoryService
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-        private HttpClient _httpClient;
+        private readonly IApiHelper _apiHelper;
 
-        public CategoryService(IHttpClientFactory httpClientFactory)
+        public CategoryService(IApiHelper apiHelper)
         {
-            _httpClientFactory = httpClientFactory;
-            _httpClient = _httpClientFactory.CreateClient();
-            _httpClient.BaseAddress = new Uri(ConstStrings.BASE_URL_API);
+            _apiHelper = apiHelper;
         }
 
         public async Task<ResponseBase<List<Category>>> GetAll()
         {
-            var response = await _httpClient.GetAsync("/api/categories/");
-            if (response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync();
-                ResponseBase<List<Category>> lstCategory = JsonConvert.DeserializeObject<ResponseBase<List<Category>>>(body);
-                return lstCategory;
-            }
-            else
-            {
-                return null;
-            }
+            var response = await _apiHelper.NonBodyQueryAsync<List<Category>>(HttpMethod.Get, "/api/Categories");
+            return response;
         }
 
-        public async Task<ResponseBase<List<Exam>>> GetAllExams(int id, string accessToken)
+        public async Task<ResponseBase<List<Exam>>> GetAllExams(int id)
         {
-            if (accessToken != null)
-            {
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            }
-            var response = await _httpClient.GetAsync("/api/categories/exams/" + id.ToString());
-            if (response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync();
-                ResponseBase<List<Exam>> lstExam = JsonConvert.DeserializeObject<ResponseBase<List<Exam>>>(body);
-                return lstExam;
-            }
-            else
-            {
-                return null;
-            }
+            var response = await _apiHelper.NonBodyQueryAsync<List<Exam>>(HttpMethod.Get, $"/api/Categories/Exams/{id}");
+            return response;
         }
     }
 }

@@ -6,6 +6,12 @@ namespace TN.Data.Entities
 {
     public class Question
     {
+        public Question()
+        {
+            isActive = true;
+            Results = new List<Result>();
+        }
+
         public int ID { get; set; }
         public string QuesContent { get; set; } //Nội dung câu hỏi
         public string Option1 { get; set; }

@@ -14,11 +14,11 @@ namespace TN.BackendAPI.Services.IServices
         Task<List<Question>> GetAll();
         Task<PagedResult<Question>> GetAllPaging(QuestionPagingRequest model);
         Task<Question> GetByID(int id);
+        Task<ResponseBase<List<Question>>> GetByExam(GetQuestionsByExamRequest request);
         Task<int> CountQuestions();
         Task<bool> Update(QuestionModel model);
         Task<bool> Delete(int id);
         Task<bool> DeleteMany(DeleteManyModel<int> lstId);
-        Task<List<Question>> GetByExam(int examID);
-        Task<Question> Create(QuestionModel model);
+        Task<bool> Create(QuestionModel model);
     }
 }

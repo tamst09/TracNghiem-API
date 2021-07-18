@@ -20,14 +20,13 @@ namespace TN.BackendAPI.Services.Service
             _db = db;
         }
 
-        public async Task<Exam> Create(ExamModel request, int userID)
+        public async Task<bool> Create(ExamModel request, int userID)
         {
-            var owner = _db.Users.Where(u => u.Id == userID).FirstOrDefault();
-            if (owner == null || owner.isActive == false)
+            var owner = _db.Users.FirstOrDefault(u => u.Id == userID && u.isActive == true);
+            if (owner == null)
             {
-                return null;
+                return false;
             }
-            var category = _db.Categories.Where(c => c.ID == request.CategoryID).FirstOrDefault();
             var exam = new Exam()
             {
                 ExamName = request.ExamName,
@@ -37,35 +36,21 @@ namespace TN.BackendAPI.Services.Service
                 TimeCreated = DateTime.Now,
                 NumOfAttemps = 0,
                 CategoryID = request.CategoryID,
-                Category = _db.Categories.Where(c => c.ID == request.CategoryID).FirstOrDefault(),
                 OwnerID = userID,
-                Owner = _db.Users.Where(u => u.Id == userID).FirstOrDefault(),
-                Questions = null,
                 isActive = true
             };
             _db.Exams.Add(exam);
             await _db.SaveChangesAsync();
-            return exam;
+            return true;
         }
 
         public async Task<bool> Delete(int examID, int userID)
         {
-            var exam = await _db.Exams.FindAsync(examID);
+            var exam = await _db.Exams.FirstOrDefaultAsync(e => e.OwnerID == userID && e.ID == examID);
             if (exam == null) return false;
-            if (exam.OwnerID != userID)
-            {
-                return false;
-            }
-            if (exam.Questions != null)
-            {
-                foreach (var q in exam.Questions)
-                {
-                    q.isActive = false;
-                }
-            }
-            exam.isActive = false;
             try
             {
+                exam.isActive = false;
                 await _db.SaveChangesAsync();
                 return true;
             }
@@ -79,17 +64,9 @@ namespace TN.BackendAPI.Services.Service
         {
             try
             {
-                List<Exam> lstCategory = new List<Exam>();
-                foreach (var id in lstExamId.ListItem)
+                var deleteExams = await _db.Exams.Where(e => lstExamId.ListItem.Contains(e.ID)).ToListAsync();
+                foreach (var exam in deleteExams)
                 {
-                    var exam = await _db.Exams.FindAsync(id);
-                    if (exam.Questions != null)
-                    {
-                        foreach (var question in exam.Questions)
-                        {
-                            question.isActive = false;
-                        }
-                    }
                     exam.isActive = false;
                 }
                 await _db.SaveChangesAsync();
@@ -283,18 +260,23 @@ namespace TN.BackendAPI.Services.Service
 
         public async Task<bool> Update(ExamModel model, int userID)
         {
-            if (userID != model.OwnerID)
-            {
+            var exam = _db.Exams.FirstOrDefault(e => e.isActive == true && e.OwnerID == userID && e.ID == model.ID);
+            if (exam == null)
                 return false;
-            }
-            var exam = await _db.Exams.FindAsync(model.ID);
-            if (exam == null) return false;
             exam.ExamName = model.ExamName;
             exam.isPrivate = model.isPrivate;
             exam.Time = model.Time * 60;
             exam.CategoryID = model.CategoryID;
             await _db.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<List<Exam>> GetByCategory(int categoryId, int userId)
+        {
+            var exams = _db.Exams.Where(e => e.Category.isActive == true && e.isActive == true && e.CategoryID == categoryId);
+            exams = exams.Where(e => (e.OwnerID == userId) || (e.OwnerID != userId && e.isPrivate == false));
+            var result = exams.Include(e => e.Category).Include(e => e.Owner).Include(e => e.Questions);
+            return result.ToList();
         }
     }
 }
