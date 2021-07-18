@@ -178,5 +178,11 @@ namespace TN.BackendAPI.Services.Service
             await _db.SaveChangesAsync();
             return true;
         }
+
+        public async Task<int> Count()
+        {
+            var numberExam = await _db.Exams.CountAsync();
+            return numberExam;
+        }
     }
 }

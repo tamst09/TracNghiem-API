@@ -17,5 +17,6 @@ namespace TN.BackendAPI.Services.IServices
         Task<bool> Update(ExamModel request);
         Task<bool> Delete(int examId);
         Task<bool> DeleteMany(DeleteManyModel<int> lstExamId);
+        Task<int> Count();
     }
 }

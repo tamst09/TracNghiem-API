@@ -15,5 +15,6 @@ namespace TN.BackendAPI.Services.IServices
         Task<bool> DeleteMany(DeleteManyModel<int> lstCategoryId);
         Task<List<Category>> GetAll();
         Task<Category> GetByID(int id);
+        Task<int> CountCategory();
     }
 }

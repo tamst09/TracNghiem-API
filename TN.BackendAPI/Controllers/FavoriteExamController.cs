@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
+using TN.Data.Entities;
 using TN.ViewModels.Catalog.Exam;
 using TN.ViewModels.Common;
 
@@ -13,6 +14,7 @@ namespace TN.BackendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize("user")]
     public class FavoriteExamController : ControllerBase
     {
         private readonly IFavoriteExamService _examService;
@@ -26,7 +28,7 @@ namespace TN.BackendAPI.Controllers
         public async Task<IActionResult> GetFavoriteExams(int userId)
         {
             var exams = await _examService.GetByUser(userId);
-            return Ok(exams);
+            return Ok(new ResponseBase<List<Exam>>(data: exams));
         }
 
         [HttpPost]

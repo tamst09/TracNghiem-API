@@ -1,8 +1,8 @@
 ﻿@{
     Layout = "~/Areas/User/Views/Shared/_Layout.cshtml";
-    List<TN.Data.Entities.Exam> commonExam = (List<TN.Data.Entities.Exam>)ViewData["commonExams"];
-    List<TN.Data.Entities.Exam> newestExam = (List<TN.Data.Entities.Exam>)ViewData["newestExams"];
-    TN.ViewModels.Common.PagedResult<TN.Data.Entities.Exam> allExam = (TN.ViewModels.Common.PagedResult<TN.Data.Entities.Exam>)ViewData["allExams"];
+    List<TN.Data.Entities.Exam> commonExams = (List<TN.Data.Entities.Exam>) ViewBag.CommonExams;
+    List<TN.Data.Entities.Exam> newestExams = (List<TN.Data.Entities.Exam>) ViewBag.NewestExams;
+    TN.ViewModels.Common.PagedResult<TN.Data.Entities.Exam> allExams = (TN.ViewModels.Common.PagedResult<TN.Data.Entities.Exam>) ViewBag.AllExams;
 }
 
 <!-- common section start -->
@@ -15,34 +15,37 @@
                     <h1 id="common-header" class="fashion_taital">Common</h1>
                     <div class="fashion_section_2">
                         <div class="row">
-                            @foreach (var exam in commonExam)
+                            @if (commonExams != null)
                             {
-                                <div class="col-lg-3 col-sm-3">
-                                    <div class="box_main">
-                                        <h4 class="shirt_text">@exam.ExamName</h4>
-                                        <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:auto;height:100px;object-fit:cover;" src="userAssets/images/exam_cover.jpg"></div>
-                                        <div>
-                                            <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">@exam.Questions.Where(q => q.isActive).ToList().Count</span></p>
-                                            <p class="m-0 mb-1">
-                                                Time to do:
-                                                @if (exam.Time != 0)
-                                                {
-                                                    <span style="color: #fd7e14;">@(exam.Time / 60)m@(exam.Time % 60)s</span>
-                                                }
-                                                else
-                                                {
-                                                    <span style="color: #fd7e14;">Unlimited</span>
-                                                }
-                                            </p>
-                                            <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">@exam.Owner.UserName</span></p>
-                                        </div>
-                                        <div class="btn_main">
-                                            <div class="buy_bt"><a href="#" onclick="openAttempOptionForm(@exam.ID)" data-toggle="modal" data-target="#attempOptionModal">Attemps</a></div>
-                                            <div><i class="fa fa-heart" style="color :crimson"></i></div>
-                                            <div class="seemore_bt"><a asp-action="PreviewExam" asp-controller="Home" asp-route-examID="@exam.ID">Preview</a></div>
+                                @foreach (var exam in commonExams)
+                                {
+                                    <div class="col-lg-3 col-sm-3">
+                                        <div class="box_main">
+                                            <h4 class="shirt_text">@exam.ExamName</h4>
+                                            <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:auto;height:100px;object-fit:cover;" src="userAssets/images/exam_cover.jpg"></div>
+                                            <div>
+                                                <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">@exam.Questions.Where(q => q.isActive).ToList().Count</span></p>
+                                                <p class="m-0 mb-1">
+                                                    Time to do:
+                                                    @if (exam.Time != 0)
+                                                    {
+                                                        <span style="color: #fd7e14;">@(exam.Time / 60)m@(exam.Time % 60)s</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span style="color: #fd7e14;">Unlimited</span>
+                                                    }
+                                                </p>
+                                                <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">@exam.Owner.UserName</span></p>
+                                            </div>
+                                            <div class="btn_main">
+                                                <div class="buy_bt"><a href="#" onclick="openAttempOptionForm(@exam.ID)" data-toggle="modal" data-target="#attempOptionModal">Attemps</a></div>
+                                                <div><i class="fa fa-heart" style="color :crimson"></i></div>
+                                                <div class="seemore_bt"><a asp-action="PreviewExam" asp-controller="Home" asp-route-examID="@exam.ID">Preview</a></div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                }
                             }
                         </div>
                     </div>
@@ -61,35 +64,39 @@
                     <h1 id="common-header" class="fashion_taital">New</h1>
                     <div class="fashion_section_2">
                         <div class="row">
-                            @foreach (var exam in newestExam)
+                            @if (newestExams != null)
                             {
-                                <div class="col-lg-3 col-sm-3">
-                                    <div class="box_main">
-                                        <h4 class="shirt_text">@exam.ExamName</h4>
-                                        <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:auto;height:100px;object-fit:cover;" src="userAssets/images/exam_cover.jpg"></div>
-                                        <div>
-                                            <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">@exam.Questions.Where(q => q.isActive).ToList().Count</span></p>
-                                            <p class="m-0 mb-1">
-                                                Time to do:
-                                                @if (exam.Time != 0)
-                                                {
-                                                    <span style="color: #fd7e14;">@(exam.Time / 60)m@(exam.Time % 60)s</span>
-                                                }
-                                                else
-                                                {
-                                                    <span style="color: #fd7e14;">Unlimited</span>
-                                                }
-                                            </p>
-                                            <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">@exam.Owner.UserName</span></p>
-                                             </div>
-                                        <div class="btn_main">
-                                            <div class="buy_bt"><a href="#" onclick="openAttempOptionForm(@exam.ID)" data-toggle="modal" data-target="#attempOptionModal">Attemps</a></div>
-                                            <div><i class="fa fa-heart" style="color :crimson"></i></div>
-                                            <div class="seemore_bt"><a asp-action="PreviewExam" asp-controller="Home" asp-route-examID="@exam.ID">Preview</a></div>
+                                @foreach (var exam in newestExams)
+                                {
+                                    <div class="col-lg-3 col-sm-3">
+                                        <div class="box_main">
+                                            <h4 class="shirt_text">@exam.ExamName</h4>
+                                            <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:auto;height:100px;object-fit:cover;" src="userAssets/images/exam_cover.jpg"></div>
+                                            <div>
+                                                <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">@exam.Questions.Where(q => q.isActive).ToList().Count</span></p>
+                                                <p class="m-0 mb-1">
+                                                    Time to do:
+                                                    @if (exam.Time != 0)
+                                                    {
+                                                        <span style="color: #fd7e14;">@(exam.Time / 60)m@(exam.Time % 60)s</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span style="color: #fd7e14;">Unlimited</span>
+                                                    }
+                                                </p>
+                                                <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">@exam.Owner.UserName</span></p>
+                                            </div>
+                                            <div class="btn_main">
+                                                <div class="buy_bt"><a href="#" onclick="openAttempOptionForm(@exam.ID)" data-toggle="modal" data-target="#attempOptionModal">Attemps</a></div>
+                                                <div><i class="fa fa-heart" style="color :crimson"></i></div>
+                                                <div class="seemore_bt"><a asp-action="PreviewExam" asp-controller="Home" asp-route-examID="@exam.ID">Preview</a></div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                }
                             }
+
                         </div>
                     </div>
                 </div>
@@ -107,38 +114,37 @@
                     <h1 id="common-header" class="fashion_taital">All exams</h1>
                     <div class="fashion_section_2">
                         <div class="row">
-                            @foreach (var exam in allExam.Items)
+                            @if (allExams != null)
                             {
-
-
-                                <div class="col-lg-3 col-sm-3">
-                                    <div class="box_main">
-                                        <h4 class="shirt_text">@exam.ExamName</h4>
-                                        <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:auto;height:100px;object-fit:cover;" src="userAssets/images/exam_cover.jpg"></div>
-                                        <div>
-                                            <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">@exam.Questions.Where(q => q.isActive).ToList().Count</span></p>
-                                            <p class="m-0 mb-1">
-                                                Time to do:
-                                                @if (exam.Time != 0)
-                                                {
-                                                    <span style="color: #fd7e14;">@(exam.Time / 60)m@(exam.Time % 60)s</span>
-                                                }
-                                                else
-                                                {
-                                                    <span style="color: #fd7e14;">Unlimited</span>
-                                                }
-                                            </p>
-                                            <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">@exam.Owner.UserName</span></p>
+                                @foreach (var exam in allExams.Items)
+                                {
+                                    <div class="col-lg-3 col-sm-3">
+                                        <div class="box_main">
+                                            <h4 class="shirt_text">@exam.ExamName</h4>
+                                            <div align="center" style="width:auto;height:100px;object-fit:cover;"><img style="width:auto;height:100px;object-fit:cover;" src="userAssets/images/exam_cover.jpg"></div>
+                                            <div>
+                                                <p class="m-0 mb-1">Total questions: <span style="color: #fd7e14;">@exam.Questions.Where(q => q.isActive).Count()</span></p>
+                                                <p class="m-0 mb-1">
+                                                    Time to do:
+                                                    @if (exam.Time != 0)
+                                                    {
+                                                        <span style="color: #fd7e14;">@(exam.Time / 60)m@(exam.Time % 60)s</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span style="color: #fd7e14;">Unlimited</span>
+                                                    }
+                                                </p>
+                                                <p class="m-0 mb-1">Created by: <br><span style="color: #fd7e14;">@exam.Owner.UserName</span></p>
                                             </div>
-                                        <div class="btn_main">
-                                            <div class="buy_bt"><a href="#" onclick="openAttempOptionForm(@exam.ID)" data-toggle="modal" data-target="#attempOptionModal">Attemps</a></div>
-                                            <div><i class="fa fa-heart" style="color :crimson"></i></div>
-                                            <div class="seemore_bt"><a asp-action="PreviewExam" asp-controller="Home" asp-route-examID="@exam.ID">Preview</a></div>
+                                            <div class="btn_main">
+                                                <div class="buy_bt"><a href="#" onclick="openAttempOptionForm(@exam.ID)" data-toggle="modal" data-target="#attempOptionModal">Attemps</a></div>
+                                                <div><i class="fa fa-heart" style="color :crimson"></i></div>
+                                                <div class="seemore_bt"><a asp-action="PreviewExam" asp-controller="Home" asp-route-examID="@exam.ID">Preview</a></div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-
-
+                                }
                             }
                         </div>
                     </div>
@@ -146,7 +152,7 @@
             </div>
         </div>
         <div class="row justify-content-md-center">
-            <a>@await Component.InvokeAsync("Pager", allExam)</a>
+            <a>@await Component.InvokeAsync("Pager", allExams)</a>
         </div>
     </div>
 </div>

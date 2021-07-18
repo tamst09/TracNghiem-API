@@ -16,5 +16,6 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
         Task<ResponseBase<string>> DeleteRange(DeleteManyModel<int> lstId, string accessToken);
         Task<ResponseBase<Category>> Update(int id, Category model, string accessToken);
         Task<ResponseBase<List<Exam>>> GetAllExams(int id, string accessToken);
+        //Task<ResponseBase<int>> Count(string accessToken);
     }
 }

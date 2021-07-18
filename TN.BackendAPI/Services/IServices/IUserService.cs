@@ -11,6 +11,7 @@ namespace TN.BackendAPI.Services.IServices
     {
         Task<ResponseBase<JwtResponse>> Register(RegisterModel model);
         Task<List<AppUser>> GetAll();
+        Task<NumberUserInfo> CountUser();
         Task<AppUser> GetByID(int id);
         Task<ResponseBase<JwtResponse>> Login(LoginModel model);
         Task<AppUser> EditUserInfo(UserViewModel user);

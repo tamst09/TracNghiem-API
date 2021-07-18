@@ -104,12 +104,13 @@ namespace TN.BackendAPI.Services.Service
 
         public async Task<List<Category>> GetAll()
         {
-            var categoryList = await _db.Categories.Include(c => c.Exams).Where(c => c.isActive == true).ToListAsync();
-            foreach(var category in categoryList)
-            {
-                category.Exams = category.Exams.Where(e => e.isActive == true).ToList();
-            }
+            var categoryList = await _db.Categories.Where(c => c.isActive == true).ToListAsync();
             return categoryList;
+        }
+
+        public async Task<int> CountCategory()
+        {
+            return await _db.Categories.CountAsync();
         }
 
         public async Task<Category> GetByID(int id)

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TN.ViewModels.Catalog.Exams;
+using TN.ViewModels.Common;
 
 namespace FrontEndWebApp.Areas.User.Controllers
 {
@@ -37,17 +38,33 @@ namespace FrontEndWebApp.Areas.User.Controllers
             {
                 examPagingRequest.CategoryID = Int32.Parse(categoryId);
             }
-            var allExams = await _examService.GetAllPaging(examPagingRequest, token, User.FindFirst("UserID").Value);
+            var allPagedExams = await _examService.GetAllPaging(examPagingRequest, token, User.FindFirst("UserID").Value);
             // get all exams paged - about 8 exams per page
-            var allExamsNotPaged = await _examService.GetAll(token, User.FindFirst("UserID").Value);
-            var commonExams = allExamsNotPaged.data.OrderByDescending(e => e.NumOfAttemps).Take(8).ToList();
-            var newestExams = allExamsNotPaged.data.OrderByDescending(e => e.TimeCreated).Take(8).ToList();
+            var allExams = await _examService.GetAll(token, User.FindFirst("UserID").Value);
+            if(allExams == null)
+            {
+                allExams = new TN.ViewModels.Common.ResponseBase<List<TN.Data.Entities.Exam>>()
+                {
+                    data = new List<TN.Data.Entities.Exam>(),
+                    msg = "",
+                    success = true
+                };
+            }
+            var commonExams = allExams.data.OrderByDescending(e => e.NumOfAttemps).Take(8).ToList();
+            var newestExams = allExams.data.OrderByDescending(e => e.TimeCreated).Take(8).ToList();
             // about 8 exams having most attemp
             //var allNewExams = // about 8 exams that time created newest
-            ViewData["commonExams"] = commonExams;
-            ViewData["newestExams"] = newestExams;
-            ViewData["allExams"] = allExams.data;
             ViewData["Title"] = "HOME";
+            ViewBag.CommonExams = commonExams;
+            ViewBag.NewestExams = newestExams;
+            ViewBag.AllExams = new PagedResult<TN.Data.Entities.Exam>()
+            {
+                Items = allExams.data,
+                PageIndex = 1,
+                PageSize = 10,
+                TotalPages = allExams.data.Count()/10,
+                TotalRecords = allExams.data.Count()
+            };
             ViewBag.Categories = allcategory;
             return View();
         }

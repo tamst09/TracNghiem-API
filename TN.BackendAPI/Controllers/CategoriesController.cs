@@ -26,8 +26,8 @@ namespace TN.BackendAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCategories()
         {
-            var allCategory = await _categoryService.GetAll();
-            return Ok(new ResponseBase<List<Category>>() { data = allCategory });
+            var categories = await _categoryService.GetAll();
+            return Ok(new ResponseBase<List<Category>>() { data = categories });
         }
 
         // GET: api/Categories/5
@@ -39,7 +39,7 @@ namespace TN.BackendAPI.Controllers
             {
                 return Ok(new ResponseBase<Category>() { data = category });
             }
-            return Ok(new ResponseBase<Category>() { msg = "Không tìm thấy" });
+            return Ok(new ResponseBase(msg: "Not found", success: false));
         }
 
         // GET: api/Categories/Exams/5
@@ -53,8 +53,14 @@ namespace TN.BackendAPI.Controllers
             }
             else
             {
-                return Ok(new ResponseBase<List<Exam>>() { msg = "Đề thi không có sẵn" });
+                return Ok(new ResponseBase(msg: "Exam not available", success: false));
             }
+        }
+
+        [HttpGet("Count")]
+        public async Task<IActionResult> CountCategory()
+        {
+            return Ok(new ResponseBase<int>(data: await _categoryService.CountCategory()));
         }
 
         // PUT: api/Categories/5
@@ -64,12 +70,12 @@ namespace TN.BackendAPI.Controllers
         {
             if (id != category.ID)
             {
-                return Ok(new ResponseBase<Category>() { msg = "Chủ đề không tồn tại" });
+                return Ok(new ResponseBase(success: false, msg: "Category not fount"));
             }
             var updateResult = await _categoryService.Update(category);
             if (updateResult == null)
             {
-                return Ok(new ResponseBase<Category>() { msg = "Lỗi cập nhật" });
+                return Ok(new ResponseBase(success: false, msg: "Update failed"));
             }
             return Ok(new ResponseBase<Category>() { data = updateResult });
         }
@@ -90,9 +96,9 @@ namespace TN.BackendAPI.Controllers
         {
             var deleteResult = await _categoryService.Delete(id);
             if (deleteResult)
-                return Ok(new ResponseBase<Category>() { });
+                return Ok(new ResponseBase());
             else
-                return Ok(new ResponseBase<Category>() { msg = "Xoá thất bại" });
+                return Ok(new ResponseBase(msg: "Delete failed"));
         }
 
         // DELETE: api/Categories/DeleteRange
@@ -102,9 +108,9 @@ namespace TN.BackendAPI.Controllers
         {
             var deleteResult = await _categoryService.DeleteMany(lstCategoryId);
             if (deleteResult)
-                return Ok(new ResponseBase<Category>() { });
+                return Ok(new ResponseBase());
             else
-                return Ok(new ResponseBase<Category>() { msg = "Xoá thất bại" });
+                return Ok(new ResponseBase(msg: "Delete failed"));
         }
     }
 }

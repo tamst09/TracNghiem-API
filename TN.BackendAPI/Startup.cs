@@ -39,17 +39,17 @@ namespace TN.BackendAPI
                 .AddEntityFrameworkStores<TNDbContext>()
                 .AddDefaultTokenProviders();
             //Declare DI
-            services.AddTransient<UserManager<AppUser>, UserManager<AppUser>>();
-            services.AddTransient<SignInManager<AppUser>, SignInManager<AppUser>>();
-            services.AddTransient<RoleManager<AppRole>, RoleManager<AppRole>>();
-            services.AddTransient<ICategoryService, CategoryService>();
-            services.AddTransient<IExamAdminService, ExamAdminService>();
-            services.AddTransient<IExamUserService, ExamUserService>();
-            services.AddTransient<IFavoriteExamService, FavoriteExamService>();
-            services.AddTransient<IQuestionService, QuestionService>();
-            services.AddTransient<IUserService, UserService>();
-            services.AddTransient<IFacebookAuth, FacebookAuthService>();
-            services.AddTransient<IEmailSender, EmailSender>(i =>
+            services.AddScoped<UserManager<AppUser>, UserManager<AppUser>>();
+            services.AddScoped<SignInManager<AppUser>, SignInManager<AppUser>>();
+            services.AddScoped<RoleManager<AppRole>, RoleManager<AppRole>>();
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IExamAdminService, ExamAdminService>();
+            services.AddScoped<IExamUserService, ExamUserService>();
+            services.AddScoped<IFavoriteExamService, FavoriteExamService>();
+            services.AddScoped<IQuestionService, QuestionService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IFacebookAuth, FacebookAuthService>();
+            services.AddScoped<IEmailSender, EmailSender>(i =>
                 new EmailSender(
                     Configuration["EmailSender:Host"],
                     Configuration.GetValue<int>("EmailSender:Port"),

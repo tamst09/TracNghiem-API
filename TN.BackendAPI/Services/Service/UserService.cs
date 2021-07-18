@@ -48,6 +48,14 @@ namespace TN.BackendAPI.Services.Service
         {
             return await _dbContext.Users.ToListAsync();
         }
+        public async Task<NumberUserInfo> CountUser()
+        {
+            var result = new NumberUserInfo();
+            result.TotalUser = await _dbContext.Users.CountAsync();
+            result.TotalActiveUser = await _dbContext.Users.Where(u => u.isActive == true).CountAsync();
+            result.TotalInactiveUser = result.TotalUser - result.TotalActiveUser;
+            return result;
+        } 
         public async Task<AppUser> GetByID(int id)
         {
             var user = await _dbContext.Users.FindAsync(id);

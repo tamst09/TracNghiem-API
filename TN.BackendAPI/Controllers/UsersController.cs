@@ -56,23 +56,13 @@ namespace TN.BackendAPI.Controllers
             return Ok(new ResponseBase<AppUser>() { data = user });
         }
 
-        // GET: api/Users/GetNumber
-        [HttpGet("GetNumber")]
+        // GET: api/Users/Count
+        [HttpGet("Count")]
         [Authorize("admin")]
-        public async Task<IActionResult> GetNumberUser()
+        public async Task<IActionResult> CountUser()
         {
-            NumberUserInfo response = new NumberUserInfo();
-            response.TotalActiveUser = 0;
-            response.TotalInactiveUser = 0;
-            var allUsers = await _userService.GetAll();
-            response.TotalUser = allUsers.Count;
-            foreach (var u in allUsers)
-            {
-                if (u.isActive)
-                    response.TotalActiveUser++;
-            }
-            response.TotalInactiveUser = response.TotalUser - response.TotalActiveUser;
-            return Ok(new ResponseBase<NumberUserInfo>() { data = response });
+            NumberUserInfo countUser = await _userService.CountUser();
+            return Ok(new ResponseBase<NumberUserInfo>(data: countUser));
         }
 
         // GET: api/GetStatus/5
@@ -86,7 +76,7 @@ namespace TN.BackendAPI.Controllers
             }
             else
             {
-                return Ok(new ResponseBase<AppUser>() { msg = "User not found or is locked" });
+                return Ok(new ResponseBase(msg: "User not found or is locked", success: false));
             }
         }
 
@@ -97,9 +87,9 @@ namespace TN.BackendAPI.Controllers
             var user = await _userService.GetByID(id);
             if (user == null)
             {
-                return Ok(new ResponseBase<AppUser>() { msg = "User not found" });
+                return Ok(new ResponseBase(msg: "User not found", success:false));
             }
-            return Ok(new ResponseBase<AppUser>() { data = user });
+            return Ok(new ResponseBase<AppUser>(data: user));
         }
 
         // POST: api/Users/Login

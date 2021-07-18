@@ -1,11 +1,16 @@
-﻿using FrontEndWebApp.Services;
+﻿using FrontEndWebApp.Exceptions;
+using FrontEndWebApp.Services;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.FavoriteExam;
 using TN.ViewModels.Common;
 using TN.ViewModels.Settings;
 
@@ -13,40 +18,77 @@ namespace FrontEndWebApp.Areas.User.Services
 {
     public class FavoriteExamService : IFavoriteExamService
     {
-        private readonly CallApiService _apiService;
+        private readonly HttpClient _httpClient;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly string accessToken;
 
-        public FavoriteExamService(CallApiService apiService)
+        public FavoriteExamService(IHttpContextAccessor httpContextAccessor)
         {
-            _apiService = apiService;
+            _httpClient = new HttpClient();
+            _httpClient.BaseAddress = new Uri(ConstStrings.BASE_URL_API);
+            _httpContextAccessor = httpContextAccessor;
+            accessToken = _httpContextAccessor.HttpContext.Request.Cookies["access_token_cookie"];
         }
 
-        public async Task<bool> Add(int userId, int examId, string accessToken)
+        public async Task<ResponseBase<bool>> Add(AddFavoriteExamRequest addFavoriteExamRequest)
         {
-            var httpContent = JsonConvert.SerializeObject(new { userId = userId, examId = examId });
-            var response = await _apiService.PostAsync($"/api/FavoriteExam", accessToken, httpContent);
-            return response.Success;
-        }
-
-        public async Task<bool> Delete(int userId, int examId, string accessToken)
-        {
-            var httpContent = JsonConvert.SerializeObject(new { userId = userId, examId = examId });
-            var response = await _apiService.PostAsync($"/api/FavoriteExam/remove", accessToken, httpContent);
-            return response.Success;
-        }
-
-        public async Task<ResponseBase<List<Exam>>> GetExams(int userId, string accessToken)
-        {
-            var response = await _apiService.GetAsync($"/api/FavoriteExam?userId={userId}", accessToken);
-            if (response.Success)
+            var json = JsonConvert.SerializeObject(addFavoriteExamRequest);
+            if (!string.IsNullOrEmpty(accessToken))
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var response = await _httpClient.PostAsync("/api/FavoriteExam", new StringContent(json, Encoding.UTF8, "application/json"));
+            if (response.IsSuccessStatusCode)
             {
-                ResponseBase<List<Exam>> exams = JsonConvert.DeserializeObject<ResponseBase<List<Exam>>>(response.ContentBody);
+                var dataJson = await response.Content.ReadAsStringAsync();
+                ResponseBase<bool> dataObject = JsonConvert.DeserializeObject<ResponseBase<bool>>(dataJson);
+                return dataObject;
+            }
+            else
+            {
+                return new ResponseBase<bool>(success: false, msg: $"Error: {response.StatusCode}", data: false);
+            }
+        }
+
+        public async Task<ResponseBase<bool>> Delete(DeleteFavoriteExamRequest deleteFavoriteExamRequest)
+        {
+            var json = JsonConvert.SerializeObject(deleteFavoriteExamRequest);
+            if (!string.IsNullOrEmpty(accessToken))
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var response = await _httpClient.PostAsync("/api/FavoriteExam/Remove", new StringContent(json, Encoding.UTF8, "application/json"));
+            if (response.IsSuccessStatusCode)
+            {
+                var dataJson = await response.Content.ReadAsStringAsync();
+                ResponseBase<bool> dataObject = JsonConvert.DeserializeObject<ResponseBase<bool>>(dataJson);
+                return dataObject;
+            }
+            else
+            {
+                return new ResponseBase<bool>(success: false, msg: $"Error: {response.StatusCode}", data: false);
+            }
+        }
+
+        public async Task<ResponseBase<List<Exam>>> GetExams(GetAllFavoriteRequest getAllFavoriteRequest)
+        {
+            //if (!string.IsNullOrEmpty(accessToken))
+            //    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var response = await _httpClient.GetAsync($"/api/FavoriteExam?userId={getAllFavoriteRequest.userId}");
+            if (response.IsSuccessStatusCode)
+            {
+                var dataJson = await response.Content.ReadAsStringAsync();
+                ResponseBase<List<Exam>> exams = JsonConvert.DeserializeObject<ResponseBase<List<Exam>>>(dataJson);
                 return exams;
             }
-            return new ResponseBase<List<Exam>>()
+            else if(response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                success = response.Success,
-                msg = response.StatusCode.ToString()
-            };
+                throw new UnauthorizedException();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                throw new ForbidenException();
+            }
+            else
+            {
+                return new ResponseBase<List<Exam>>(success: false, msg: $"Error: {response.StatusCode}", data: null);
+            }
         }
     }
 }

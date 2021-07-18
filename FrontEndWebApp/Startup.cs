@@ -1,8 +1,10 @@
 using FrontEndWebApp.Areas.Admin.AdminServices;
 using FrontEndWebApp.Areas.User.Services;
+using FrontEndWebApp.Exceptions;
 using FrontEndWebApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -36,6 +38,7 @@ namespace FrontEndWebApp
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSession();
+            services.AddHttpContextAccessor();
             // Dependency Injection
             // DI of Admin
             services.AddScoped<IAccountService, AccountService>();
@@ -48,7 +51,7 @@ namespace FrontEndWebApp
             services.AddScoped<IExamService, ExamService>();
             services.AddScoped<IQuestionService, QuestionService>();
             services.AddScoped<IFavoriteExamService, FavoriteExamService>();
-            services.AddScoped<CallApiService>();
+            services.AddSingleton<SessionService>();
 
             services.AddAuthentication(options =>
             {
@@ -57,19 +60,18 @@ namespace FrontEndWebApp
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 //options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 //options.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            }).AddCookie(cookieoptions =>
+            {
+                cookieoptions.LoginPath = new PathString("/Account/Login");
+                cookieoptions.LogoutPath = new PathString("/Account/Login");
+                cookieoptions.AccessDeniedPath = new PathString("/Views/Account/AccessDenied");
+                // thoi gian cookie het han
+                cookieoptions.ExpireTimeSpan = TimeSpan.FromDays(3);
+                // tu dong gia han cookie neu co request gui di
+                cookieoptions.SlidingExpiration = true;
+                cookieoptions.Cookie.Name = "Asp_Authentication";
             })
-                .AddCookie(cookieoptions => 
-                {
-                    cookieoptions.LoginPath = new PathString("/Account/Login");
-                    cookieoptions.LogoutPath = new PathString("/Account/Login");
-                    cookieoptions.AccessDeniedPath = new PathString("/Views/Account/AccessDenied");
-                    // thoi gian cookie het han
-                    cookieoptions.ExpireTimeSpan = TimeSpan.FromDays(3);
-                    // tu dong gia han cookie neu co request gui di
-                    cookieoptions.SlidingExpiration = true;
-                    cookieoptions.Cookie.Name = "Asp_Authentication";
-                })
-                .AddJwtBearer(jwtOptions =>
+            .AddJwtBearer(jwtOptions =>
                 {
                     jwtOptions.RequireHttpsMetadata = false;
                     jwtOptions.SaveToken = true;
@@ -84,19 +86,23 @@ namespace FrontEndWebApp
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:SecretKey"]))
                     };
                 });
-            services.AddAuthorization(options => {
+
+            services.AddAuthorization(options =>
+            {
                 options.AddPolicy("admin",
-                    authBuilder => { 
+                    authBuilder =>
+                    {
                         authBuilder.RequireRole("admin");
                     });
                 options.AddPolicy("user",
-                    authBuilder => {
+                    authBuilder =>
+                    {
                         authBuilder.RequireRole("user");
                     });
             });
+
             services.AddControllersWithViews();
             services.AddHttpClient();
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -104,19 +110,40 @@ namespace FrontEndWebApp
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                //app.UseDeveloperExceptionPage();
+                app.UseExceptionHandler(errorApp =>
+                {
+                    errorApp.Run(async context =>
+                    {
+                        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+
+                        if (exceptionHandlerPathFeature?.Error is UnauthorizedException)
+                        {
+                            context.Response.Redirect("/Account/Login");
+                        }
+                        else if(exceptionHandlerPathFeature?.Error is ForbidenException)
+                        {
+                            context.Response.Redirect("/Account/AccessDenied");
+                        }
+                        else
+                        {
+                            context.Response.Redirect("/Account/AccessDenied");
+                        }
+                    });
+                });
             }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
-            app.UseExceptionHandler("/Home/Error");
+
             app.UseAuthentication();
             app.UseHttpsRedirection();
             app.UseSession();
             app.UseStaticFiles();
             app.UseRouting();
+
             app.UseAuthorization();
 
             app.Use(async (context, next) =>

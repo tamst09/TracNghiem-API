@@ -93,6 +93,13 @@ namespace TN.BackendAPI.Controllers
             }
             return Ok(new ResponseBase<Exam>() { });
         }
+
+        [Authorize(Roles = "admin")]
+        [HttpGet("Admin/Count")]
+        public async Task<IActionResult> CountExam()
+        {
+            return Ok(new ResponseBase<int>(data: await _examAdminService.Count()));
+        }
         //----------------------------------
         //================================== USER ===================================
         [HttpGet("{userID}")]

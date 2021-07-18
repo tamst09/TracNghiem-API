@@ -93,7 +93,7 @@ namespace TN.BackendAPI.Controllers
         }
         // POST: api/Questions/DeleteMany
         [HttpPost("DeleteMany")]
-        public async Task<IActionResult> AdminDeleteMany(DeleteManyModel<int> lstId)
+        public async Task<IActionResult> DeleteMany(DeleteManyModel<int> lstId)
         {
             var ok = await _questionService.DeleteMany(lstId);
             if (ok)
@@ -101,6 +101,13 @@ namespace TN.BackendAPI.Controllers
                 return Ok(new ResponseBase<string>() { data = "Xoá thành công "});
             }
             return Ok(new ResponseBase<string>() { msg = "Xoá thất bại" });
+        }
+
+        [HttpGet("Count")]
+        [Authorize("admin")]
+        public async Task<IActionResult> Count()
+        {
+            return Ok(new ResponseBase<int>(data: await _questionService.CountQuestions()));
         }
     }
 }

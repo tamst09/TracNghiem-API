@@ -169,9 +169,6 @@ namespace TN.BackendAPI.Services.Service
                     Owner = u.Owner,
                     Questions = u.Questions
                 })
-                .Include(e => e.Category)
-                .Include(e => e.Owner)
-                .Include(e => e.Questions)
                 .ToListAsync();
             // return
             return new PagedResult<Exam>()
