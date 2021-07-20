@@ -8,7 +8,6 @@ using TN.ViewModels.Common;
 namespace FrontEndWebApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "admin")]
     public class CategoriesController : Controller
     {
         public ICategoryManage _categoryService;

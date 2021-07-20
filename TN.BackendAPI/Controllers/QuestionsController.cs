@@ -100,12 +100,5 @@ namespace TN.BackendAPI.Controllers
                 return Ok(new ResponseBase());
             return Ok(new ResponseBase(success: false, msg: "Delete failed."));
         }
-
-        [HttpGet("Count")]
-        [Authorize("admin")]
-        public async Task<IActionResult> Count()
-        {
-            return Ok(new ResponseBase<int>(data: await _questionService.CountQuestions()));
-        }
     }
 }

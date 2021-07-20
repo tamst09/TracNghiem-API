@@ -168,6 +168,7 @@ namespace FrontEndWebApp.Controllers
                         new CookieOptions { HttpOnly = true, Secure = true });
                 }
 
+
                 if (!string.IsNullOrEmpty(ReturnUrl))
                 {
                     return Redirect(ReturnUrl);
@@ -229,13 +230,6 @@ namespace FrontEndWebApp.Controllers
                     var jwttokenResponse = await _accountService.LoginFacebook(token);
                     if (jwttokenResponse != null)
                     {
-                        //var userPrincipal = _accountService.ValidateToken(jwttokenResponse.data.Access_Token);
-                        //var authProperties = new AuthenticationProperties
-                        //{
-                        //    IsPersistent = true
-                        //};
-                        //await HttpContext.SignInAsync(userPrincipal, authProperties);
-                        //HttpContext.Session.SetInt32("IsPersistent", 1);
                         HttpContext.Response.Cookies.Append("access_token_cookie", CookieEncoder.EncodeToken(jwttokenResponse.data.Access_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(3), HttpOnly = true, Secure = true });
                         HttpContext.Response.Cookies.Append("refresh_token_cookie", CookieEncoder.EncodeToken(jwttokenResponse.data.Refresh_Token), new CookieOptions { Expires = DateTime.UtcNow.AddDays(7), HttpOnly = true, Secure = true });
                         if (jwttokenResponse.data.isNewLogin)
@@ -302,8 +296,16 @@ namespace FrontEndWebApp.Controllers
             }
             var user = await _accountService.GetUserInfo(getProfile.data.UserId);
             if (user.success)
+            {
                 return View(user.data);
+            }
             return View();
+        }
+
+        public async Task<IActionResult> GetInfoByToken()
+        {
+            var userInfo = await _accountService.GetUserInfoByToken();
+            return Json(userInfo);
         }
 
         public async Task<IActionResult> UpdateProfile()

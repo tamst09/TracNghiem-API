@@ -69,7 +69,7 @@ namespace FrontEndWebApp.Services
 
         public async Task<ResponseBase<string>> ChangePassword(int userID, ChangePasswordModel model)
         {
-            var res = await _apiHelper.QueryAsync<ChangePasswordModel, string>(HttpMethod.Post, $"/api/Users/ChangePass/{userID}", model);
+            var res = await _apiHelper.QueryAsync<ChangePasswordModel, string>(HttpMethod.Post, $"/api/Users/ChangePass?userId={userID}", model);
             return res;
         }
 

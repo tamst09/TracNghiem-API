@@ -101,6 +101,9 @@ namespace TN.BackendAPI.Services.Service
             }
             // get data and paging
             var data = await allExams
+                .Include(e => e.Category)
+                .Include(e => e.Owner)
+                .Include(e => e.Questions)
                 .OrderBy(e => e.ID)
                 .Skip((model.PageIndex - 1) * model.PageSize)
                 .Take(model.PageSize)
@@ -120,9 +123,6 @@ namespace TN.BackendAPI.Services.Service
                     Owner = u.Owner,
                     Questions = u.Questions
                 })
-                .Include(e => e.Category)
-                .Include(e => e.Owner)
-                .Include(e => e.Questions)
                 .ToListAsync();
             // return
             return new PagedResult<Exam>()

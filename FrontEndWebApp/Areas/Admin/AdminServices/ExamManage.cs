@@ -32,7 +32,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
 
         public async Task<ResponseBase<PagedResult<Exam>>> GetAllPaging(ExamPagingRequest model)
         {
-            var res = await _apiHelper.QueryAsync<ExamPagingRequest, PagedResult<Exam>>(HttpMethod.Get, "/api/Exams/Admin/Paged", model);
+            var res = await _apiHelper.QueryAsync<ExamPagingRequest, PagedResult<Exam>>(HttpMethod.Post, "/api/Exams/Admin/Paged", model);
             return res;
         }
 
@@ -62,7 +62,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
 
         public async Task<ResponseBase> Create(ExamModel model)
         {
-            var res = await _apiHelper.CommandAsync(HttpMethod.Post, $"/api/Exams/Admin", model);
+            var res = await _apiHelper.CommandAsync(HttpMethod.Post, $"/api/Exams", model);
             return res;
         }
 

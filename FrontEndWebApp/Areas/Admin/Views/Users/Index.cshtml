@@ -1,8 +1,10 @@
 ﻿@model TN.ViewModels.Common.PagedResult<TN.ViewModels.Catalog.User.UserViewModel>
+@using TN.ViewModels.Catalog.User;
 
 @{
     ViewData["Title"] = "Người dùng";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    UserInfo currentUser = (UserInfo)ViewBag.User;
 }
 
 <h3>Người dùng</h3>
@@ -64,7 +66,7 @@
                 <td class="align-middle">
                     @if (item.isActive)
                     {
-                        @if (item.Id.ToString() == User.FindFirst("UserID").Value)
+                        @if (item.Id == currentUser.UserId)
                         {
                             <button disabled id="status-@item.Id" type="button" class="btn btn-block btn-success">Hoạt động</button>
                         }
@@ -73,9 +75,9 @@
                             <button id="status-@item.Id" onclick="LockAccount(@item.Id)" type="button" class="btn btn-block btn-success">Hoạt động</button>
                         }
                     }
-                    @if (item.isActive == false && item.Id.ToString() != User.FindFirst("UserID").Value)
+                    @if (item.isActive == false)
                     {
-                        @if (item.Id.ToString() == User.FindFirst("UserID").Value)
+                        @if (item.Id == currentUser.UserId)
                         {
                             <button disabled id="status-@item.Id" type="button" class="btn btn-block btn-danger">Đã khoá</button>
                         }

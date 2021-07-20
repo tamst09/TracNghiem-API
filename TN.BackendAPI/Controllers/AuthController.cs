@@ -20,11 +20,9 @@ namespace TN.BackendAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly IUserService _userService;
-        public AuthController(IAuthService authService, IUserService userService)
+        public AuthController(IAuthService authService)
         {
             _authService = authService;
-            _userService = userService;
         }
 
         // POST: api/Users/Login
@@ -106,11 +104,11 @@ namespace TN.BackendAPI.Controllers
             return Ok(new ResponseBase<string>(success: false, msg: "User not found", data: "User not found"));
         }
 
-        // POST: api/Users/ChangePass
+        // POST: api/Users/ChangePass?userId=1
         [HttpPost("ChangePass")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel model)
+        public async Task<IActionResult> ChangePassword([FromQuery] int userId, [FromBody] ChangePasswordModel model)
         {
-            var result = await _authService.ChangePassword(GetCurrentUserId(), model);
+            var result = await _authService.ChangePassword(userId, model);
             return Ok(new ResponseBase(msg: result));
         }
 

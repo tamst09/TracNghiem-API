@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Category;
 using TN.ViewModels.Common;
 
 namespace TN.BackendAPI.Controllers
@@ -63,7 +64,7 @@ namespace TN.BackendAPI.Controllers
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> CountCategory()
         {
-            return Ok(new ResponseBase<int>(data: await _categoryService.CountCategory()));
+            return Ok(new ResponseBase<CountCategoryModel>(data: await _categoryService.CountCategory()));
         }
 
         // PUT: api/Categories

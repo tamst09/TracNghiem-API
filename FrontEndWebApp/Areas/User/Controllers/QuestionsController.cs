@@ -12,7 +12,6 @@ using TN.ViewModels.Common;
 namespace FrontEndWebApp.Areas.User.Controllers
 {
     [Area("User")]
-    //[Authorize]
     public class QuestionsController : Controller
     {
         private readonly IQuestionService _questionService;

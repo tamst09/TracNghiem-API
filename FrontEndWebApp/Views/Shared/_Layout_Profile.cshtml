@@ -1,5 +1,11 @@
 ﻿@using System.Security.Claims
 @using Microsoft.AspNetCore.Identity
+@using TN.ViewModels.Catalog.User
+
+@{ 
+    UserViewModel currentUser = (UserViewModel)ViewBag.LoginUser;
+}
+
 <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
 <link href="~/profile/css/profile_styles.css" rel="stylesheet" id="bootstrap-css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -13,6 +19,19 @@
                 $(".tab2").addClass("active"); 
             }
         }
+        $.ajax({
+            method: "GET",
+            url: "@Url.Action("GetInfoByToken", "Account")",
+            dataType: "json",
+            success: function (res) {
+                console.log(res);
+                if (res.success) {
+                    $('#avatar').attr("src", res.data.avatarUrl);
+                    $('#usernametxt').text(res.data.username);
+                    $('#displaynametxt').text(res.data.name);
+                }
+            }
+        });
     })
 </script>
 @RenderSection("Scripts", required: false)
@@ -22,16 +41,16 @@
             <div class="profile-sidebar">
                 <!-- SIDEBAR USERPIC -->
                 <div class="profile-userpic">
-                    <img loading="lazy" src="@Global.Avatar_Url" class="img-responsive" alt="Avatar">
+                    <img id="avatar" loading="lazy" src="" class="img-responsive" alt="Avatar">
                 </div>
                 <!-- END SIDEBAR USERPIC -->
                 <!-- SIDEBAR USER TITLE -->
                 <div class="profile-usertitle">
-                    <div class="profile-usertitle-name">
-                        @(User.Identity.Name)
+                    <div id="usernametxt" class="profile-usertitle-name">
+                        Username
                     </div>
-                    <div class="profile-usertitle-job">
-                        @(User.FindFirst(ClaimTypes.GivenName).Value)
+                    <div id="displaynametxt" class="profile-usertitle-job">
+                        Name
                     </div>
                 </div>
                 <!-- END SIDEBAR USER TITLE -->
@@ -51,7 +70,7 @@
                             </a>
                         </li>
                         <li class="tab tab2">
-                            <a asp-controller="Account" asp-action="UpdateProfile" asp-route-id="@Int32.Parse(User.FindFirst("UserID").Value)">
+                            <a id="routeid" asp-controller="Account" asp-action="UpdateProfile">
                                 <i class="glyphicon glyphicon-pencil"></i>
                                 Update infomation
                             </a>

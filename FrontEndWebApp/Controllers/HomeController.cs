@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿using FrontEndWebApp.Services;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -10,19 +11,28 @@ namespace FrontEndWebApp.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Index()
+        private readonly IAccountService _accountService;
+
+        public HomeController(IAccountService accountService)
         {
-            //if (User.Identity.IsAuthenticated)
-            //{
-            //    if (User.IsInRole("admin"))
-            //    {
-            //        return RedirectToAction("Index", "Home", new { Area = "Admin" });
-            //    }
-            //    else
-            //    {
-            //        return RedirectToAction("Index", "Home", new { Area = "User" });
-            //    }
-            //}
+            _accountService = accountService;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var currentUser = await _accountService.GetUserInfoByToken();
+            if (currentUser.success)
+            {
+                var user = currentUser.data;
+                if (user.Roles.Contains("admin"))
+                {
+                    return RedirectToAction("Index", "Home", new { Area = "Admin" });
+                }
+                if (user.Roles.Contains("user"))
+                {
+                    return RedirectToAction("Index", "Home", new { Area = "User" });
+                }
+            }
             return View();
         }
         public IActionResult Error()

@@ -43,7 +43,7 @@ namespace TN.BackendAPI.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        [Authorize("admin,user")]
+        [Authorize]
         public async Task<IActionResult> GetUser(int id)
         {
             var user = await _userService.GetByID(id);

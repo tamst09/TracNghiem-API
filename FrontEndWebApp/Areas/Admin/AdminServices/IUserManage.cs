@@ -15,6 +15,5 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
         Task<ResponseBase> CreateUser(UserViewModel model);
         Task<ResponseBase> LockUser(int id);
         Task<ResponseBase> RestoreUser(int id);
-        Task<ResponseBase> UpdateUser(UserViewModel model);
     }
 }

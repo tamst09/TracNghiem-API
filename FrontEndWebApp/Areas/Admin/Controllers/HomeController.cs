@@ -51,9 +51,9 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
                 ViewBag.Error = "Load question: " + countQuestionResponse.msg;
             }
             ViewBag.TotalUser = countUserResponse.data;
-            ViewBag.TotalCategory = countCategoryResponse.data;
-            ViewBag.TotalExam = countExamResponse.data;
-            ViewBag.TotalQuestion = countQuestionResponse.data;
+            ViewBag.TotalCategory = countCategoryResponse.data.NumberCategory;
+            ViewBag.TotalExam = countExamResponse.data.NumberExam;
+            ViewBag.TotalQuestion = countQuestionResponse.data.NumberQuestions;
             return View();
         }
     }

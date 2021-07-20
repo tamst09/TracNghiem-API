@@ -29,6 +29,11 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         // GET: Users
         public async Task<ActionResult> Index(string keyword, int pageIndex = 1, int pageSize = 10)
         {
+            var getCurrentUser = await _accountService.GetUserInfoByToken();
+            if (getCurrentUser.success)
+            {
+                ViewBag.User = getCurrentUser.data;
+            }
             var model = new UserPagingRequest()
             {
                 keyword = keyword,

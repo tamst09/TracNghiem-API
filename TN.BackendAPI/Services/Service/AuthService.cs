@@ -484,18 +484,34 @@ namespace TN.BackendAPI.Services.Service
 
         public async Task<ResponseBase<UserInfo>> GetProfile(int userId)
         {
-            var user = await _dbContext.Users.Where(u => u.isActive == true).Select(u => new UserInfo()
-            {
-                UserId = u.Id,
-                AvatarUrl = u.Avatar,
-                Email = u.Email,
-                UserName = u.UserName
-            }).FirstOrDefaultAsync();
+            //var user = await _dbContext.Users.Where(u => u.isActive == true).Select(u => new UserInfo()
+            //{
+            //    UserId = u.Id,
+            //    AvatarUrl = u.Avatar,
+            //    Email = u.Email,
+            //    UserName = u.UserName,
+            //    Name = u.Name
+            //}).FirstOrDefaultAsync();
+            
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.isActive == true);
             if (user == null)
             {
                 return new ResponseBase<UserInfo>(success: false, msg: "Invalid user.", data: null);
             }
-            return new ResponseBase<UserInfo>(data: user);
+            var userInfo = new UserInfo(){
+                UserId = user.Id,
+                AvatarUrl = user.Avatar,
+                Email = user.Email,
+                UserName = user.UserName,
+                Name = user.Name
+            };
+            var roles = await _userManager.GetRolesAsync(user);
+            foreach (var role in roles)
+            {
+                userInfo.Roles.Add(role);
+            }
+
+            return new ResponseBase<UserInfo>(data: userInfo);
         }
     }
 }

@@ -159,7 +159,7 @@ namespace TN.BackendAPI.Controllers
         public async Task<IActionResult> Create(ExamModel model)
         {
             var created = await _examUserService.Create(model, GetCurrentUserId());
-            if (created)
+            if (!created)
             {
                 return Ok(new ResponseBase() { success = false, msg = "Failed to create." });
             }

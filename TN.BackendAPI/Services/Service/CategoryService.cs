@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Category;
 using TN.ViewModels.Common;
 
 namespace TN.BackendAPI.Services.Service
@@ -110,9 +111,10 @@ namespace TN.BackendAPI.Services.Service
             return categoryList;
         }
 
-        public async Task<int> CountCategory()
+        public async Task<CountCategoryModel> CountCategory()
         {
-            return await _db.Categories.CountAsync();
+            int numberCategory = await _db.Categories.CountAsync();
+            return new CountCategoryModel() { NumberCategory = numberCategory };
         }
 
         public async Task<Category> GetByID(int id)

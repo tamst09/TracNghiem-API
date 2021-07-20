@@ -102,22 +102,22 @@
             <!-- Divider -->
             <!-- Nav Item - Charts -->
             @*<li class="nav-item">
-                <a class="nav-link" href="charts.html">
-                    <i class="fas fa-fw fa-chart-area"></i>
-                    <span>Charts</span>
-                </a>
-            </li>
+                    <a class="nav-link" href="charts.html">
+                        <i class="fas fa-fw fa-chart-area"></i>
+                        <span>Charts</span>
+                    </a>
+                </li>
 
-            <!-- Nav Item - Tables -->
-            <li class="nav-item">
-                <a class="nav-link" href="tables.html">
-                    <i class="fas fa-fw fa-table"></i>
-                    <span>Tables</span>
-                </a>
-            </li>
+                <!-- Nav Item - Tables -->
+                <li class="nav-item">
+                    <a class="nav-link" href="tables.html">
+                        <i class="fas fa-fw fa-table"></i>
+                        <span>Tables</span>
+                    </a>
+                </li>
 
-            <!-- Divider -->
-            <hr class="sidebar-divider d-none d-md-block">*@
+                <!-- Divider -->
+                <hr class="sidebar-divider d-none d-md-block">*@
 
             <!-- Sidebar Toggler (Sidebar) -->
             <div class="text-center d-none d-md-inline">
@@ -228,8 +228,8 @@
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">@User.Identity.Name</span>
-                                <img class="img-profile rounded-circle" style="object-fit:cover" loading="lazy" src="@Global.Avatar_Url">
+                                <span id="username" class="mr-2 d-none d-lg-inline text-gray-600 small"></span>
+                                <img id="avatar-url" class="img-profile rounded-circle" style="object-fit:cover" loading="lazy" src="">
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
@@ -250,21 +250,6 @@
                 <!-- End of Topbar -->
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
-
-                    <!-- Page Heading -->
-                    @*<div class="d-sm-flex mb-4">
-                            <!-- Topbar Search -->
-                            <form class="ml-sm-auto d-none d-sm-inline-block form-inline my-2 my-md-0 mw-100 navbar-search">
-                                <div class="input-group">
-                                    <input type="text" class="form-control bg-light border-info small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
-                                    <div class="input-group-append">
-                                        <button class="btn btn-primary" type="button">
-                                            <i class="fas fa-search fa-sm"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>*@
                     <div class="container">
                         <main role="main" class="pb-3">
                             @RenderBody()
@@ -327,6 +312,22 @@
     <script src="~/adminAssets/js/demo/chart-pie-demo.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
+    <script>
+    $(document).ready(function () {
+        $.ajax({
+            method: "GET",
+            url: "@Url.Action("GetInfoByToken", "Account", new { area=""})",
+            dataType: "json",
+            success: function (res) {
+                console.log(res);
+                if (res.success) {
+                    $('#avatar-url').attr("src", res.data.avatarUrl);
+                    $('#username').text(res.data.userName);
+                }
+            }
+        });
+    })
+    </script>
     @RenderSection("Scripts", required: false)
 </body>
 

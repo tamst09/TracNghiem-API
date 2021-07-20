@@ -52,7 +52,6 @@ namespace FrontEndWebApp
             services.AddScoped<IExamService, ExamService>();
             services.AddScoped<IQuestionService, QuestionService>();
             services.AddScoped<IFavoriteExamService, FavoriteExamService>();
-            services.AddSingleton<SessionService>();
 
             //services.AddAuthentication(options =>
             //{
