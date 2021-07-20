@@ -13,7 +13,7 @@ namespace TN.BackendAPI.Services.IServices
         Task<ResponseBase<JwtResponse>> Register(RegisterModel model);
         Task<ResponseBase<JwtResponse>> Login(LoginModel model);
         Task<ResponseBase<UserInfo>> GetProfile(int userId);
-        Task<AppUser> UpdateProfile(UserViewModel user);
+        Task<ResponseBase> UpdateProfile(UserViewModel user);
         Task<string> ResetPassword(ForgotPasswordModel model);
         Task<bool> ResetPasswordConfirm(ResetPasswordModel model);
         Task<AppUser> GetUserByAccessToken(string accessToken);

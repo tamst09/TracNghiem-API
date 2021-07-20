@@ -13,7 +13,6 @@ using TN.ViewModels.Common;
 namespace FrontEndWebApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles ="admin")]
     public class UsersController : Controller
     {
         private readonly IAccountService _accountService;   // thao tac voi tai khoan
@@ -30,45 +29,26 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         // GET: Users
         public async Task<ActionResult> Index(string keyword, int pageIndex = 1, int pageSize = 10)
         {
-            try
+            var model = new UserPagingRequest()
             {
-                //List<UserViewModel> lstAllUser = new List<UserViewModel>();
-                var model = new UserPagingRequest()
-                {
-                    keyword = keyword,
-                    PageIndex = pageIndex,
-                    PageSize = pageSize
-                };
-                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                var listUserResult = await _userManage.GetListUserPaged(model, token);
-                return View(listUserResult.data);
-            }
-            catch (Exception)
-            {
-                return RedirectToAction("Index", "Home");
-            }
+                keyword = keyword,
+                PageIndex = pageIndex,
+                PageSize = pageSize
+            };
+            var listUserResult = await _userManage.GetListUserPaged(model);
+            return View(listUserResult.data);
         }
 
         // GET: Users/Details/5
         public async Task<ActionResult> Details(int id)
         {
-            
-            try
-            {
-                var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                var user = await _accountService.GetUserInfo(id);
-                return View(user.data);
-            }
-            catch (Exception)
-            {
-                return RedirectToAction("Index", "Users");
-            }
+            var user = await _accountService.GetUserInfo(id);
+            return View(user.data);
         }
 
         // GET: Users/Create
         public ActionResult Create()
         {
-            
             return View();
         }
 
@@ -81,148 +61,78 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             {
                 return View(model);
             }
-            try
+            if (model.AvatarPhoto != null)
             {
-                if (model.AvatarPhoto != null)
+                var filePath = Path.GetTempFileName();
+                using (var stream = System.IO.File.Create(filePath))
                 {
-                    string folder = "images/cover/user/";
-                    var extensions = model.AvatarPhoto.FileName.Split('.');
-                    var extension = extensions[extensions.Length - 1];
-                    folder += model.Id.ToString() + "." + extension;
-                    model.AvatarURL = "/" + folder;
-                    string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
-                    var copyImageStream = new FileStream(serverFolder, FileMode.Create);
-                    model.AvatarPhoto.CopyTo(copyImageStream);
-                    copyImageStream.Close();
+                    await model.AvatarPhoto.CopyToAsync(stream);
                 }
-                model.AvatarPhoto = null;
-                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                var createUserResult = await _userManage.CreateUser(model, token);
-                //error
-                if(createUserResult.msg!=null || createUserResult.data == null)
-                {
-                    ViewData["Error"] = createUserResult.msg;
-                    return View(model);
-                }
-                //success
-                return RedirectToAction(nameof(Index));
+                model.AvatarURL = UploadImageService.Instance().Upload(model.UserName, filePath);
             }
-            catch
+            model.AvatarPhoto = null;
+            var createUserResult = await _userManage.CreateUser(model);
+            //error
+            if (!createUserResult.success)
             {
-                ViewData["Error"] = "Can't connect to server. Please try later.";
-                return View();
+                ViewData["Error"] = createUserResult.msg;
+                return View(model);
             }
+            //success
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Users/Edit/5
         public async Task<ActionResult> Edit(int id)
         {
-           
-            try
-            {
-                var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                var user = await _accountService.GetUserInfo(id);
-                if(user.data!=null)
-                    return View(user.data);
-                else
-                    return RedirectToAction("Index", "Users");
-            }
-            catch
-            {
+            var user = await _accountService.GetUserInfo(id);
+            if (user.success)
+                return View(user.data);
+            else
                 return RedirectToAction("Index", "Users");
-            }
         }
 
         // POST: Users/Edit/5
         [HttpPost]
-        public async Task<ActionResult> Edit(int id, UserViewModel model)
+        public async Task<ActionResult> Edit(UserViewModel model)
         {
-            try
+            if (model.AvatarPhoto != null)
             {
-                var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                if (model.AvatarPhoto != null)
+                var filePath = Path.GetTempFileName();
+                using (var stream = System.IO.File.Create(filePath))
                 {
-                    string folder = "images/cover/user/";
-                    var extensions = model.AvatarPhoto.FileName.Split('.');
-                    var extension = extensions[extensions.Length - 1];
-                    folder += model.Id.ToString()+"."+extension;
-                    model.AvatarURL = "/" + folder;
-                    string serverFolder = Path.Combine(_webHostEnvironment.WebRootPath, folder);
-                    var copyImageStream = new FileStream(serverFolder, FileMode.Create);
-                    model.AvatarPhoto.CopyTo(copyImageStream);
-                    copyImageStream.Close();
+                    await model.AvatarPhoto.CopyToAsync(stream);
                 }
-                model.AvatarPhoto = null;
-                var userUpdated = await _userManage.UpdateUserInfo(id, model, access_token);
-                return RedirectToAction("Details", "Users", new { id = userUpdated.data.Id });
+                model.AvatarURL = UploadImageService.Instance().Upload(model.UserName, filePath);
             }
-            catch
+            model.AvatarPhoto = null;
+            var userUpdated = await _accountService.UpdateProfile(model);
+            ViewData["msg"] = userUpdated.msg;
+            if (userUpdated.success)
             {
-                ViewData["msg"] = "Cập nhật thất bại";
-                return View(model);
+                return RedirectToAction("Details", "Users", new { id = model.Id });
             }
+            return View(model);
         }
         // POST: Users/LockUser/5
         [HttpPost]
         public async Task<ActionResult> LockUser(int id)
         {
-            try
+            var lockUser = await _userManage.LockUser(id);
+            return Json(new
             {
-                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                var lockUserResult = await _userManage.LockUser(id, token);
-                if (lockUserResult.msg == null)
-                {
-                    return Json(new
-                    {
-                        statusChanged = true
-                    });
-                }
-                else
-                {
-                    return Json(new
-                    {
-                        statusChanged = false
-                    });
-                }
-            }
-            catch
-            {
-                return Json(new
-                {
-                    statusChanged = false
-                });
-            }
+                statusChanged = lockUser.success
+            });
         }
         // POST: Users/RestoreUser/5
         [HttpPost]
         public async Task<ActionResult> RestoreUser(int id)
         {
-            try
+            var restoreUser = await _userManage.RestoreUser(id);
+            return Json(new
             {
-                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                var lockUserResult = await _userManage.RestoreUser(id, token);
-                if (lockUserResult.msg == null)
-                {
-                    return Json(new
-                    {
-                        statusChanged = true
-                    });
-                }
-                else
-                {
-                    return Json(new
-                    {
-                        statusChanged = false
-                    });
-                }
-            }
-            catch
-            {
-                return Json(new
-                {
-                    statusChanged = false
-                });
-            }
+                statusChanged = restoreUser.success
+            });
         }
     }
 }

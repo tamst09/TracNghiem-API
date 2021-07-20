@@ -33,7 +33,6 @@ namespace TN.BackendAPI.Controllers
         }
 
         // GET: api/Questions/GetByExam
-        [AllowAnonymous]
         [HttpPost("GetByExam")]
         public async Task<IActionResult> GetByExam([FromBody] GetQuestionsByExamRequest request)
         {
@@ -41,12 +40,12 @@ namespace TN.BackendAPI.Controllers
             return Ok(questionsResponse);
         }
 
-        // GET: api/Questions/GetNumber
-        [HttpGet("GetNumber")]
+        // GET: api/Questions/Count
+        [HttpGet("Count")]
         public async Task<IActionResult> CountQuestion()
         {
             var result = await _questionService.CountQuestions();
-            return Ok(new ResponseBase<string>(data: result.ToString()));
+            return Ok(new ResponseBase<CountQuestionModel>(data: new CountQuestionModel() { NumberQuestions = result }));
         }
         // POST: api/Questions
         [HttpPost]
@@ -73,7 +72,7 @@ namespace TN.BackendAPI.Controllers
                 return Ok(new ResponseBase<Question>(data: question));
             return Ok(new ResponseBase<Question>(success: false, msg: "Not found.", data: question));
         }
-        // PUT: api/Questions/1
+        // PUT: api/Questions
         [HttpPut]
         public async Task<IActionResult> Update(QuestionModel model)
         {

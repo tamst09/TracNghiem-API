@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using FrontEndWebApp.Services;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,138 +16,65 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
 {
     public class QuestionManage : IQuestionManage
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-        private HttpClient _httpClient;
-        public QuestionManage(IHttpClientFactory httpClientFactory)
+        private readonly IApiHelper _apiHelper;
+        public QuestionManage(IApiHelper apiHelper)
         {
-            _httpClientFactory = httpClientFactory;
-            _httpClient = _httpClientFactory.CreateClient();
-            _httpClient.BaseAddress = new Uri(ConstStrings.BASE_URL_API);
+            _apiHelper = apiHelper;
         }
 
-        public async Task<ResponseBase<Question>> Create(QuestionModel model, string accessToken)
+        public async Task<ResponseBase> Create(QuestionModel model)
         {
-            if (accessToken != null)
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            var json = JsonConvert.SerializeObject(model);
-            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("api/Questions/", httpContent);
-            if (response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync();
-                ResponseBase<Question> createResult = JsonConvert.DeserializeObject<ResponseBase<Question>>(body);
-                return createResult;
-            }
-            else
-            {
-                return null;
-            }
+            var res = await _apiHelper.CommandAsync<QuestionModel>(HttpMethod.Post, "/api/Questions", model);
+            return res;
         }
 
-        public Task<ResponseBase<string>> Delete(int id, string accessToken)
+        public async Task<ResponseBase> Delete(int id)
         {
-            throw new NotImplementedException();
+            var res = await _apiHelper.NonBodyCommandAsync(HttpMethod.Delete, $"/api/Questions/{id}");
+            return res;
         }
 
-        public async Task<ResponseBase<string>> DeleteMany(DeleteManyModel<int> lstId, string accessToken)
+        public async Task<ResponseBase> DeleteMany(DeleteManyModel<int> lstId)
         {
-            if (accessToken != null)
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            var json = JsonConvert.SerializeObject(lstId);
-            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("api/Questions/DeleteMany", httpContent);
-            if (response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync();
-                ResponseBase<string> deleteResult = JsonConvert.DeserializeObject<ResponseBase<string>>(body);
-                return deleteResult;
-            }
-            else
-            {
-                return null;
-            }
+            var res = await _apiHelper.CommandAsync<DeleteManyModel<int>>(HttpMethod.Post, $"/api/Questions/DeleteMany", lstId);
+            return res;
         }
 
-        public Task<ResponseBase<List<Question>>> GetAll(string accessToken)
+        public async Task<ResponseBase<List<Question>>> GetAll()
         {
-            throw new NotImplementedException();
+            var res = await _apiHelper.NonBodyQueryAsync<List<Question>>(HttpMethod.Get, $"/api/Questions");
+            return res;
         }
 
-        public Task<ResponseBase<List<Question>>> GetAllByExamID(int examID, string accessToken)
+        public async Task<ResponseBase<List<Question>>> GetAllByExamID(int examID)
         {
-            throw new NotImplementedException();
+            var request = new GetQuestionsByExamRequest(examID);
+            var res = await _apiHelper.QueryAsync<GetQuestionsByExamRequest, List<Question>>(HttpMethod.Post, $"/api/Questions/GetByExam", request);
+            return res;
         }
 
-        public async Task<ResponseBase<PagedResult<Question>>> GetAllPaging(QuestionPagingRequest model, string accessToken)
+        public async Task<ResponseBase<PagedResult<Question>>> GetAllPaging(QuestionPagingRequest model)
         {
-            if (accessToken != null)
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            var json = JsonConvert.SerializeObject(model);
-            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("api/Questions/Paged", httpContent);
-            if (response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync();
-                ResponseBase<PagedResult<Question>> pagedResult = JsonConvert.DeserializeObject<ResponseBase<PagedResult<Question>>>(body);
-                return pagedResult;
-            }
-            else
-            {
-                return null;
-            }
+            var res = await _apiHelper.QueryAsync<QuestionPagingRequest,PagedResult<Question>>(HttpMethod.Post, $"/api/Questions/Paged", model);
+            return res;
         }
 
-        public async Task<ResponseBase<Question>> GetByID(int id, string accessToken)
+        public async Task<ResponseBase<Question>> GetByID(int id)
         {
-            if (accessToken != null)
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            var response = await _httpClient.GetAsync("api/Questions/"+id.ToString());
-            if (response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync();
-                ResponseBase<Question> question = JsonConvert.DeserializeObject<ResponseBase<Question>>(body);
-                return question;
-            }
-            else
-            {
-                return null;
-            }
+            var res = await _apiHelper.NonBodyQueryAsync<Question>(HttpMethod.Post, $"/api/Questions/{id}");
+            return res;
         }
 
-        public async Task<ResponseBase<string>> GetNumberQuestion(string accessToken)
+        public async Task<ResponseBase<CountQuestionModel>> CountQuestion()
         {
-            if (accessToken != null)
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            var response = await _httpClient.GetAsync("api/Questions/GetNumber");
-            if (response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync();
-                ResponseBase<string> updateResult = JsonConvert.DeserializeObject<ResponseBase<string>>(body);
-                return updateResult;
-            }
-            else
-            {
-                return null;
-            }
+            var res = await _apiHelper.NonBodyQueryAsync<CountQuestionModel>(HttpMethod.Get, "/api/Questions/Count");
+            return res;
         }
 
-        public async Task<ResponseBase<string>> Update(QuestionModel model, string accessToken)
+        public async Task<ResponseBase> Update(QuestionModel model)
         {
-            if (accessToken != null)
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            var json = JsonConvert.SerializeObject(model);
-            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PutAsync("api/Questions/"+model.ID, httpContent);
-            if (response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync();
-                ResponseBase<string> updateResult = JsonConvert.DeserializeObject<ResponseBase<string>>(body);
-                return updateResult;
-            }
-            else
-            {
-                return null;
-            }
+            var res = await _apiHelper.CommandAsync(HttpMethod.Put, "/api/Questions", model);
+            return res;
         }
     }
 }

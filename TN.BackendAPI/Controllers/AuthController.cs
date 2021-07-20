@@ -152,16 +152,21 @@ namespace TN.BackendAPI.Controllers
         [HttpPut]
         public async Task<IActionResult> EditProfile([FromBody] UserViewModel user)
         {
-            if (user.Id != GetCurrentUserId())
+            if (User.IsInRole("admin"))
             {
-                return Forbid();
+                var editResult = await _authService.UpdateProfile(user);
+                return Ok(editResult);
             }
-            var editResult = await _authService.UpdateProfile(user);
-            if (editResult == null)
+            else
             {
-                return Ok(new ResponseBase(success: false, msg: "Update failed."));
+                if (user.Id != GetCurrentUserId())
+                {
+                    return Forbid();
+                }
+                var editResult = await _authService.UpdateProfile(user);
+                return Ok(editResult);
             }
-            return Ok(new ResponseBase());
+            
         }
 
         [HttpPut("AddPassword")]

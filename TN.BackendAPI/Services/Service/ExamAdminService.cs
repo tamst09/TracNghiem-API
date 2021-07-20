@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TN.BackendAPI.Services.IServices;
 using TN.Data.DataContext;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Exam;
 using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Common;
 
@@ -179,10 +180,10 @@ namespace TN.BackendAPI.Services.Service
             return true;
         }
 
-        public async Task<int> Count()
+        public async Task<CountExamModel> Count()
         {
             var numberExam = await _db.Exams.CountAsync();
-            return numberExam;
+            return new CountExamModel() { NumberExam = numberExam };
         }
     }
 }

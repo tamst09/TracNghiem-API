@@ -197,7 +197,6 @@ namespace FrontEndWebApp.Controllers
                     await model.AvatarPhoto.CopyToAsync(stream);
                 }
                 model.AvatarURL = UploadImageService.Instance().Upload(model.UserName, filePath);
-                model.AvatarPhoto = null;
             }
             model.AvatarPhoto = null;
             var user = await _accountService.Register(model);

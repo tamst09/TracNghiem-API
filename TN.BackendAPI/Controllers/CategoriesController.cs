@@ -66,8 +66,8 @@ namespace TN.BackendAPI.Controllers
             return Ok(new ResponseBase<int>(data: await _categoryService.CountCategory()));
         }
 
-        // PUT: api/Categories/5
-        [HttpPut("{id}")]
+        // PUT: api/Categories
+        [HttpPut]
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> Edit(Category category)
         {

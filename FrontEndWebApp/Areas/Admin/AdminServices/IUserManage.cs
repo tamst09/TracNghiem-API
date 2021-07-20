@@ -9,12 +9,12 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
 {
     public interface IUserManage
     {
-        Task<ResponseBase<NumberUserInfo>> GetNumberOfUsers(string access_token); // lay toan bo user
-        Task<ResponseBase<PagedResult<UserViewModel>>> GetListUserPaged(UserPagingRequest model, string accessToken); // lay user theo phan trang
-        Task<ResponseBase<UserViewModel>> GetOneUser(string access_token, int id);
-        Task<ResponseBase<JwtResponse>> CreateUser(UserViewModel model, string accessToken);
-        Task<ResponseBase<string>> LockUser(int id, string accessToken);
-        Task<ResponseBase<string>> RestoreUser(int id, string accessToken);
-        Task<ResponseBase<UserViewModel>> UpdateUserInfo(int uid, UserViewModel model, string access_token);
+        Task<ResponseBase<NumberUserInfo>> CountUser();
+        Task<ResponseBase<PagedResult<UserViewModel>>> GetListUserPaged(UserPagingRequest model);
+        Task<ResponseBase<UserViewModel>> GetOneUser(int id);
+        Task<ResponseBase> CreateUser(UserViewModel model);
+        Task<ResponseBase> LockUser(int id);
+        Task<ResponseBase> RestoreUser(int id);
+        Task<ResponseBase> UpdateUser(UserViewModel model);
     }
 }

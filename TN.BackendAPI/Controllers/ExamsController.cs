@@ -94,7 +94,7 @@ namespace TN.BackendAPI.Controllers
         [HttpGet("Admin/Count")]
         public async Task<IActionResult> CountExam()
         {
-            return Ok(new ResponseBase<int>(data: await _examAdminService.Count()));
+            return Ok(new ResponseBase<CountExamModel>(data: await _examAdminService.Count()));
         }
         //----------------------------------
         //================================== USER ===================================

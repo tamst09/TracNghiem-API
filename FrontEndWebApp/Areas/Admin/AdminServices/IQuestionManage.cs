@@ -11,18 +11,18 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
     public interface IQuestionManage
     {
         // ADMIN
-        Task<ResponseBase<string>> GetNumberQuestion(string accessToken);
-        Task<ResponseBase<List<Question>>> GetAll(string accessToken);
-        Task<ResponseBase<PagedResult<Question>>> GetAllPaging(QuestionPagingRequest model, string accessToken);
-        Task<ResponseBase<Question>> GetByID(int id, string accessToken);
-        Task<ResponseBase<string>> Update(QuestionModel model, string accessToken);
-        Task<ResponseBase<string>> Delete(int id, string accessToken);
-        Task<ResponseBase<string>> DeleteMany(DeleteManyModel<int> lstId, string accessToken);
+        Task<ResponseBase<CountQuestionModel>> CountQuestion();
+        Task<ResponseBase<List<Question>>> GetAll();
+        Task<ResponseBase<PagedResult<Question>>> GetAllPaging(QuestionPagingRequest model);
+        Task<ResponseBase<Question>> GetByID(int id);
+        Task<ResponseBase> Update(QuestionModel model);
+        Task<ResponseBase> Delete(int id);
+        Task<ResponseBase> DeleteMany(DeleteManyModel<int> lstId);
 
         //USER
-        Task<ResponseBase<List<Question>>> GetAllByExamID(int examID, string accessToken);
+        Task<ResponseBase<List<Question>>> GetAllByExamID(int examID);
 
         //COMMON
-        Task<ResponseBase<Question>> Create(QuestionModel model, string accessToken);
+        Task<ResponseBase> Create(QuestionModel model);
     }
 }

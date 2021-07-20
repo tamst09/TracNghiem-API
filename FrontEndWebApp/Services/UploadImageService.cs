@@ -34,6 +34,11 @@ namespace FrontEndWebApp.Services
                 PublicId = $"englishQuiz/avatarUser/{userName}"
             };
             var uploadResult = _cloudinary.Upload(uploadParams);
+            if(uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                // return default avatar image path
+                return "https://res.cloudinary.com/tam-tht/image/upload/v1626518463/englishQuiz/avatarUser/default_avatar.png";
+            }
             return uploadResult.SecureUrl.AbsoluteUri;
         }
     }

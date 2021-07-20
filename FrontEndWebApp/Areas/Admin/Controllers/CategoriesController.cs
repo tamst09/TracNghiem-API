@@ -1,11 +1,6 @@
 ﻿using FrontEndWebApp.Areas.Admin.AdminServices;
-using FrontEndWebApp.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using TN.Data.Entities;
 using TN.ViewModels.Common;
@@ -17,177 +12,104 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
     public class CategoriesController : Controller
     {
         public ICategoryManage _categoryService;
+        public IExamManage _examService;
 
-        public CategoriesController(ICategoryManage categoryService)
+        public CategoriesController(ICategoryManage categoryService, IExamManage examService)
         {
             _categoryService = categoryService;
+            _examService = examService;
         }
 
         public async Task<ActionResult> Index()
         {
-            try
-            {
-                var categories = await _categoryService.GetAll();
-                return View(categories.data);
-            }
-            catch (Exception)
-            {
-                return View();
-            }
+            var getAllCategoriesRes = await _categoryService.GetAll();
+            return View(getAllCategoriesRes.data);
         }
 
         public ActionResult Create()
         {
-            ViewData["Avatar"] = HttpContext.Session.GetString("avatarURL");
             ViewData["msg"] = "";
-            try
-            {
-                return View();
-            }
-            catch (Exception)
-            {
-                return View();
-            }
+            return View();
         }
+
         [HttpPost]
         public async Task<ActionResult> Create(Category model)
         {
             ViewData["msg"] = "";
-            try
+            if (string.IsNullOrEmpty(model.CategoryName))
             {
-                if (string.IsNullOrEmpty(model.CategoryName))
-                {
-                    ViewData["msg"] = "Tên chủ đề không được bỏ trống";
-                    return View(model);
-                }
-                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                var result = await _categoryService.Create(model, token);
-                if (result.msg!=null)
-                {
-                    ViewData["msg"] = result.msg;
-                    return View(model);
-                }
-                else if (result.data != null)
-                {
-                    ViewData["msg"] = "Tạo mới thành công";
-                    return View(model);
-                }
-                else
-                {
-                    ViewData["msg"] = "Lỗi không xác định";
-                    return View(model);
-                }
-            }
-            catch (Exception)
-            {
-                ViewData["msg"] = "Something went wrong. Try again.";
+                ViewData["msg"] = "Tên chủ đề không được bỏ trống";
                 return View(model);
             }
+
+            var result = await _categoryService.Create(model);
+            ViewData["msg"] = result.msg;
+            if (result.success)
+                return View();
+            return View(model);
         }
 
         public async Task<ActionResult> Edit(int id)
         {
             ViewData["msg"] = "";
-            try
+            var result = await _categoryService.GetByID(id);
+            if (result.success)
             {
-                var model = await _categoryService.GetByID(id);
-                return View(model.data);
-            }
-            catch (Exception)
-            {
-                ViewData["msg"] = "Something went wrong. Try again.";
+                ViewData["msg"] = result.msg;
                 return View();
             }
+            return View(result.data);
         }
+
         [HttpPost]
-        public async Task<ActionResult> Edit(int id, Category model)
+        public async Task<ActionResult> Edit(Category model)
         {
             ViewData["msg"] = "";
-            try
+            if (string.IsNullOrEmpty(model.CategoryName))
             {
-                if (id != model.ID)
-                {
-                    ViewData["msg"] = "Không hợp lệ";
-                    return View(model);
-                }
-                if (string.IsNullOrEmpty(model.CategoryName))
-                {
-                    ViewData["msg"] = "Tên chủ đề không được bỏ trống";
-                    return View(model);
-                }
-                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                await _categoryService.Update(id, model, token);
-                return RedirectToAction("Index");
+                ViewData["msg"] = "Tên chủ đề không được bỏ trống";
+                return View(model);
             }
-            catch (Exception)
+            var result = await _categoryService.Update(model);
+            if (result.success)
             {
                 return RedirectToAction("Index");
             }
+            return View(model);
         }
+
         [HttpPost]
         public async Task<ActionResult> Delete(int id)
         {
-            try
-            {
-                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                var result = await _categoryService.Delete(id, token);
-                return RedirectToAction("Index");
-                //return Json(new { deleteResult = result });
-            }
-            catch
-            {
-                return RedirectToAction("Index");
-                //return Json(new { deleteResult = false });
-            }
+            var result = await _categoryService.Delete(id);
+            return RedirectToAction("Index");
         }
+
         [HttpPost]
-        public async Task<ActionResult> DeleteRange([FromBody]int[] s)
+        public async Task<ActionResult> DeleteRange([FromBody] int[] s)
         {
-            try
+            if (s.Length == 0)
             {
-                var token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-                if (s.Length == 0)
-                {
-                    return Json(new { deleteResult = false });
-                }
-                DeleteManyModel<int> temp = new DeleteManyModel<int>();
-                temp.ListItem = new List<int>();
-                temp.ListItem.AddRange(s);
-                var result = await _categoryService.DeleteRange(temp, token);
-                if (result.msg != null)
-                {
-                    return Json(new { deleteResult = false });
-                }
-                return Json(new { deleteResult = true });
-            }
-            catch
-            {
-                //return RedirectToAction("Index");
                 return Json(new { deleteResult = false });
             }
+            DeleteManyModel<int> temp = new DeleteManyModel<int>();
+            temp.ListItem.AddRange(s);
+            var result = await _categoryService.DeleteRange(temp);
+            return Json(new { deleteResult = result.success });
         }
 
         [HttpGet]
         public async Task<IActionResult> ViewAllExams(int categoryID)
         {
             ViewData["CategoryName"] = _categoryService.GetByID(categoryID).Result.data.CategoryName;
-            var accessToken = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var lstExams = await _categoryService.GetAllExams(categoryID, accessToken);
-            if(lstExams == null)
+
+            var getExamsResponse = await _examService.GetByCategory(categoryID);
+            if (!getExamsResponse.success)
             {
-                ViewData["msg"] = "Lỗi kết nối máy chủ";
+                ViewData["msg"] = getExamsResponse.msg;
                 return View();
             }
-            if(lstExams.success == false)
-            {
-                return RedirectToAction("Login", "Account", new { Area =""});
-            }
-            if(lstExams.msg != null || lstExams.data == null)
-            {
-                ViewData["msg"] = lstExams.msg;
-                return View();
-            }
-            return View(lstExams.data);
+            return View(getExamsResponse.data);
         }
     }
 }

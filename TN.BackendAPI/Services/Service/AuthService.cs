@@ -399,7 +399,7 @@ namespace TN.BackendAPI.Services.Service
             return new ResponseBase<JwtResponse>(success: false, msg: result.Errors.First().Description, data: null);
         }
 
-        public async Task<AppUser> UpdateProfile(UserViewModel model)
+        public async Task<ResponseBase> UpdateProfile(UserViewModel model)
         {
             var user = await _dbContext.Users.FindAsync(model.Id);
             if (!string.IsNullOrEmpty(model.Name) && !string.IsNullOrEmpty(model.Name))
@@ -425,11 +425,11 @@ namespace TN.BackendAPI.Services.Service
             try
             {
                 await _dbContext.SaveChangesAsync();
-                return user;
+                return new ResponseBase();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException e)
             {
-                return null;
+                return new ResponseBase(success: false, msg: e.Message);
             }
         }
 

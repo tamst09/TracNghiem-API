@@ -13,7 +13,6 @@ using TN.ViewModels.Common;
 namespace FrontEndWebApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize("admin")]
     public class HomeController : Controller
     {
         private readonly IUserManage _userManage;
@@ -31,22 +30,30 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var access_token = CookieEncoder.DecodeToken(Request.Cookies["access_token_cookie"]);
-            var users = await _userManage.GetNumberOfUsers(access_token);
-            var categories = await _cateManage.GetAll();
-            var exams = await _examManage.GetAll(access_token);
-            var questions = await _quesManage.GetNumberQuestion(access_token);
-            ViewBag.TotalExam = exams.data.Count();
-            ViewBag.TotalQuestion = questions.data;
-            if (users != null && categories !=null)
+            var countUserResponse = await _userManage.CountUser();
+            var countCategoryResponse = await _cateManage.Count();
+            var countExamResponse = await _examManage.CountExam();
+            var countQuestionResponse = await _quesManage.CountQuestion();
+            if (!countUserResponse.success)
             {
-                if (users.msg!=null)
-                {
-                    ViewBag.Error = users.msg;
-                }
-                ViewBag.TotalUser = users.data;
-                ViewBag.TotalCategory = categories.data.Count;
+                ViewBag.Error = "Load user: " + countUserResponse.msg;
             }
+            if (!countCategoryResponse.success)
+            {
+                ViewBag.Error = "Load category: " + countCategoryResponse.msg;
+            }
+            if (!countExamResponse.success)
+            {
+                ViewBag.Error = "Load exam: " + countExamResponse.msg;
+            }
+            if (!countQuestionResponse.success)
+            {
+                ViewBag.Error = "Load question: " + countQuestionResponse.msg;
+            }
+            ViewBag.TotalUser = countUserResponse.data;
+            ViewBag.TotalCategory = countCategoryResponse.data;
+            ViewBag.TotalExam = countExamResponse.data;
+            ViewBag.TotalQuestion = countQuestionResponse.data;
             return View();
         }
     }
