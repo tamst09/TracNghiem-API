@@ -493,7 +493,7 @@ namespace TN.BackendAPI.Services.Service
             //    Name = u.Name
             //}).FirstOrDefaultAsync();
             
-            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.isActive == true);
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.isActive == true && u.Id == userId);
             if (user == null)
             {
                 return new ResponseBase<UserInfo>(success: false, msg: "Invalid user.", data: null);

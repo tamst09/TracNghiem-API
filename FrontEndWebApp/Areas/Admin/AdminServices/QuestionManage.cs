@@ -61,7 +61,7 @@ namespace FrontEndWebApp.Areas.Admin.AdminServices
 
         public async Task<ResponseBase<Question>> GetByID(int id)
         {
-            var res = await _apiHelper.NonBodyQueryAsync<Question>(HttpMethod.Post, $"/api/Questions/{id}");
+            var res = await _apiHelper.NonBodyQueryAsync<Question>(HttpMethod.Get, $"/api/Questions/{id}");
             return res;
         }
 

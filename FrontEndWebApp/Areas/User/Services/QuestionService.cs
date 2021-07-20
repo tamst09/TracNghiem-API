@@ -44,19 +44,19 @@ namespace FrontEndWebApp.Areas.User.Services
 
         public async Task<ResponseBase<Question>> GetByID(int id)
         {
-            var response = await _apiHelper.NonBodyQueryAsync<Question>(HttpMethod.Get, $"/api/Question/{id}");
+            var response = await _apiHelper.NonBodyQueryAsync<Question>(HttpMethod.Get, $"/api/Questions/{id}");
             return response;
         }
 
         public async Task<ResponseBase<PagedResult<Question>>> GetPagedQuestion(QuestionPagingRequest model)
         {
-            var response = await _apiHelper.QueryAsync<QuestionPagingRequest, PagedResult<Question>>(HttpMethod.Post, $"/api/Question/Paged", model);
+            var response = await _apiHelper.QueryAsync<QuestionPagingRequest, PagedResult<Question>>(HttpMethod.Post, $"/api/Questions/Paged", model);
             return response;
         }
 
         public async Task<ResponseBase> Update(QuestionModel model)
         {
-            var response = await _apiHelper.CommandAsync(HttpMethod.Put, $"/api/Question", model);
+            var response = await _apiHelper.CommandAsync(HttpMethod.Put, $"/api/Questions", model);
             return response;
         }
     }
