@@ -27,14 +27,14 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
 
         public ActionResult Create()
         {
-            ViewData["msg"] = string.Empty;
+            ViewData["msg"] = "";
             return View();
         }
 
         [HttpPost]
         public async Task<ActionResult> Create(Category model)
         {
-            ViewData["msg"] = string.Empty;
+            ViewData["msg"] = "";
             if (string.IsNullOrEmpty(model.CategoryName))
             {
                 ViewData["msg"] = "Tên chủ đề không được bỏ trống";
@@ -50,10 +50,11 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
 
         public async Task<ActionResult> Edit(int id)
         {
-            ViewData["msg"] = string.Empty;
+            ViewData["msg"] = "";
             var result = await _categoryService.GetByID(id);
             if (result.success)
             {
+                ViewData["msg"] = result.msg;
                 return View();
             }
             return View(result.data);
@@ -62,7 +63,7 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
         [HttpPost]
         public async Task<ActionResult> Edit(Category model)
         {
-            ViewData["msg"] = string.Empty;
+            ViewData["msg"] = "";
             if (string.IsNullOrEmpty(model.CategoryName))
             {
                 ViewData["msg"] = "Tên chủ đề không được bỏ trống";
@@ -71,9 +72,8 @@ namespace FrontEndWebApp.Areas.Admin.Controllers
             var result = await _categoryService.Update(model);
             if (result.success)
             {
-                return View();
+                return RedirectToAction("Index");
             }
-            ViewData["msg"] = result.msg;
             return View(model);
         }
 

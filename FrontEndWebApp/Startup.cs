@@ -40,7 +40,7 @@ namespace FrontEndWebApp
             services.AddSession();
             services.AddHttpContextAccessor();
             // Dependency Injection
-            services.AddScoped<IApiHelper, ApiHelper>();
+            services.AddTransient<IApiHelper, ApiHelper>();
             // DI of Admin
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IUserManage, UserManage>();
@@ -52,6 +52,25 @@ namespace FrontEndWebApp
             services.AddScoped<IExamService, ExamService>();
             services.AddScoped<IQuestionService, QuestionService>();
             services.AddScoped<IFavoriteExamService, FavoriteExamService>();
+
+            //services.AddAuthentication(options =>
+            //{
+            //    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            //    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            //    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            //    //options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            //    //options.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            //}).AddCookie(cookieoptions =>
+            //{
+            //    cookieoptions.LoginPath = new PathString("/Account/Login");
+            //    cookieoptions.LogoutPath = new PathString("/Account/Login");
+            //    cookieoptions.AccessDeniedPath = new PathString("/Views/Account/AccessDenied");
+            //    // thoi gian cookie het han
+            //    cookieoptions.ExpireTimeSpan = TimeSpan.FromDays(3);
+            //    // tu dong gia han cookie neu co request gui di
+            //    cookieoptions.SlidingExpiration = true;
+            //    cookieoptions.Cookie.Name = "Asp_Authentication";
+            //});
 
             services.AddControllersWithViews();
             services.AddHttpClient();
@@ -65,7 +84,7 @@ namespace FrontEndWebApp
                 //app.UseDeveloperExceptionPage();
                 app.UseExceptionHandler(errorApp =>
                 {
-                    errorApp.Run(context =>
+                    errorApp.Run(async context =>
                     {
                         var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
 
@@ -73,15 +92,14 @@ namespace FrontEndWebApp
                         {
                             context.Response.Redirect("/Account/Login");
                         }
-                        else if(exceptionHandlerPathFeature?.Error is ForbidException)
+                        else if(exceptionHandlerPathFeature?.Error is ForbidenException)
                         {
-                            context.Response.Redirect("/Account/AccessDenied");
+                            context.Response.Redirect("/Account/AccessDenied.cshtml");
                         }
                         else
                         {
                             context.Response.Redirect("/Home/Error");
                         }
-                        return System.Threading.Tasks.Task.CompletedTask;
                     });
                 });
             }

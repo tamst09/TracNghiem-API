@@ -12,6 +12,7 @@ namespace TN.BackendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize("admin")]
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -22,7 +23,6 @@ namespace TN.BackendAPI.Controllers
 
         // GET: api/Users
         [HttpGet]
-        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetUsers()
         {
             var lstUser = await _userService.GetAll();
@@ -31,7 +31,6 @@ namespace TN.BackendAPI.Controllers
 
         // POST: api/Users/Paged
         [HttpPost("Paged")]
-        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetUsersPaged(UserPagingRequest model)
         {
             var result = await _userService.GetListUserPaged(model);
@@ -44,7 +43,7 @@ namespace TN.BackendAPI.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        [Authorize(Roles = "user, admin")]
+        [Authorize]
         public async Task<IActionResult> GetUser(int id)
         {
             var user = await _userService.GetByID(id);
@@ -57,7 +56,6 @@ namespace TN.BackendAPI.Controllers
 
         // GET: api/Users/Count
         [HttpGet("Count")]
-        [Authorize(Roles = "admin")]
         public async Task<IActionResult> CountUser()
         {
             NumberUserInfo countUser = await _userService.CountUser();
@@ -66,7 +64,6 @@ namespace TN.BackendAPI.Controllers
 
         // GET: api/GetStatus/5
         [HttpGet("GetStatus/{id}")]
-        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetStatus(int id)
         {
             var user = await _userService.GetByID(id);
@@ -82,7 +79,6 @@ namespace TN.BackendAPI.Controllers
 
         // POST: api/Users/CreateUser
         [HttpPost("CreateUser")]
-        [Authorize(Roles = "admin")]
         public async Task<IActionResult> AddUser([FromBody] RegisterModel user)
         {
             var result = await _userService.AddUser(user);
@@ -91,7 +87,6 @@ namespace TN.BackendAPI.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("DeleteUser/{id}")]
-        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             var deleteResult = await _userService.DeleteUser(id);
@@ -103,7 +98,6 @@ namespace TN.BackendAPI.Controllers
         }
 
         [HttpPost("LockUser/{id}")]
-        [Authorize(Roles = "admin")]
         public async Task<IActionResult> LockUser(int id)
         {
             var lockUserResult = await _userService.DeleteUser(id);
@@ -115,7 +109,6 @@ namespace TN.BackendAPI.Controllers
         }
 
         [HttpPost("RestoreUser/{id}")]
-        [Authorize(Roles = "admin")]
         public async Task<IActionResult> RestoreUser(int id)
         {
             var result = await _userService.RestoreUser(id);
