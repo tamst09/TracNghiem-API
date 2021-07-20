@@ -44,7 +44,7 @@ namespace FrontEndWebApp.Services
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
-                throw new ForbidenException();
+                throw new ForbidException();
             }
             else
             {
@@ -73,7 +73,7 @@ namespace FrontEndWebApp.Services
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
-                throw new ForbidenException();
+                throw new ForbidException();
             }
             else
             {
@@ -102,7 +102,7 @@ namespace FrontEndWebApp.Services
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
-                throw new ForbidenException();
+                throw new ForbidException();
             }
             else
             {
@@ -130,7 +130,7 @@ namespace FrontEndWebApp.Services
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
-                throw new ForbidenException();
+                throw new ForbidException();
             }
             else
             {

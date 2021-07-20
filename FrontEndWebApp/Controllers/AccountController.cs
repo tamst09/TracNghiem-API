@@ -34,7 +34,6 @@ namespace FrontEndWebApp.Controllers
         {
             HttpContext.Response.Cookies.Delete("access_token_cookie");
             HttpContext.Response.Cookies.Delete("refresh_token_cookie");
-            //HttpContext.SignOutAsync();
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
 
@@ -102,17 +101,16 @@ namespace FrontEndWebApp.Controllers
             return View();
         }
 
-        public IActionResult Login(string username, string ReturnUrl)
+        public IActionResult Login(string returnUrl)
         {
-
             ViewData["Title"] = "Log in";
-            ViewData["ReturnUrl"] = ReturnUrl;
-            return View(new LoginModel() { UserName = username });
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginModel model, string ReturnUrl)
+        public async Task<IActionResult> Login(LoginModel model, string returnUrl)
         {
             if (!ModelState.IsValid)
             {
@@ -129,16 +127,8 @@ namespace FrontEndWebApp.Controllers
             }
             else
             {
-                //var userPrincipal = _accountService.ValidateToken(response.data.Access_Token);
-                var authProperties = new AuthenticationProperties
-                {
-                    // set false -> tạo ra cookie phiên -> thoát trình duyệt cookie bị xoá
-                    // set true -> cookie có thời hạn đc set trong Startup.cs và ko bị mất khi thoát
-                    IsPersistent = model.Rememberme
-                };
-
-                //await HttpContext.SignInAsync(userPrincipal, authProperties);
-
+                HttpContext.Response.Cookies.Delete("access_token_cookie");
+                HttpContext.Response.Cookies.Delete("refresh_token_cookie");
                 if (model.Rememberme)
                 {
                     HttpContext.Response.Cookies.Append("access_token_cookie",
@@ -168,12 +158,11 @@ namespace FrontEndWebApp.Controllers
                         new CookieOptions { HttpOnly = true, Secure = true });
                 }
 
-
-                if (!string.IsNullOrEmpty(ReturnUrl))
+                if (!string.IsNullOrWhiteSpace(returnUrl))
                 {
-                    return Redirect(ReturnUrl);
+                    return Redirect(returnUrl);
                 }
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Home", new { area="" });
             }
         }
 
@@ -349,6 +338,11 @@ namespace FrontEndWebApp.Controllers
             // fail
             ViewData["msg"] = updateResponse.msg;
             return RedirectToAction(nameof(UpdateProfile), new { id = model.Id });
+        }
+
+        public IActionResult AccessDenied()
+        {
+            return View("~/Views/Account/AccessDenied.cshtml");
         }
     }
 }

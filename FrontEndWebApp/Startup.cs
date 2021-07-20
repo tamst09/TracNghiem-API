@@ -40,7 +40,7 @@ namespace FrontEndWebApp
             services.AddSession();
             services.AddHttpContextAccessor();
             // Dependency Injection
-            services.AddTransient<IApiHelper, ApiHelper>();
+            services.AddScoped<IApiHelper, ApiHelper>();
             // DI of Admin
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IUserManage, UserManage>();
@@ -84,7 +84,7 @@ namespace FrontEndWebApp
                 //app.UseDeveloperExceptionPage();
                 app.UseExceptionHandler(errorApp =>
                 {
-                    errorApp.Run(async context =>
+                    errorApp.Run(context =>
                     {
                         var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
 
@@ -92,14 +92,15 @@ namespace FrontEndWebApp
                         {
                             context.Response.Redirect("/Account/Login");
                         }
-                        else if(exceptionHandlerPathFeature?.Error is ForbidenException)
+                        else if(exceptionHandlerPathFeature?.Error is ForbidException)
                         {
-                            context.Response.Redirect("/Account/AccessDenied.cshtml");
+                            context.Response.Redirect("/Account/AccessDenied");
                         }
                         else
                         {
                             context.Response.Redirect("/Home/Error");
                         }
+                        return System.Threading.Tasks.Task.CompletedTask;
                     });
                 });
             }

@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace FrontEndWebApp.Exceptions
 {
-    public class ForbidenException : Exception
+    public class ForbidException : Exception
     {
-        public ForbidenException(string message = "You are not permitted to access this resource.") : base(message)
+        public ForbidException(string message = "You are not permitted to access this resource.") : base(message)
         {
         }
     }

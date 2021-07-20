@@ -42,13 +42,7 @@ namespace FrontEndWebApp.Controllers
             switch (HttpContext.Response.StatusCode)
             {
                 case 500:
-                    ViewData["message"] = "Server not avaible";
-                    break;
-                case 401:
-                    ViewData["message"] = "Unauthorized";
-                    break;
-                case 403:
-                    ViewData["message"] = "Forbiden";
+                    ViewData["message"] = "Server not available";
                     break;
                 case 404:
                     ViewData["message"] = "Page not found";
@@ -57,7 +51,8 @@ namespace FrontEndWebApp.Controllers
                     ViewData["message"] = "Something went wrong";
                     break;
             }
-
+            var exceptionHandlerPathFeature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
+            ViewData["stackTrace"] = exceptionHandlerPathFeature.Error.Message;
             return View();
         }
     }
