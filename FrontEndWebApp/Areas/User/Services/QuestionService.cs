@@ -35,6 +35,12 @@ namespace FrontEndWebApp.Areas.User.Services
             return response;
         }
 
+        public async Task<ResponseBase> Delete(int questionId)
+        {
+            var response = await _apiHelper.NonBodyCommandAsync(HttpMethod.Delete, $"/api/Questions/{questionId}");
+            return response;
+        }
+
         public async Task<ResponseBase<List<Question>>> GetByExamID(int examID)
         {
             GetQuestionsByExamRequest request = new GetQuestionsByExamRequest(examID);

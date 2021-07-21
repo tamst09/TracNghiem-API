@@ -14,8 +14,7 @@
             <div class="panel-body">
                 <div class="table-responsive">
                     <div>
-                        <a id="btnADD" class="btn btn-outline-primary" data-toggle="modal" data-target="#createModal" data-exam-id="@ViewData["examID"]">New question</a>
-                        <a asp-action="Create" asp-controller="Questions" asp-area="User" asp-route-examID="@ViewData["examID"]">New question page</a>
+                        <a class="btn btn-outline-primary" asp-action="Create" asp-controller="Questions" asp-area="User" asp-route-examID="@ViewData["examID"]">New question</a>
                     </div>
                     <table id="dttable" class="table table-bordered table-hover table-striped">
                         <thead>

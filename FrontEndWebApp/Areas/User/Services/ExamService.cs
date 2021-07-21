@@ -65,5 +65,11 @@ namespace FrontEndWebApp.Areas.User.Services
             var response = await _apiHelper.CommandAsync(HttpMethod.Put, $"/api/Exams", model);
             return response;
         }
+
+        public async Task<ResponseBase> DeleteMany(DeleteManyModel<int> model)
+        {
+            var response = await _apiHelper.CommandAsync(HttpMethod.Post, "/api/Exams/DeleteMany", model);
+            return response;
+        }
     }
 }

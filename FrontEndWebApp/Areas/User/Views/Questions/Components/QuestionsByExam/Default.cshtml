@@ -1,0 +1,34 @@
+﻿@model List<TN.ViewModels.Catalog.Question.QuestionModel>
+
+@if (Model != null)
+{
+    @foreach (var item in Model)
+    {
+        <div class="card text-center" id="card-question">
+            <div class="d-flex flex-row justify-content-between py-1 px-3">
+                <div>@item.QuesContent</div>
+                <div><button data-exam-id="@item.ID" class="btn btn-danger mr-0 ml-auto delete-btn"><i class="fa fa-trash"></i></button></div>
+            </div>
+        </div>
+    }
+}
+
+
+<script>
+    $(".delete-btn").on('click', function (event) {
+        event.preventDefault();
+        let id = $(this).data('exam-id');
+        $.ajax({
+            method: "DELETE",
+            url: `/User/Questions/Delete/${id}`,
+            dataType: "json",
+            success: function (response) {
+                console.log(response);
+                loadData();
+            },
+            error: function (err) {
+                console.error(err);
+            }
+        })
+    })
+</script>

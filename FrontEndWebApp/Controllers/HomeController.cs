@@ -52,7 +52,7 @@ namespace FrontEndWebApp.Controllers
                     break;
             }
             var exceptionHandlerPathFeature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
-            ViewData["stackTrace"] = exceptionHandlerPathFeature.Error.Message;
+            ViewData["stackTrace"] = exceptionHandlerPathFeature?.Error.Message;
             return View();
         }
     }

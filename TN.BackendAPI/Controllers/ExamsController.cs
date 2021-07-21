@@ -142,6 +142,16 @@ namespace TN.BackendAPI.Controllers
             }
             return Ok(new ResponseBase(success: false, msg: "Failed."));
         }
+        [HttpPost("DeleteMany")]
+        public async Task<IActionResult> UserDeleteMany(DeleteManyModel<int> lstExamId)
+        {
+            var deleted = await _examUserService.DeleteMany(lstExamId);
+            if (deleted)
+            {
+                return Ok(new ResponseBase());
+            }
+            return Ok(new ResponseBase(success: false, msg: "Failed to delete."));
+        }
         [HttpPut]
         public async Task<IActionResult> UserUpdate([FromBody] ExamModel model)
         {

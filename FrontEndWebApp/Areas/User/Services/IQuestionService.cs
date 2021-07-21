@@ -19,5 +19,6 @@ namespace FrontEndWebApp.Areas.User.Services
         Task<ResponseBase> Create(QuestionModel model);
         Task<ResponseBase> Update(QuestionModel model);
         Task<ResponseBase> DeleteMany(DeleteManyModel<int> lstId);
+        Task<ResponseBase> Delete(int questionId);
     }
 }

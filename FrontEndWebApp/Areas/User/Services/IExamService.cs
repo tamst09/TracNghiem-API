@@ -18,6 +18,7 @@ namespace FrontEndWebApp.Areas.User.Services
         Task<ResponseBase<ExamAttemps>> IncreaseAttemps(int id);
         Task<ResponseBase> Update(ExamModel model);
         Task<ResponseBase> Delete(int id);
+        Task<ResponseBase> DeleteMany(DeleteManyModel<int> lstId);
         Task<ResponseBase<Exam>> GetByID(int id);
     }
 }

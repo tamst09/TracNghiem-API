@@ -62,7 +62,6 @@ namespace FrontEndWebApp
         {
             if (env.IsDevelopment())
             {
-                //app.UseDeveloperExceptionPage();
                 app.UseExceptionHandler(errorApp =>
                 {
                     errorApp.Run(context =>
@@ -84,6 +83,7 @@ namespace FrontEndWebApp
                         return System.Threading.Tasks.Task.CompletedTask;
                     });
                 });
+                app.UseDeveloperExceptionPage();
             }
             else
             {
@@ -91,7 +91,7 @@ namespace FrontEndWebApp
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseSession();
             app.UseStaticFiles();
             app.UseRouting();
@@ -106,9 +106,10 @@ namespace FrontEndWebApp
                     name: "UserArea",
                     areaName: "User",
                     pattern: "User/{controller=Home}/{action=Index}/{id?}");
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapDefaultControllerRoute();
+                //endpoints.MapControllerRoute(
+                //    name: "default",
+                //    pattern: "{controller=Home}/{action=Index}/{id?}");
             });
         }
     }

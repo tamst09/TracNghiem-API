@@ -15,10 +15,12 @@ namespace FrontEndWebApp.Areas.User.Controllers
     public class QuestionsController : Controller
     {
         private readonly IQuestionService _questionService;
+        public IExamService _examService;
 
-        public QuestionsController(IQuestionService questionService)
+        public QuestionsController(IQuestionService questionService, IExamService examService)
         {
             _questionService = questionService;
+            _examService = examService;
         }
 
         public IActionResult Index()
@@ -26,20 +28,99 @@ namespace FrontEndWebApp.Areas.User.Controllers
             return View();
         }
 
+        public async Task<IActionResult> GetByExam([FromQuery] int examID)
+        {
+            ViewData["msg"] = string.Empty;
+            //var lstCategory = await _categoryService.GetAll();
+            //ViewData["lstCategory"] = lstCategory.data;
+
+            var getExamRes = await _examService.GetByID(examID);
+            if (getExamRes.success)
+            {
+                ViewData["examID"] = getExamRes.data.ID;
+                ViewData["examName"] = getExamRes.data.ExamName.ToUpper();
+                var questions = await _questionService.GetByExamID(examID);
+                if (questions.success)
+                    return View(questions.data);
+                else
+                {
+                    ViewData["msg"] = questions.msg;
+                    return View();
+                }
+            }
+            ViewData["msg"] = getExamRes.msg;
+            return View();
+        }
+
+        public async Task<IActionResult> GetByExamJson([FromQuery] string examId)
+        {
+            var getExamRes = await _examService.GetByID(int.Parse(examId));
+            if (getExamRes.success)
+            {
+                var questions = await _questionService.GetByExamID(int.Parse(examId));
+                if (questions.success)
+                {
+                    var questionsModel = questions.data.Select(q => new CreateQuestionRequest()
+                    {
+                        answer = q.Answer,
+                        examId = q.ExamID.ToString(),
+                        option1 = q.Option1,
+                        option2 = q.Option2,
+                        option3 = q.Option3,
+                        option4 = q.Option4,
+                        quesContent = q.QuesContent
+                    }).ToList();
+                    return Json(questionsModel);
+                }
+            }
+            return Json(new { success=false, msg="No exam found." });
+        }
+
         public IActionResult Create(int examID)
         {
             ViewData["msg"] = string.Empty;
-            return PartialView(new QuestionModel() { ExamID = examID });
+            //return PartialView(new QuestionModel() { ExamID = examID });
+            return View(new QuestionModel() { ExamID = examID });
         }
         [HttpPost]
-        public async Task<IActionResult> Create([FromQuery] QuestionModel model)
+        public async Task<IActionResult> Create([FromBody] CreateQuestionRequest request)
         {
             ViewData["msg"] = string.Empty;
 
-            var createResponse = await _questionService.Create(model);
-            ViewData["msg"] = createResponse.msg;
+            //var createResponse = await _questionService.Create(model);
+            //ViewData["msg"] = createResponse.msg;
 
-            return RedirectToAction("ManageQuestions", "Exams", new { examID = model.ExamID });
+            //return RedirectToAction("ManageQuestions", "Exams", new { examID = model.ExamID });
+            //foreach (var item in newQuestions)
+            //{
+            //    var content = item.QuesContent;
+            //    var op1 = item.Option1;
+            //    var answer = item.Answer;
+            //    var examId = item.ExamID;
+            //}
+            var createResult = await _questionService.Create(new QuestionModel()
+            {
+                ExamID = int.Parse(request.examId),
+                QuesContent = request.quesContent,
+                Option1 = request.option1,
+                Option2 = request.option2,
+                Option3 = request.option3,
+                Option4 = request.option4,
+                Answer = request.answer,
+                isActive = true
+            });
+
+            return Json(createResult);
+        }
+        public class CreateQuestionRequest
+        {
+            public string quesContent { get; set; }
+            public string option1 { get; set; }
+            public string option2 { get; set; }
+            public string option3 { get; set; }
+            public string option4 { get; set; }
+            public string answer { get; set; }
+            public string examId { get; set; }
         }
 
         [HttpPost]
@@ -60,6 +141,13 @@ namespace FrontEndWebApp.Areas.User.Controllers
             {
                 return Json(new { deleteResult = false });
             }
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var delete = await _questionService.Delete(id);
+            return Json(delete);
         }
 
         public async Task<IActionResult> Update(int ID)
@@ -91,11 +179,17 @@ namespace FrontEndWebApp.Areas.User.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Update([FromQuery] QuestionModel model)
+        public async Task<IActionResult> Update(QuestionModel model)
         {
             ViewData["msg"] = string.Empty;
             var updateResult = await _questionService.Update(model);
             return RedirectToAction("ManageQuestions", "Exams", new { id = model.ExamID });
+        }
+
+        [HttpGet]
+        public IActionResult GetListQuestionsViewComp(int examId)
+        {
+            return ViewComponent("QuestionsByExam", new { examId = examId });
         }
     }
 }

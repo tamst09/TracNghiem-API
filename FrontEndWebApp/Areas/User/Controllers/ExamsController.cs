@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using TN.Data.Entities;
 using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Catalog.Question;
+using TN.ViewModels.Common;
 
 namespace FrontEndWebApp.Areas.User.Controllers
 {
@@ -59,29 +60,25 @@ namespace FrontEndWebApp.Areas.User.Controllers
             ViewData["msg"] = createResponse.msg;
             return View();
         }
-        [HttpGet("{examID}")]
-        public async Task<IActionResult> ManageQuestions(int examID)
-        {
-            ViewData["msg"] = string.Empty;
-            var lstCategory = await _categoryService.GetAll();
-            ViewData["lstCategory"] = lstCategory.data;
 
-            var getExamRes = await _examService.GetByID(examID);
-            if (getExamRes.success)
+        [HttpPost]
+        public async Task<IActionResult> DeleteMany([FromBody] int[] s)
+        {
+            try
             {
-                ViewData["examID"] = getExamRes.data.ID;
-                ViewData["examName"] = getExamRes.data.ExamName.ToUpper();
-                var questions = await _questionService.GetByExamID(examID);
-                if(questions.success)
-                    return View(questions.data);
-                else
+                if (s.Length == 0)
                 {
-                    ViewData["msg"] = questions.msg;
-                    return View();
+                    return Json(new { deleteResult = false });
                 }
+                DeleteManyModel<int> questionIDs = new DeleteManyModel<int>();
+                questionIDs.ListItem.AddRange(s);
+                var result = await _examService.DeleteMany(questionIDs);
+                return Json(new { deleteResult = result.success });
             }
-            ViewData["msg"] = getExamRes.msg;
-            return View();
+            catch
+            {
+                return Json(new { deleteResult = false });
+            }
         }
 
         public async Task<IActionResult> AttempQuizOptions([FromQuery]int examID)
