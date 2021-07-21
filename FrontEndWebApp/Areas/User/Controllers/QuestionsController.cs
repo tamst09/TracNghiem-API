@@ -1,10 +1,15 @@
-﻿using FrontEndWebApp.Areas.User.Services;
+﻿using ExcelDataReader;
+using FrontEndWebApp.Areas.User.Services;
 using FrontEndWebApp.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using TN.ViewModels.Catalog.Question;
 using TN.ViewModels.Common;
@@ -15,12 +20,15 @@ namespace FrontEndWebApp.Areas.User.Controllers
     public class QuestionsController : Controller
     {
         private readonly IQuestionService _questionService;
-        public IExamService _examService;
+        private readonly IExamService _examService;
+        private readonly IHostingEnvironment _appEnvironment;
 
-        public QuestionsController(IQuestionService questionService, IExamService examService)
+
+        public QuestionsController(IQuestionService questionService, IExamService examService, IHostingEnvironment appEnvironment)
         {
             _questionService = questionService;
             _examService = examService;
+            _appEnvironment = appEnvironment;
         }
 
         public IActionResult Index()
@@ -73,13 +81,12 @@ namespace FrontEndWebApp.Areas.User.Controllers
                     return Json(questionsModel);
                 }
             }
-            return Json(new { success=false, msg="No exam found." });
+            return Json(new { success = false, msg = "No exam found." });
         }
 
         public IActionResult Create(int examID)
         {
             ViewData["msg"] = string.Empty;
-            //return PartialView(new QuestionModel() { ExamID = examID });
             return View(new QuestionModel() { ExamID = examID });
         }
         [HttpPost]
@@ -87,17 +94,6 @@ namespace FrontEndWebApp.Areas.User.Controllers
         {
             ViewData["msg"] = string.Empty;
 
-            //var createResponse = await _questionService.Create(model);
-            //ViewData["msg"] = createResponse.msg;
-
-            //return RedirectToAction("ManageQuestions", "Exams", new { examID = model.ExamID });
-            //foreach (var item in newQuestions)
-            //{
-            //    var content = item.QuesContent;
-            //    var op1 = item.Option1;
-            //    var answer = item.Answer;
-            //    var examId = item.ExamID;
-            //}
             var createResult = await _questionService.Create(new QuestionModel()
             {
                 ExamID = int.Parse(request.examId),
@@ -121,6 +117,77 @@ namespace FrontEndWebApp.Areas.User.Controllers
             public string option4 { get; set; }
             public string answer { get; set; }
             public string examId { get; set; }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ImportFromFile(int examID, IFormCollection collection)
+        {
+            var files = HttpContext.Request.Form.Files;
+            List<AddQuestionRequest> questions = new List<AddQuestionRequest>();
+            foreach (var item in files)
+            {
+                if (item.Length > 0 && item != null)
+                {
+                    string file_name = Guid.NewGuid().ToString().Replace("-", "") + "_" + item.FileName;
+                    string uploads = Path.Combine(_appEnvironment.WebRootPath, "files");
+                    string urlPart = uploads + "/" + file_name;
+                    string extension = Path.GetExtension(urlPart);
+                    if (extension == ".xls" || extension == ".xslx" || extension == ".xlsx")
+                    {
+                        using (var fileStream = new FileStream(Path.Combine(uploads, file_name), FileMode.Create))
+                        {
+                            await item.CopyToAsync(fileStream);
+                        }
+                        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                        using (var stream = System.IO.File.Open(urlPart, FileMode.Open, FileAccess.Read))
+                        {
+                            using (var reader = ExcelReaderFactory.CreateReader(stream))
+                            {
+                                do
+                                {
+                                    while (reader.Read())
+                                    {
+                                        try
+                                        {
+                                            questions.Add(new AddQuestionRequest
+                                            {
+                                                QuesContent = reader.GetValue(0).ToString(),
+                                                Option1 = reader.GetValue(1).ToString(),
+                                                Option2 = reader.GetValue(2).ToString(),
+                                                Option3 = reader.GetValue(3).ToString(),
+                                                Option4 = reader.GetValue(4).ToString(),
+                                                Answer = reader.GetValue(5).ToString(),
+                                                ExamID = examID
+                                            });
+                                        }
+                                        catch (NullReferenceException e)
+                                        {
+                                            break;
+                                        }
+                                    }
+                                } while (reader.NextResult());
+                            }
+
+                        }
+                    }
+                }
+            }
+            if (questions.Count > 0)
+            {
+                AddListQuestionRequest addListQuestionRequest = new AddListQuestionRequest();
+                addListQuestionRequest.Questions.AddRange(questions);
+                var addResult = await _questionService.AddListQuestions(addListQuestionRequest);
+                if (addResult.success)
+                {
+                    TempData["ImportMsg"] = "Imported!";
+                }
+                else
+                {
+                    TempData["ImportMsg"] = "Sorry! Some errors happend!";
+                }
+            }
+            TempData["ImportMsg"] = "This file not supported.";
+            return RedirectToAction(nameof(GetByExam), new { examID = examID });
         }
 
         [HttpPost]

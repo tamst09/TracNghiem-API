@@ -17,9 +17,9 @@ namespace FrontEndWebApp.Areas.User.Controllers
     [Area("User")]
     public class ExamsController : Controller
     {
-        public IExamService _examService;
-        public ICategoryService _categoryService;
-        public IQuestionService _questionService;
+        private readonly IExamService _examService;
+        private readonly ICategoryService _categoryService;
+        private readonly IQuestionService _questionService;
 
         public ExamsController(IExamService examService, ICategoryService categoryService, IQuestionService questionService)
         {

@@ -53,6 +53,34 @@ namespace TN.BackendAPI.Services.Service
             }
         }
 
+        public async Task<ResponseBase> AddListQuestions(AddListQuestionRequest request)
+        {
+            foreach (var question in request.Questions)
+            {
+                Question newQuestion = new Question()
+                {
+                    ExamID = question.ExamID,
+                    Option1 = question.Option1,
+                    Option2 = question.Option2,
+                    Option3 = question.Option3,
+                    Option4 = question.Option4,
+                    Answer = question.Answer,
+                    isActive = true,
+                    QuesContent = question.QuesContent
+                };
+                _db.Questions.Add(newQuestion);
+            }
+            try
+            {
+                _db.SaveChanges();
+                return new ResponseBase();
+            }
+            catch (Exception e)
+            {
+                return new ResponseBase(success: false, msg: e.Message);
+            }
+        }
+
         public async Task<bool> Delete(int id)
         {
             var question = await _db.Questions.FirstOrDefaultAsync(q => q.ID == id);

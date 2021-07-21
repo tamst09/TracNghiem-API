@@ -20,5 +20,6 @@ namespace TN.BackendAPI.Services.IServices
         Task<bool> Delete(int id);
         Task<bool> DeleteMany(DeleteManyModel<int> lstId);
         Task<bool> Create(QuestionModel model);
+        Task<ResponseBase> AddListQuestions(AddListQuestionRequest request);
     }
 }

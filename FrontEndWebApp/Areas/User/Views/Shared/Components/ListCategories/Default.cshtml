@@ -1,0 +1,7 @@
+﻿@model List<TN.Data.Entities.Category>
+<a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-route-categoryId="0">All</a>
+@if (Model != null)
+{
+    @foreach (var categoryItem in Model)
+    {<a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-route-categoryId="@categoryItem.ID">@categoryItem.CategoryName</a>}
+}

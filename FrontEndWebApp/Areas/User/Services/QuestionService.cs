@@ -1,16 +1,10 @@
 ﻿using FrontEndWebApp.Services;
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 using TN.Data.Entities;
 using TN.ViewModels.Catalog.Question;
 using TN.ViewModels.Common;
-using TN.ViewModels.Settings;
 
 namespace FrontEndWebApp.Areas.User.Services
 {
@@ -26,6 +20,12 @@ namespace FrontEndWebApp.Areas.User.Services
         public async Task<ResponseBase> Create(QuestionModel model)
         {
             var response = await _apiHelper.CommandAsync(HttpMethod.Post, "/api/Questions", model);
+            return response;
+        }
+
+        public async Task<ResponseBase> AddListQuestions(AddListQuestionRequest model)
+        {
+            var response = await _apiHelper.CommandAsync(HttpMethod.Post, "/api/Questions/AddListQuestions", model);
             return response;
         }
 

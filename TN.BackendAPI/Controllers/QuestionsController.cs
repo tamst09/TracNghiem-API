@@ -32,7 +32,7 @@ namespace TN.BackendAPI.Controllers
             return Ok(new ResponseBase<List<Question>>(data: allQuestions));
         }
 
-        // GET: api/Questions/GetByExam
+        // POST: api/Questions/GetByExam
         [HttpPost("GetByExam")]
         public async Task<IActionResult> GetByExam([FromBody] GetQuestionsByExamRequest request)
         {
@@ -47,6 +47,15 @@ namespace TN.BackendAPI.Controllers
             var result = await _questionService.CountQuestions();
             return Ok(new ResponseBase<CountQuestionModel>(data: new CountQuestionModel() { NumberQuestions = result }));
         }
+
+        // POST: api/Questions/AddListQuestions
+        [HttpPost("AddListQuestions")]
+        public async Task<IActionResult> AddListQuestions(AddListQuestionRequest request)
+        {
+            var created = await _questionService.AddListQuestions(request);
+            return Ok(created);
+        }
+
         // POST: api/Questions
         [HttpPost]
         public async Task<IActionResult> Create(QuestionModel model)

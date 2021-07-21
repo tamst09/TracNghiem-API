@@ -80,12 +80,7 @@
                             Topics
                         </button>
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-route-categoryId="0">All</a>
-                            @if (lstCategory != null)
-                            {
-                                @foreach (var categoryItem in lstCategory)
-                                {<a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-route-categoryId="@categoryItem.ID">@categoryItem.CategoryName</a>}
-                            }
+                            @await Component.InvokeAsync("ListCategories")
                         </div>
                     </div>
                     <div class="main">
