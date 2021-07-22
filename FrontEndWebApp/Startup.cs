@@ -84,7 +84,6 @@ namespace FrontEndWebApp
                         return System.Threading.Tasks.Task.CompletedTask;
                     });
                 });
-                app.UseDeveloperExceptionPage();
             }
             else
             {
