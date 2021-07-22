@@ -1,0 +1,37 @@
+﻿@model TN.ViewModels.Common.PagedResult<TN.Data.Entities.Question>
+@{
+    Layout = null;
+}
+
+
+@foreach (var item in Model.Items)
+{
+    <div class="content">
+        <p class="text-justify h4 pb-lg-1 font-weight-bold">
+            @item.QuesContent
+        </p>
+        <div class="options py-3">
+            <label class="rounded p-2 option">
+                @item.Option1
+                <input onchange="onSelect(this)" data-stt="@item.ID" type="radio" name="radio-@item.ID" value="A">
+                <span class="checkmark"></span>
+            </label>
+            <label class="rounded p-2 option">
+                @item.Option2
+                <input onchange="onSelect(this)" data-stt="@item.ID" type="radio" name="radio-@item.ID" value="B">
+                <span class="checkmark"></span>
+            </label>
+            <label class="rounded p-2 option">
+                @item.Option3
+                <input onchange="onSelect(this)" data-stt="@item.ID" type="radio" name="radio-@item.ID" value="C">
+                <span class="checkmark"></span>
+            </label>
+            <label class="rounded p-2 option">
+                @item.Option4
+                <input onchange="onSelect(this)" data-stt="@item.ID" type="radio" name="radio-@item.ID" value="D">
+                <span class="checkmark"></span>
+            </label>
+        </div>
+    </div>
+    <hr />
+}

@@ -1,5 +1,5 @@
-﻿@model TN.Data.Entities.Exam
-@if (Model.Time == 0)
+﻿@model TN.ViewModels.Catalog.Exam.ExamOptions
+@if (Model.NoCountDown)
 {
     <div class="row">
         <h5 class="ml-lg-auto mr-lg-auto">You will have unlimited time to finish this exam.</h5>
@@ -8,30 +8,33 @@
 else
 {
     <div class="row">
-        <h5 class="ml-lg-auto mr-lg-auto">You will have @(Model.Time/60) minute(s) once you begin your attemp.</h5>
+        <h5 class="ml-lg-auto mr-lg-auto">You will have @(Model.Minute) minute(s)<span>@(Model.Second!=0?Model.Second+" second(s)":string.Empty)</span> once you begin your attemp.</h5>
     </div>
 }
 
 <div class="row">
-    <h5 class="ml-lg-auto mr-lg-auto">Number of questions: @(Model.Questions.Count)</h5>
+    <h5 class="ml-lg-auto mr-lg-auto">Number of questions: @(Model.CountQuestion)</h5>
 </div>
 <div class="row">
     <h5 class="ml-lg-auto mr-lg-auto">Good luck!</h5>
 </div>
 <hr />
-<form>
+<form asp-action="OnPostQuizOptions" asp-controller="Exams" asp-area="User" method="post">
     <div class="form-group row">
         <label for="countdown" class="ml-lg-auto mr-lg-auto d-inline control-label">
-            No countdown <input value="true" name="countdown" type="checkbox" id="countdown" class="d-inline" />
+            No countdown <input asp-for="NoCountDown" type="checkbox" class="d-inline" />
         </label>
     </div>
     <div class="row">
         <span class="ml-lg-auto mr-lg-auto text-danger">Check to disable time countdown</span>
     </div>
     <div class="form-group row">
-        <input type="hidden" value="@Model.ID" asp-for="ID" class="form-control" />
+        <input type="hidden" asp-for="CountQuestion" class="form-control" />
+        <input type="hidden" asp-for="Minute" class="form-control" />
+        <input type="hidden" asp-for="Second" class="form-control" />
+        <input type="hidden" value="@Model.ExamId" asp-for="ExamId" class="form-control" />
     </div>
     <div class="row form-group">
-        <input id="btnDoQuiz" type="button" value="Attemp quiz now" class="mr-lg-auto ml-lg-auto btn btn-primary" />
+        <input id="btnDoQuiz" type="submit" value="Attemp quiz now" class="mr-lg-auto ml-lg-auto btn btn-primary" />
     </div>
 </form>

@@ -52,6 +52,7 @@ namespace FrontEndWebApp
             services.AddScoped<IExamService, ExamService>();
             services.AddScoped<IQuestionService, QuestionService>();
             services.AddScoped<IFavoriteExamService, FavoriteExamService>();
+            services.AddScoped<IResultService, ResultService>();
 
             services.AddControllersWithViews();
             services.AddHttpClient();

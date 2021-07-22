@@ -53,6 +53,7 @@ namespace TN.BackendAPI
             services.AddScoped<IQuestionService, QuestionService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IResultService, ResultService>();
             services.AddScoped<IFacebookAuth, FacebookAuthService>();
             services.AddScoped<IEmailSender, EmailSender>(i =>
                 new EmailSender(

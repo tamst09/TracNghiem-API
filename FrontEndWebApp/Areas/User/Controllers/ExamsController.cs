@@ -8,8 +8,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TN.Data.Entities;
+using TN.ViewModels.Catalog.Exam;
 using TN.ViewModels.Catalog.Exams;
 using TN.ViewModels.Catalog.Question;
+using TN.ViewModels.Catalog.Result;
 using TN.ViewModels.Common;
 
 namespace FrontEndWebApp.Areas.User.Controllers
@@ -20,12 +22,14 @@ namespace FrontEndWebApp.Areas.User.Controllers
         private readonly IExamService _examService;
         private readonly ICategoryService _categoryService;
         private readonly IQuestionService _questionService;
+        private readonly IResultService _resultService;
 
-        public ExamsController(IExamService examService, ICategoryService categoryService, IQuestionService questionService)
+        public ExamsController(IExamService examService, ICategoryService categoryService, IQuestionService questionService, IResultService resultService)
         {
             _examService = examService;
             _categoryService = categoryService;
             _questionService = questionService;
+            _resultService = resultService;
         }
 
         public async Task<IActionResult> Index()
@@ -86,149 +90,214 @@ namespace FrontEndWebApp.Areas.User.Controllers
             var getExamResponse = await _examService.GetByID(examID);
             if(getExamResponse.success)
             {
-                return PartialView(getExamResponse.data);
+                var option = new ExamOptions()
+                {
+                    CountQuestion = getExamResponse.data.Questions.Count,
+                    Minute = getExamResponse.data.Time / 60,
+                    Second = getExamResponse.data.Time % 60,
+                    NoCountDown = getExamResponse.data.Time == 0 ? true : false,
+                    ExamId = getExamResponse.data.ID
+                };
+                return PartialView(option);
             }
             return PartialView();
         }
 
         [HttpPost]
-        public IActionResult AttempQuiz([FromQuery]ExamModel model,[FromQuery] bool countdown = false)
+        public async Task<IActionResult> OnPostQuizOptions(ExamOptions options)
         {
-            if (model.ID>0)
-            {
-                //return RedirectToAction("DoingQuiz", new { examID = model.ID });
-                return Json(new { examID = model.ID });
-            }
-            //if (exam != null && exam.data != null)
-            //{
-            //    return PartialView(exam);
-            //}
-            return Json(new { });
+            return RedirectToAction(nameof(AttempQuiz), options);
         }
 
-        public async Task<IActionResult> DoingQuiz([FromQuery] int examID, int pageIndex = 1)
+        [HttpGet]
+        public async Task<IActionResult> AttempQuiz(ExamOptions options, int pageIndex=1)
         {
+            ViewBag.ExamId = options.ExamId;
             var pagingRequest = new QuestionPagingRequest()
             {
-                ExamID = examID,
+                ExamID = options.ExamId,
                 PageIndex = pageIndex,
                 PageSize = 5
             };
             var res = await _questionService.GetPagedQuestion(pagingRequest);
-            
-
-            if (res != null && res.data != null)
+            if (res.success)
             {
-                var examData = res.data;
-                if (examData.Items.Count == 0 || examData.Items == null)
+                var questionPaged = res.data;
+                if (questionPaged.Items.Count == 0)
                 {
                     return RedirectToAction("Index", "Home");
                 }
-                var time = examData.Items.FirstOrDefault().Exam.Time;
-                if (time == 0)
+                if (options.NoCountDown)
                 {
-                    ViewBag.min = null;
-                    ViewBag.sec = null;
+                    ViewBag.min = 0;
+                    ViewBag.sec = 0;
                 }
                 else
                 {
-                    ViewBag.min = time/60;
-                    ViewBag.sec = time%60;
+                    ViewBag.min = options.Minute;
+                    ViewBag.sec = options.Second;
                 }
-                Global.results = new List<Result>();
-                var userID = Int32.Parse(User.FindFirst("UserId").Value);
-                foreach (var i in examData.Items)
-                {
-                    Global.results.Add(new Result() { UserID = userID, QuestionID = i.ID, OptChoose = "N" });
-                }
-                Global.questions = examData.Items;
-                return View(examData);
+                var temp = new List<AddResultRequest>();
+                return View(questionPaged);
             }
             return View();
         }
+
+        public async Task<IActionResult> ListQuestionPartial(int examId, int pageIndex = 1)
+        {
+            var pagingRequest = new QuestionPagingRequest()
+            {
+                ExamID = examId,
+                PageIndex = pageIndex,
+                PageSize = 5
+            };
+            var res = await _questionService.GetPagedQuestion(pagingRequest);
+            if (res.success)
+            {
+                return PartialView("_ListDoingQuestions", res.data);
+            }
+            return PartialView("_ListDoingQuestions");
+        }
+
+        //public async Task<IActionResult> DoingQuiz([FromQuery] int examID, int pageIndex = 1)
+        //{
+        //    var pagingRequest = new QuestionPagingRequest()
+        //    {
+        //        ExamID = examID,
+        //        PageIndex = pageIndex,
+        //        PageSize = 5
+        //    };
+        //    var res = await _questionService.GetPagedQuestion(pagingRequest);
+
+
+        //    if (res != null && res.data != null)
+        //    {
+        //        var examData = res.data;
+        //        if (examData.Items.Count == 0 || examData.Items == null)
+        //        {
+        //            return RedirectToAction("Index", "Home");
+        //        }
+        //        var time = examData.Items.FirstOrDefault().Exam.Time;
+        //        if (time == 0)
+        //        {
+        //            ViewBag.min = null;
+        //            ViewBag.sec = null;
+        //        }
+        //        else
+        //        {
+        //            ViewBag.min = time/60;
+        //            ViewBag.sec = time%60;
+        //        }
+        //        return View(examData);
+        //    }
+        //    return View();
+        //}
+
+        //[HttpPost]
+        //public void SubmitOne(Result form)
+        //{
+        //    bool isExist = false;
+        //    var userID = Int32.Parse(User.FindFirst("UserId").Value);
+        //    Result result = new Result()
+        //    {
+        //        UserID = userID,
+        //        QuestionID = form.QuestionID,
+        //        OptChoose = form.OptChoose
+        //    };
+        //    foreach (var i in Global.results)
+        //    {
+        //        if (i.UserID == userID)
+        //        {
+        //            if (i.QuestionID == result.QuestionID)
+        //            {
+        //                i.OptChoose = result.OptChoose;
+        //                isExist = true;
+        //            }
+        //        }
+        //    }
+        //    if (!isExist)
+        //    {
+        //        Global.results.Add(result);
+        //        isExist = false;
+        //    }
+        //}
 
         [HttpPost]
-        public void SubmitOne(Result form)
+        public async Task<IActionResult> SubmitExam([FromBody] SubmitExamModel submitExamModel)
         {
-            bool isExist = false;
-            var userID = Int32.Parse(User.FindFirst("UserId").Value);
-            Result result = new Result()
+            if (submitExamModel == null)
             {
-                UserID = userID,
-                QuestionID = form.QuestionID,
-                OptChoose = form.OptChoose
-            };
-            foreach (var i in Global.results)
-            {
-                if (i.UserID == userID)
-                {
-                    if (i.QuestionID == result.QuestionID)
-                    {
-                        i.OptChoose = result.OptChoose;
-                        isExist = true;
-                    }
-                }
+                return Json("Null.");
             }
-            if (!isExist)
+            var addResultRequests = submitExamModel.Results.Select(t => new AddResultRequest()
             {
-                Global.results.Add(result);
-                isExist = false;
+                Choice = t.choice.ToUpper(),
+                QuestionId = int.Parse(t.questionId)
+            }).ToList();
+
+            AddListResultRequest request = new AddListResultRequest();
+            request.ResultRequests = addResultRequests;
+            var submit = await _resultService.AddListResult(request);
+            if (submit.success)
+            {
+                // Get Score
             }
+            
+            return Json("OK");
         }
 
-        public IActionResult SubmitTest()
+        public class SubmitExamModel
         {
-            ViewData["Score"] = 0;
-            int soCauDung = TinhSoCauDung(Int32.Parse(User.FindFirst("UserID").Value));
-            if (soCauDung == -1)
-                return View();
-            else
+            public List<ResultRequest> Results { get; set; }
+            public SubmitExamModel()
             {
-                ViewData["Score"] = TinhDiem(soCauDung, Global.questions.Count, 10);
+                Results = new List<ResultRequest>();
             }
-            if (Global.results.Count != 0)
-                return View(Global.results);
-            return View();
+        }
+        public class ResultRequest
+        {
+            public string questionId { get; set; }
+            public string choice { get; set; }
         }
 
-        public double TinhDiem(int socaudung, int tongsocau, int thangdiem)
-        {
-            double k = (double)(socaudung * thangdiem) / tongsocau;
-            return Math.Round(k, 2);
-        }
+        //public double TinhDiem(int socaudung, int tongsocau, int thangdiem)
+        //{
+        //    double k = (double)(socaudung * thangdiem) / tongsocau;
+        //    return Math.Round(k, 2);
+        //}
 
-        public int TinhSoCauDung(int UID)
-        {
-            int socauDung = 0;
-            List<Result> bailam = new List<Result>();
-            foreach (var item in Global.results)    //filter by User ID
-            {
-                if (item.UserID == UID)
-                {
-                    bailam.Add(item);
-                }
-            }
-            if (bailam.Count == 0)
-            {
-                return -1;  // user not found
-            }
-            else
-            {
-                foreach (var b in bailam)
-                {
-                    foreach (var cauhoi in Global.questions)
-                    {
-                        if (b.QuestionID == cauhoi.ID)
-                        {
-                            if (b.OptChoose.ToLower() == cauhoi.Answer.ToLower())
-                            {
-                                socauDung++;
-                            }
-                        }
-                    }
-                }
-                return socauDung;
-            }
-        }
+        //public int TinhSoCauDung(int UID)
+        //{
+        //    int socauDung = 0;
+        //    List<Result> bailam = new List<Result>();
+        //    foreach (var item in Global.results)    //filter by User ID
+        //    {
+        //        if (item.UserID == UID)
+        //        {
+        //            bailam.Add(item);
+        //        }
+        //    }
+        //    if (bailam.Count == 0)
+        //    {
+        //        return -1;  // user not found
+        //    }
+        //    else
+        //    {
+        //        foreach (var b in bailam)
+        //        {
+        //            foreach (var cauhoi in Global.questions)
+        //            {
+        //                if (b.QuestionID == cauhoi.ID)
+        //                {
+        //                    if (b.OptChoose.ToLower() == cauhoi.Answer.ToLower())
+        //                    {
+        //                        socauDung++;
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        return socauDung;
+        //    }
+        //}
     }
 }

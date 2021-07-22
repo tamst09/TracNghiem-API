@@ -25,7 +25,7 @@ namespace TN.BackendAPI.Controllers
             _examUserService = examUserService;
         }
 
-        //=============================== ADMIN ===================================
+        #region Admin
         [Authorize(Roles = "admin")]
         [HttpGet("Admin")]
         public async Task<IActionResult> AdminGetExams()
@@ -96,8 +96,9 @@ namespace TN.BackendAPI.Controllers
         {
             return Ok(new ResponseBase<CountExamModel>(data: await _examAdminService.Count()));
         }
-        //----------------------------------
-        //================================== USER ===================================
+        #endregion
+
+        #region User
         [HttpGet]
         public async Task<IActionResult> UserGetAll()
         {
@@ -162,9 +163,8 @@ namespace TN.BackendAPI.Controllers
             }
             return Ok(new ResponseBase(success: false, msg: "Failed."));
         }
+        #endregion
 
-        //----------------------------------
-        //================================== COMMON =====================================
         [HttpPost]
         public async Task<IActionResult> Create(ExamModel model)
         {

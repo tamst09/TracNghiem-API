@@ -1,0 +1,193 @@
+﻿@model TN.ViewModels.Common.PagedResult<TN.Data.Entities.Question>
+@{
+    Layout = null;
+    var list = Model.Items as List<TN.Data.Entities.Question>;
+    string phut = "00";
+    string giay = "00";
+    if (ViewBag.min + ViewBag.sec > 0)
+    {
+        phut = ViewBag.min > 9 ? ViewBag.min.ToString() : "0" + ViewBag.min.ToString();
+        giay = ViewBag.sec > 9 ? ViewBag.sec.ToString() : "0" + ViewBag.sec.ToString();
+    }
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Doing exam</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="~/doQuiz/css/styles.css" rel="stylesheet" />
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+    <script src='https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.bundle.min.js'></script>
+</head>
+<body>
+    @*<div class="row">
+            <div class="col-sm-4">
+                <div class="card position-fixed" style="width: 17rem;">
+                    <div class="card-body">
+                        <div class="text-left">
+                            <input type="hidden" id="examIdValue" value="@ViewBag.ExamId" />
+                            <strong style="font-size: 12pt; color: blue;">
+                                Time remaining: <span style="color:red" id="timer" class="timer">@phut:@giay</span>
+                            </strong>
+                        </div>
+                        <a data-toggle="modal" data-target="#exampleModalCenter" class="btn-outline-danger" style="color:royalblue; cursor:pointer">Finish...</a>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+    <div class="navbar navbar-dark bg-dark fixed-top">
+        <input type="hidden" id="examIdValue" value="@ViewBag.ExamId" />
+        <div class="nav-item ml-auto mr-3 text-white">
+            Time remaining: <span style="color:red" id="timer" class="timer"></span>
+        </div>
+        <a data-toggle="modal" data-target="#exampleModalCenter" class="btn btn-danger">Finish...</a>
+    </div>
+    <div id="questions-list" class="wrapper bg-white rounded" style="margin-top:60px">
+
+    </div>
+    <div class="row">
+        <div class="col-1 mx-auto my-4 text-center">
+            <select onchange="onPageIndexChange(this)" id="pageIndexSelect" class="form-control form-control-sm">
+                <option value="1" selected>1</option>
+                @for (int i = 2; i <= Model.TotalPages; i++)
+                {
+                    <option value="@i">@i</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Confirm</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Do you want to submit ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="onSubmit()" class="btn btn-primary" style="padding-left:20px;padding-right:20px">Submit</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script src="~/js/jquery.countdown.js"></script>
+<script>
+    loadData = function () {
+        let examId = $("input#examIdValue").val();
+        let selectedPageIndex = $("select#pageIndexSelect").val();
+        let path = `/User/Exams/ListQuestionPartial?examId=${examId}`;
+        if (selectedPageIndex) {
+            path = `/User/Exams/ListQuestionPartial?examId=${examId}&pageIndex=${selectedPageIndex}`
+        }
+        $.ajax({
+            url: path,
+            method: "GET",
+            dataType: "html",
+            success: function (result) {
+                $("#questions-list").html(result);
+                let items = sessionStorage.getItem('_result_temp');
+                if (items) {
+                    storedList = JSON.parse(items);
+                    storedList.forEach(item => {
+                        $(`input[type=radio][name=radio-${item.questionId}][value=${item.choice}]`).prop('checked', true);
+                    });
+                }
+                startTimer();
+            }
+        });
+    }
+    loadData();
+
+    var min = @ViewBag.min;
+    var sec = @ViewBag.sec;
+    function startTimer(noCountDown) {
+        if (!noCountDown) {
+            var startTime = new Date().getTime();
+            storedTime = sessionStorage.getItem('start_time');
+            if (!storedTime) {
+                sessionStorage.setItem('start_time', JSON.stringify(startTime));
+            }
+            else {
+                startTime = JSON.parse(storedTime);
+            }
+
+            var endTime = startTime + (min*60+sec)*1000;
+            $('#timer').countdown(endTime)
+                .on('update.countdown', function (event) {
+                    var $this = $(this);
+                    $this.html(event.strftime('%H:%M:%S'));
+                }).on('finish.countdown', function (event) {
+                    console.log("Done")
+                });;
+        }
+    }
+
+    function onPageIndexChange(element) {
+        loadData();
+        $('html, body').animate({ scrollTop: 0 }, 'fast');
+    }
+
+    function onSelect(element) {
+        const result = {
+            questionId: element.dataset.stt,
+            choice: element.value
+        }
+        let resultList = [];
+
+        let lst = sessionStorage.getItem('_result_temp');
+        if (lst) {
+            storedList = JSON.parse(lst);
+            const found = storedList.find(item => item.questionId === result.questionId);
+            if (found) {
+                found.choice = result.choice
+            }
+            else {
+                storedList.push(result);
+            }
+            sessionStorage.setItem('_result_temp', JSON.stringify(storedList));
+        }
+        else {
+            resultList.push(result);
+            sessionStorage.setItem('_result_temp', JSON.stringify(resultList));
+        }
+    }
+
+    var isSubmit = false;
+    function onSubmit() {
+        let path = `/User/Exams/SubmitExam`;
+        let dataSent = [];
+        let resultList = sessionStorage.getItem('_result_temp');
+        if (resultList) {
+            dataSent = JSON.parse(resultList);
+        }
+        console.log(dataSent)
+        console.log(JSON.stringify({ abc: dataSent }))
+        $.ajax({
+            url: path,
+            method: "POST",
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ Results: dataSent }),
+            success: function (response) {
+                console.log(response);
+            },
+            complete: function () {
+                isSubmit = true;
+            }
+        });
+    }
+    $(window).bind('beforeunload', function () {
+        if (!isSubmit)
+            return "Do you want to exit this page?";
+    });
+</script>
